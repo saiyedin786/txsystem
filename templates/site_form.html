@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if mode == 'create' %}Add New Site{% else %}Edit Site: {{ site['site_id'] }}{% endif %} &bull; CPAN Transmission System
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-custom bg-white shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                <h5 class="mb-0 fw-bold text-secondary">
+                    {% if mode == 'create' %}
+                        <i class="fa-solid fa-circle-plus me-2 text-primary"></i>Add New CPAN Site
+                    {% else %}
+                        <i class="fa-solid fa-pen-to-square me-2 text-warning"></i>Edit CPAN Site: <span class="text-primary">{{ site['site_id'] }}</span>
+                    {% endif %}
+                </h5>
+                <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="POST" action="{% if mode == 'create' %}{{ url_for('create_site') }}{% else %}{{ url_for('edit_site', site_id=site['site_id']) }}{% endif %}">
+                    
+                    <div class="row g-3 mb-3">
+                        <!-- Site ID -->
+                        <div class="col-md-6">
+                            <label for="site_id" class="form-label fw-semibold">Site ID <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="site_id" name="site_id" 
+                                   value="{{ form_data.get('site_id', '') }}" 
+                                   placeholder="e.g. T4GJ28ADAHDP9AMD043" 
+                                   {% if mode == 'edit' %}readonly disabled{% else %}required{% endif %}>
+                            <div class="form-text">Unique system identifier for the CPAN site.</div>
+                        </div>
+
+                        <!-- eNodeB Address -->
+                        <div class="col-md-6">
+                            <label for="enodeb_address" class="form-label fw-semibold">eNodeB IP Address</label>
+                            <input type="text" class="form-control" id="enodeb_address" name="enodeb_address" 
+                                   value="{{ form_data.get('enodeb_address', '') }}" 
+                                   placeholder="e.g. 10.113.71.82">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <!-- Site Name -->
+                        <label for="site_name" class="form-label fw-semibold">Site Name</label>
+                        <input type="text" class="form-control" id="site_name" name="site_name" 
+                               value="{{ form_data.get('site_name', '') }}" 
+                               placeholder="e.g. AMD043_Shahibaug or AMD163agad">
+                        <div class="form-text">If left unfilled, SSA and Location will be auto-derived if empty.</div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- SSA -->
+                        <div class="col-md-6">
+                            <label for="ssa" class="form-label fw-semibold">SSA Code / Area</label>
+                            <input type="text" class="form-control" id="ssa" name="ssa" 
+                                   value="{{ form_data.get('ssa', '') }}" 
+                                   placeholder="e.g. AMD043 or Ahmedabad">
+                        </div>
+
+                        <!-- Location -->
+                        <div class="col-md-6">
+                            <label for="Location" class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control" id="Location" name="Location" 
+                                   value="{{ form_data.get('Location', '') }}" 
+                                   placeholder="e.g. Shahibaug">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <!-- Network Type -->
+                        <div class="col-md-6">
+                            <label for="cpan/maan/vsat" class="form-label fw-semibold">Network Type (CPAN / MAAN / VSAT)</label>
+                            <select class="form-select" id="cpan/maan/vsat" name="cpan/maan/vsat">
+                                {% set current_type = form_data.get('cpan/maan/vsat', '') %}
+                                <option value="CPAN" {% if current_type == 'CPAN' %}selected{% endif %}>CPAN</option>
+                                <option value="MAAN" {% if current_type == 'MAAN' %}selected{% endif %}>MAAN</option>
+                                <option value="VSAT" {% if current_type == 'VSAT' %}selected{% endif %}>VSAT</option>
+                                <option value="" {% if not current_type %}selected{% endif %}>-- None / Other --</option>
+                            </select>
+                        </div>
+
+                        <!-- VLAN -->
+                        <div class="col-md-6">
+                            <label for="vlan" class="form-label fw-semibold">VLAN</label>
+                            <input type="text" class="form-control" id="vlan" name="vlan" 
+                                   value="{{ form_data.get('vlan', '') }}" 
+                                   placeholder="e.g. 1024">
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-network-wired me-2"></i>TX System Details</h6>
+
+                    <div class="row g-3 mb-4">
+                        <!-- TX System IP -->
+                        <div class="col-md-4">
+                            <label for="tx-system-ip" class="form-label fw-semibold">TX System IP</label>
+                            <input type="text" class="form-control" id="tx-system-ip" name="tx-system-ip" 
+                                   value="{{ form_data.get('tx-system-ip', '') }}" 
+                                   placeholder="e.g. 10.200.15.2">
+                        </div>
+
+                        <!-- TX System Location -->
+                        <div class="col-md-4">
+                            <label for="tx-system-location" class="form-label fw-semibold">TX System Location</label>
+                            <input type="text" class="form-control" id="tx-system-location" name="tx-system-location" 
+                                   value="{{ form_data.get('tx-system-location', '') }}" 
+                                   placeholder="e.g. Hub Room A">
+                        </div>
+
+                        <!-- TX System Port -->
+                        <div class="col-md-4">
+                            <label for="tx-system-port" class="form-label fw-semibold">TX System Port</label>
+                            <input type="text" class="form-control" id="tx-system-port" name="tx-system-port" 
+                                   value="{{ form_data.get('tx-system-port', '') }}" 
+                                   placeholder="e.g. Eth-1/0/1">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% if mode == 'edit' %}{{ url_for('view_site', site_id=site['site_id']) }}{% else %}{{ url_for('index') }}{% endif %}" class="btn btn-light border px-4">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

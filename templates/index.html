@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard &bull; CPAN Transmission System{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-primary shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Total Database Records</div>
+                    <div class="h3 mb-0 fw-bold text-dark" id="metric-total">{{ total_records }}</div>
+                </div>
+                <div class="bg-primary-subtle text-primary p-3 rounded-circle">
+                    <i class="fa-solid fa-database fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-success shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Filtered Records</div>
+                    <div class="h3 mb-0 fw-bold text-dark" id="metric-filtered">{{ filtered_count }}</div>
+                </div>
+                <div class="bg-success-subtle text-success p-3 rounded-circle">
+                    <i class="fa-solid fa-filter fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-info shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Unique SSAs</div>
+                    <div class="h3 mb-0 fw-bold text-dark" id="metric-ssas">{{ unique_ssas|length }}</div>
+                </div>
+                <div class="bg-info-subtle text-info p-3 rounded-circle">
+                    <i class="fa-solid fa-map-location-dot fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="card card-custom p-3 mb-4 bg-white shadow-sm">
+    <form id="search-form" method="GET" action="{{ url_for('index') }}" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                    <i id="search-icon" class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+                <input type="text" id="search-input" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search by Site ID, Name, SSA, Location, eNodeB IP, TX IP, VLAN..." autocomplete="off">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="ssa-select" name="ssa" class="form-select">
+                <option value="">-- Filter by SSA (All) --</option>
+                {% for s in unique_ssas %}
+                    <option value="{{ s }}" {% if selected_ssa == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select id="per-page-select" name="per_page" class="form-select">
+                <option value="25" {% if per_page == 25 %}selected{% endif %}>25 per page</option>
+                <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
+                <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i> Apply</button>
+            <a href="{{ url_for('index') }}" id="clear-search-btn" class="btn btn-outline-secondary {% if not query and not selected_ssa %}d-none{% endif %}">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Records Table Card (100% Viewport Width, Zero Horizontal Scroll) -->
+<div class="card card-custom bg-white overflow-hidden shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+        <h5 class="mb-0 fw-bold text-secondary">
+            <i class="fa-solid fa-list me-2"></i>CPAN Transmission Site Records
+        </h5>
+        <a href="{{ url_for('create_site') }}" class="btn btn-sm btn-primary fw-semibold">
+            <i class="fa-solid fa-plus me-1"></i> Add Site
+        </a>
+    </div>
+
+    <div class="w-100 px-0">
+        <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%; font-size: 0.82rem;">
+            <thead class="table-light text-secondary small text-uppercase">
+                <tr>
+                    <th scope="col" style="width: 3%;" class="px-1 text-center">#</th>
+                    <th scope="col" style="width: 13%;" class="px-1">Site ID</th>
+                    <th scope="col" style="width: 14%;" class="px-1">Site Name</th>
+                    <th scope="col" style="width: 9%;" class="px-1">eNodeB IP</th>
+                    <th scope="col" style="width: 7%;" class="px-1">SSA</th>
+                    <th scope="col" style="width: 9%;" class="px-1">Location</th>
+                    <th scope="col" style="width: 5%;" class="px-1 text-center">Type</th>
+                    <th scope="col" style="width: 9%;" class="px-1">TX IP</th>
+                    <th scope="col" style="width: 9%;" class="px-1">TX Loc</th>
+                    <th scope="col" style="width: 13%;" class="px-1">TX Port</th>
+                    <th scope="col" style="width: 4%;" class="px-1 text-center">VLAN</th>
+                    <th scope="col" style="width: 5%;" class="px-1 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="records-tbody">
+                {% if records %}
+                    {% for rec in records %}
+                        {% set row_num = (page - 1) * per_page + loop.index %}
+                        <tr>
+                            <td class="text-muted small fw-semibold px-1 text-center">{{ row_num }}</td>
+                            <td class="px-1 text-break">
+                                <a href="{{ url_for('view_site', site_id=rec['site_id']) }}" class="fw-bold text-decoration-none text-primary">
+                                    {{ rec['site_id'] }}
+                                </a>
+                            </td>
+                            <td class="fw-semibold text-dark px-1 text-break">{{ rec['site_name'] }}</td>
+                            <td class="px-1 text-break"><code class="text-dark">{{ rec['enodeb_address'] or '-' }}</code></td>
+                            <td class="px-1 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">{{ rec['ssa'] or '-' }}</span></td>
+                            <td class="px-1 text-break">{{ rec['Location'] or '-' }}</td>
+                            <td class="px-1 text-center">
+                                {% set type_val = rec['cpan/maan/vsat'].upper() %}
+                                {% if 'CPAN' in type_val %}
+                                    <span class="badge badge-cpan px-1 py-1">CPAN</span>
+                                {% elif 'MAAN' in type_val %}
+                                    <span class="badge badge-maan px-1 py-1">MAAN</span>
+                                {% elif 'VSAT' in type_val %}
+                                    <span class="badge badge-vsat px-1 py-1">VSAT</span>
+                                {% else %}
+                                    <span class="badge bg-secondary px-1 py-1">{{ rec['cpan/maan/vsat'] or '-' }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-1 text-break"><code>{{ rec['tx-system-ip'] or '-' }}</code></td>
+                            <td class="px-1 text-break">{{ rec['tx-system-location'] or '-' }}</td>
+                            <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.75rem;">{{ rec['tx-system-port'] or '-' }}</span></td>
+                            <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">{{ rec['vlan'] or '-' }}</span></td>
+                            <td class="px-1 text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('view_site', site_id=rec['site_id']) }}" class="btn btn-outline-info p-1" title="View Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('edit_site', site_id=rec['site_id']) }}" class="btn btn-outline-warning p-1" title="Edit Site">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger p-1" title="Delete Site" data-bs-toggle="modal" data-bs-target="#deleteModal{{ row_num }}">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Confirmation Modal -->
+                                <div class="modal fade text-start" id="deleteModal{{ row_num }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Deletion</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body py-4 text-wrap">
+                                                Are you sure you want to delete site <strong>{{ rec['site_id'] }}</strong> (<em>{{ rec['site_name'] }}</em>)?
+                                                <p class="text-danger small mb-0 mt-2"><i class="fa-solid fa-circle-exclamation me-1"></i>This action will remove the record from the database.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="POST" action="{{ url_for('delete_site', site_id=rec['site_id']) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Delete Site</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="12" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-folder-open fa-3x mb-3 d-block text-secondary opacity-50"></i>
+                            No matching site records found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Footer -->
+    <div id="pagination-footer" class="card-footer bg-white py-3 d-flex justify-content-between align-items-center border-top">
+        <div id="pagination-info" class="text-muted small">
+            Showing Page <strong id="page-curr">{{ page }}</strong> of <strong id="page-total">{{ total_pages }}</strong> (<span id="filtered-count-span">{{ filtered_count }}</span> items)
+        </div>
+        <nav aria-label="Page navigation">
+            <ul id="pagination-list" class="pagination pagination-sm mb-0">
+                <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('index', page=page-1, q=query, ssa=selected_ssa, per_page=per_page) }}">&laquo; Prev</a>
+                </li>
+                
+                {% for p in range(max(1, page - 2), min(total_pages + 1, page + 3)) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('index', page=p, q=query, ssa=selected_ssa, per_page=per_page) }}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+
+                <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('index', page=page+1, q=query, ssa=selected_ssa, per_page=per_page) }}">Next &raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('search-input');
+    const ssaSelect = document.getElementById('ssa-select');
+    const perPageSelect = document.getElementById('per-page-select');
+    const clearBtn = document.getElementById('clear-search-btn');
+    const searchIcon = document.getElementById('search-icon');
+    
+    const tbody = document.getElementById('records-tbody');
+    const metricFiltered = document.getElementById('metric-filtered');
+    const pageCurr = document.getElementById('page-curr');
+    const pageTotal = document.getElementById('page-total');
+    const filteredCountSpan = document.getElementById('filtered-count-span');
+    const paginationList = document.getElementById('pagination-list');
+    
+    let debounceTimer = null;
+    let currentPage = 1;
+
+    function renderTypeBadge(typeVal) {
+        if (!typeVal) return '<span class="badge bg-secondary px-1 py-1">-</span>';
+        const upper = typeVal.toUpperCase();
+        if (upper.includes('CPAN')) return '<span class="badge badge-cpan px-1 py-1">CPAN</span>';
+        if (upper.includes('MAAN')) return '<span class="badge badge-maan px-1 py-1">MAAN</span>';
+        if (upper.includes('VSAT')) return '<span class="badge badge-vsat px-1 py-1">VSAT</span>';
+        return `<span class="badge bg-secondary px-1 py-1">${escapeHtml(typeVal)}</span>`;
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function performSearch(page = 1) {
+        currentPage = page;
+        const q = searchInput.value.trim();
+        const ssa = ssaSelect.value.trim();
+        const perPage = perPageSelect.value;
+
+        if (q || ssa) {
+            clearBtn.classList.remove('d-none');
+        } else {
+            clearBtn.classList.add('d-none');
+        }
+
+        searchIcon.className = "fa-solid fa-spinner fa-spin text-primary";
+
+        const params = new URLSearchParams({
+            q: q,
+            ssa: ssa,
+            per_page: perPage,
+            page: page
+        });
+
+        fetch('/api/search?' + params.toString())
+            .then(res => res.json())
+            .then(data => {
+                searchIcon.className = "fa-solid fa-magnifying-glass text-muted";
+                
+                metricFiltered.textContent = data.filtered_count;
+                pageCurr.textContent = data.page;
+                pageTotal.textContent = data.total_pages;
+                filteredCountSpan.textContent = data.filtered_count;
+
+                if (!data.records || data.records.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="12" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fa-3x mb-3 d-block text-secondary opacity-50"></i>
+                                No matching site records found.
+                            </td>
+                        </tr>`;
+                } else {
+                    let html = '';
+                    data.records.forEach((rec, idx) => {
+                        const rowNum = (data.page - 1) * data.per_page + idx + 1;
+                        html += `
+                        <tr>
+                            <td class="text-muted small fw-semibold px-1 text-center">${rowNum}</td>
+                            <td class="px-1 text-break">
+                                <a href="/site/${encodeURIComponent(rec.site_id)}" class="fw-bold text-decoration-none text-primary">
+                                    ${escapeHtml(rec.site_id)}
+                                </a>
+                            </td>
+                            <td class="fw-semibold text-dark px-1 text-break">${escapeHtml(rec.site_name)}</td>
+                            <td class="px-1 text-break"><code class="text-dark">${escapeHtml(rec.enodeb_address) || '-'}</code></td>
+                            <td class="px-1 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">${escapeHtml(rec.ssa) || '-'}</span></td>
+                            <td class="px-1 text-break">${escapeHtml(rec.Location) || '-'}</td>
+                            <td class="px-1 text-center">${renderTypeBadge(rec['cpan/maan/vsat'])}</td>
+                            <td class="px-1 text-break"><code>${escapeHtml(rec['tx-system-ip']) || '-'}</code></td>
+                            <td class="px-1 text-break">${escapeHtml(rec['tx-system-location']) || '-'}</td>
+                            <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.75rem;">${escapeHtml(rec['tx-system-port']) || '-'}</span></td>
+                            <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">${escapeHtml(rec.vlan) || '-'}</span></td>
+                            <td class="px-1 text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="/site/${encodeURIComponent(rec.site_id)}" class="btn btn-outline-info p-1" title="View Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a href="/site/${encodeURIComponent(rec.site_id)}/edit" class="btn btn-outline-warning p-1" title="Edit Site">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger p-1" title="Delete Site" data-bs-toggle="modal" data-bs-target="#deleteModal${rowNum}">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <div class="modal fade text-start" id="deleteModal${rowNum}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Deletion</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body py-4 text-wrap">
+                                                Are you sure you want to delete site <strong>${escapeHtml(rec.site_id)}</strong> (<em>${escapeHtml(rec.site_name)}</em>)?
+                                                <p class="text-danger small mb-0 mt-2"><i class="fa-solid fa-circle-exclamation me-1"></i>This action will remove the record from the database.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="POST" action="/site/${encodeURIComponent(rec.site_id)}/delete" class="d-inline">
+                                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Delete Site</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </td>
+                        </tr>`;
+                    });
+                    tbody.innerHTML = html;
+                }
+
+                let pagHtml = '';
+                const isPrevDisabled = data.page <= 1 ? 'disabled' : '';
+                pagHtml += `<li class="page-item ${isPrevDisabled}"><a class="page-link" href="#" data-page="${data.page - 1}">&laquo; Prev</a></li>`;
+
+                const startP = Math.max(1, data.page - 2);
+                const endP = Math.min(data.total_pages, data.page + 2);
+                for (let p = startP; p <= endP; p++) {
+                    const isActive = p === data.page ? 'active' : '';
+                    pagHtml += `<li class="page-item ${isActive}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
+                }
+
+                const isNextDisabled = data.page >= data.total_pages ? 'disabled' : '';
+                pagHtml += `<li class="page-item ${isNextDisabled}"><a class="page-link" href="#" data-page="${data.page + 1}">Next &raquo;</a></li>`;
+
+                paginationList.innerHTML = pagHtml;
+
+                paginationList.querySelectorAll('a.page-link').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const p = parseInt(this.getAttribute('data-page'));
+                        if (p && p >= 1 && p <= data.total_pages && p !== data.page) {
+                            performSearch(p);
+                        }
+                    });
+                });
+            })
+            .catch(err => {
+                searchIcon.className = "fa-solid fa-magnifying-glass text-muted";
+                console.error("Search error:", err);
+            });
+    }
+
+    searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => performSearch(1), 150);
+    });
+
+    ssaSelect.addEventListener('change', function () {
+        performSearch(1);
+    });
+
+    perPageSelect.addEventListener('change', function () {
+        performSearch(1);
+    });
+});
+</script>
+{% endblock %}

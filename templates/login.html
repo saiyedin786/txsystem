@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Login &bull; CPAN Transmission System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card card-custom bg-white shadow border-0 overflow-hidden">
+            <div class="bg-primary text-white text-center p-4">
+                <i class="fa-solid fa-tower-cell fa-3x mb-2"></i>
+                <h4 class="fw-bold mb-1">CPAN Transmission System</h4>
+                <p class="small text-white-50 mb-0">Enter your Username or Staff No and password</p>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('login') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label fw-semibold">Username or Staff Number <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fa-solid fa-user-tag text-muted"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter your Username or Staff No" required autofocus autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm mb-3">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i> Log In
+                    </button>
+
+                    <div class="text-center small">
+                        Don't have an account? <a href="{{ url_for('register') }}" class="fw-bold text-primary text-decoration-none">Register & Set Password</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Site Details: {{ site['site_id'] }} &bull; CPAN Transmission System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('edit_site', site_id=site['site_id']) }}" class="btn btn-warning btn-sm fw-semibold">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit Site
+                </a>
+                <button type="button" class="btn btn-danger btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fa-solid fa-trash me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+
+        <div class="card card-custom bg-white shadow-sm mb-4">
+            <div class="card-header bg-primary text-white py-3 px-4 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-tower-cell fa-2x"></i>
+                    <div>
+                        <h4 class="mb-0 fw-bold">{{ site['site_id'] }}</h4>
+                        <span class="badge bg-light text-primary mt-1 fw-normal">{{ site['site_name'] or 'N/A' }}</span>
+                    </div>
+                </div>
+                <div>
+                    {% set type_val = site['cpan/maan/vsat'].upper() %}
+                    {% if 'CPAN' in type_val %}
+                        <span class="badge bg-white text-primary fs-6 px-3 py-2">CPAN</span>
+                    {% elif 'MAAN' in type_val %}
+                        <span class="badge bg-success text-white fs-6 px-3 py-2">MAAN</span>
+                    {% elif 'VSAT' in type_val %}
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">VSAT</span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6 px-3 py-2">{{ site['cpan/maan/vsat'] or 'N/A' }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                    <i class="fa-solid fa-circle-info me-2 text-primary"></i>Core CPAN Site Properties
+                </h6>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small text-uppercase">Site ID</div>
+                            <div class="fw-bold fs-5 text-dark">{{ site['site_id'] }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small text-uppercase">eNodeB IP Address</div>
+                            <div class="fw-bold fs-5 text-primary">
+                                <i class="fa-solid fa-network-wired me-2"></i><code>{{ site['enodeb_address'] or 'N/A' }}</code>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small text-uppercase">SSA Code / Secondary Area</div>
+                            <div class="fw-bold fs-5 text-dark">
+                                <span class="badge bg-secondary-subtle text-secondary border px-3 py-1">{{ site['ssa'] or 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded">
+                            <div class="text-muted small text-uppercase">Location Name</div>
+                            <div class="fw-bold fs-5 text-dark">
+                                <i class="fa-solid fa-location-dot text-danger me-2"></i>{{ site['Location'] or 'N/A' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                    <i class="fa-solid fa-server me-2 text-primary"></i>Transmission & Network Details
+                </h6>
+
+                <div class="row g-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="p-3 border rounded">
+                            <div class="text-muted small">Network Type</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['cpan/maan/vsat'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="p-3 border rounded">
+                            <div class="text-muted small">VLAN</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['vlan'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="p-3 border rounded">
+                            <div class="text-muted small">TX System IP</div>
+                            <div class="fw-bold text-dark mt-1"><code>{{ site['tx-system-ip'] or 'N/A' }}</code></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="p-3 border rounded">
+                            <div class="text-muted small">TX System Port</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['tx-system-port'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 border rounded">
+                            <div class="text-muted small">TX System Location</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['tx-system-location'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                Are you sure you want to delete site <strong>{{ site['site_id'] }}</strong> (<em>{{ site['site_name'] }}</em>)?
+                <p class="text-danger small mb-0 mt-2"><i class="fa-solid fa-circle-exclamation me-1"></i>This action will remove the record from the database.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_site', site_id=site['site_id']) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Delete Site</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

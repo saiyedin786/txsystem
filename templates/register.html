@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Register New Account &bull; CPAN Transmission System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-md-6 col-lg-5">
+        <div class="card card-custom bg-white shadow border-0 overflow-hidden">
+            <div class="bg-primary text-white text-center p-4">
+                <i class="fa-solid fa-user-plus fa-3x mb-2"></i>
+                <h4 class="fw-bold mb-1">Create Staff Account</h4>
+                <p class="small text-white-50 mb-0">Set your Username, Staff No and Password for CPAN Transmission System</p>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('register') }}">
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="username" class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-at text-muted"></i></span>
+                                <input type="text" class="form-control" id="username" name="username" value="{{ form_data.get('username', '') }}" placeholder="e.g. jdoe" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="staff_no" class="form-label fw-semibold">Staff Number <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-id-badge text-muted"></i></span>
+                                <input type="text" class="form-control" id="staff_no" name="staff_no" value="{{ form_data.get('staff_no', '') }}" placeholder="e.g. STAFF002" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" value="{{ form_data.get('full_name', '') }}" placeholder="e.g. John Doe" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-semibold">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ form_data.get('email', '') }}" placeholder="jdoe@telecom.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label fw-semibold">Department</label>
+                            <input type="text" class="form-control" id="department" name="department" value="{{ form_data.get('department', '') }}" placeholder="Network Operations">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-muted"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required autocomplete="new-password">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirm_password" class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-check-double text-muted"></i></span>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="••••••••" required autocomplete="new-password">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm mb-3">
+                        <i class="fa-solid fa-user-check me-2"></i> Create Account & Set Password
+                    </button>
+
+                    <div class="text-center small">
+                        Already have an account? <a href="{{ url_for('login') }}" class="fw-bold text-primary text-decoration-none">Log In here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
