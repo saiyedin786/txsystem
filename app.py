@@ -72,6 +72,55 @@ def derive_ssa_and_location(site_name, existing_ssa="", existing_loc=""):
     return final_ssa, final_loc
 
 
+def transform_single_port(p_str):
+    p_str = p_str.strip()
+    if not p_str:
+        return ""
+        
+    if "/" in p_str:
+        tokens = [t.strip() for t in p_str.split("/") if t.strip()]
+        if not tokens:
+            return ""
+            
+        first = tokens[0].lower()
+        
+        if len(tokens) >= 4:
+            fourth = tokens[3].lower()
+            return f"{first}/{fourth}"
+        elif len(tokens) == 2:
+            second = tokens[1].lower()
+            if second.startswith('j'):
+                second = 'p' + second[1:]
+            return f"{first}/{second}"
+        elif len(tokens) == 3:
+            third = tokens[2].lower()
+            if third.startswith('j'):
+                third = 'p' + third[1:]
+            return f"{first}/{third}"
+        else:
+            return p_str.lower()
+    else:
+        return p_str.strip().lower()
+
+
+def transform_tx_port(port_str):
+    if not port_str:
+        return ""
+    
+    port_str = str(port_str).strip()
+    if not port_str or port_str.lower() in ('nan', 'none', '-'):
+        return ""
+        
+    delimiter = ";" if ";" in port_str else ("," if "," in port_str else None)
+    
+    if delimiter:
+        parts = port_str.split(delimiter)
+        transformed_parts = [transform_single_port(p) for p in parts]
+        return (delimiter + " ").join(p for p in transformed_parts if p)
+    else:
+        return transform_single_port(port_str)
+
+
 VALID_SEARCH_COLUMNS = {
     'all': 'Generic (All Columns)',
     'site_id': 'Site ID',
@@ -128,9 +177,25 @@ def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25):
     cursor.execute("SELECT COUNT(*) FROM bts_sites;")
     total_records = cursor.fetchone()[0]
     
+    cursor.execute("SELECT COUNT(*) FROM bts_sites WHERE LOWER(cpan_maan_vsat) LIKE '%cpan%';")
+    cpan_total_count = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM bts_sites WHERE LOWER(cpan_maan_vsat) LIKE '%maan%';")
+    maan_total_count = cursor.fetchone()[0]
+    
     count_sql = f"SELECT COUNT(*) FROM bts_sites {where_sql};"
     cursor.execute(count_sql, params)
     filtered_count = cursor.fetchone()[0]
+    
+    cpan_where = list(where_clauses) + ["LOWER(cpan_maan_vsat) LIKE '%cpan%'"]
+    cpan_where_sql = "WHERE " + " AND ".join(cpan_where)
+    cursor.execute(f"SELECT COUNT(*) FROM bts_sites {cpan_where_sql};", params)
+    cpan_filtered_count = cursor.fetchone()[0]
+    
+    maan_where = list(where_clauses) + ["LOWER(cpan_maan_vsat) LIKE '%maan%'"]
+    maan_where_sql = "WHERE " + " AND ".join(maan_where)
+    cursor.execute(f"SELECT COUNT(*) FROM bts_sites {maan_where_sql};", params)
+    maan_filtered_count = cursor.fetchone()[0]
     
     total_pages = max(1, (filtered_count + per_page - 1) // per_page)
     page = max(1, min(page, total_pages))
@@ -156,7 +221,11 @@ def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25):
         'per_page': per_page,
         'total_pages': total_pages,
         'total_records': total_records,
-        'filtered_count': filtered_count
+        'filtered_count': filtered_count,
+        'cpan_total_count': cpan_total_count,
+        'maan_total_count': maan_total_count,
+        'cpan_filtered_count': cpan_filtered_count,
+        'maan_filtered_count': maan_filtered_count
     }
 
 
@@ -384,7 +453,7 @@ def create_site():
         cpan_maan = request.form.get('cpan/maan/vsat', '').strip()
         tx_ip = request.form.get('tx-system-ip', '').strip()
         tx_loc = request.form.get('tx-system-location', '').strip()
-        tx_port = request.form.get('tx-system-port', '').strip()
+        tx_port = transform_tx_port(request.form.get('tx-system-port', '').strip())
         vlan = request.form.get('vlan', '').strip()
         
         if not site_id:
@@ -463,7 +532,7 @@ def edit_site(site_id):
         cpan_maan = request.form.get('cpan/maan/vsat', '').strip()
         tx_ip = request.form.get('tx-system-ip', '').strip()
         tx_loc = request.form.get('tx-system-location', '').strip()
-        tx_port = request.form.get('tx-system-port', '').strip()
+        tx_port = transform_tx_port(request.form.get('tx-system-port', '').strip())
         vlan = request.form.get('vlan', '').strip()
         
         if site_name and (not ssa or not location):

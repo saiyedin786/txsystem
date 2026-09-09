@@ -4,12 +4,13 @@
 
 {% block content %}
 <!-- Top Metrics Row -->
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card card-custom p-3 bg-white border-start border-4 border-primary shadow-sm">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 mb-4">
+    <!-- Total Database Records -->
+    <div class="col">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-primary shadow-sm h-100">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small fw-bold text-uppercase">Total Database Records</div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Total Sites</div>
                     <div class="h3 mb-0 fw-bold text-dark" id="metric-total">{{ total_records }}</div>
                 </div>
                 <div class="bg-primary-subtle text-primary p-3 rounded-circle">
@@ -18,24 +19,58 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card card-custom p-3 bg-white border-start border-4 border-success shadow-sm">
+    
+    <!-- CPAN Sites Count -->
+    <div class="col">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-success shadow-sm h-100">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small fw-bold text-uppercase">Filtered Records</div>
-                    <div class="h3 mb-0 fw-bold text-dark" id="metric-filtered">{{ filtered_count }}</div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">CPAN Sites</div>
+                    <div class="h3 mb-0 fw-bold text-success" id="metric-cpan">{{ cpan_filtered_count }}</div>
                 </div>
                 <div class="bg-success-subtle text-success p-3 rounded-circle">
+                    <i class="fa-solid fa-network-wired fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAAN Sites Count -->
+    <div class="col">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-warning shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">MAAN Sites</div>
+                    <div class="h3 mb-0 fw-bold text-warning-emphasis" id="metric-maan">{{ maan_filtered_count }}</div>
+                </div>
+                <div class="bg-warning-subtle text-warning-emphasis p-3 rounded-circle">
+                    <i class="fa-solid fa-server fa-lg"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtered Records -->
+    <div class="col">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-secondary shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Filtered Sites</div>
+                    <div class="h3 mb-0 fw-bold text-dark" id="metric-filtered">{{ filtered_count }}</div>
+                </div>
+                <div class="bg-secondary-subtle text-secondary p-3 rounded-circle">
                     <i class="fa-solid fa-filter fa-lg"></i>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card card-custom p-3 bg-white border-start border-4 border-info shadow-sm">
+
+    <!-- Unique SSAs -->
+    <div class="col">
+        <div class="card card-custom p-3 bg-white border-start border-4 border-info shadow-sm h-100">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small fw-bold text-uppercase">Unique SSAs</div>
+                    <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.72rem;">Unique SSAs</div>
                     <div class="h3 mb-0 fw-bold text-dark" id="metric-ssas">{{ unique_ssas|length }}</div>
                 </div>
                 <div class="bg-info-subtle text-info p-3 rounded-circle">
@@ -416,6 +451,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
     const tbody = document.getElementById('records-tbody');
     const metricFiltered = document.getElementById('metric-filtered');
+    const metricCpan = document.getElementById('metric-cpan');
+    const metricMaan = document.getElementById('metric-maan');
     const pageCurr = document.getElementById('page-curr');
     const pageTotal = document.getElementById('page-total');
     const filteredCountSpan = document.getElementById('filtered-count-span');
@@ -483,6 +520,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 searchIcon.className = "fa-solid fa-magnifying-glass text-muted";
                 
                 metricFiltered.textContent = data.filtered_count;
+                if (metricCpan) metricCpan.textContent = data.cpan_filtered_count;
+                if (metricMaan) metricMaan.textContent = data.maan_filtered_count;
                 pageCurr.textContent = data.page;
                 pageTotal.textContent = data.total_pages;
                 filteredCountSpan.textContent = data.filtered_count;
