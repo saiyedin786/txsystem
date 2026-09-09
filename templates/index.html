@@ -100,9 +100,14 @@
         <h5 class="mb-0 fw-bold text-secondary">
             <i class="fa-solid fa-list me-2"></i>CPAN Transmission Site Records
         </h5>
-        <a href="{{ url_for('create_site') }}" class="btn btn-sm btn-primary fw-semibold">
-            <i class="fa-solid fa-plus me-1"></i> Add Site
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-success fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#customReportModal">
+                <i class="fa-solid fa-file-export me-1"></i> Custom Report
+            </button>
+            <a href="{{ url_for('create_site') }}" class="btn btn-sm btn-primary fw-semibold shadow-sm">
+                <i class="fa-solid fa-plus me-1"></i> Add Site
+            </a>
+        </div>
     </div>
 
     <div class="w-100 px-0">
@@ -228,6 +233,175 @@
         </nav>
     </div>
 </div>
+
+<!-- Customized Report Modal -->
+<div class="modal fade text-start" id="customReportModal" tabindex="-1" aria-labelledby="customReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg border-0">
+            <form method="POST" action="{{ url_for('export_custom_report') }}" id="custom-report-form">
+                <div class="modal-header bg-primary text-white py-3">
+                    <h5 class="modal-title fw-bold" id="customReportModalLabel">
+                        <i class="fa-solid fa-file-export me-2"></i>Generate Customized Report
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <!-- Current active filters summary -->
+                    <div class="alert alert-primary py-2 px-3 mb-4 d-flex align-items-center justify-content-between small border">
+                        <div>
+                            <i class="fa-solid fa-circle-info me-2 text-primary"></i>
+                            <strong>Active Filters:</strong>
+                            <span id="modal-active-query">{% if query %}Search: "<em>{{ query }}</em>" (Target: {{ search_by }}){% else %}No search query{% endif %}</span> | 
+                            <span id="modal-active-ssa">{% if selected_ssa %}SSA: <strong>{{ selected_ssa }}</strong>{% else %}All SSAs{% endif %}</span>
+                        </div>
+                        <span class="badge bg-primary text-white rounded-pill px-3 py-2" style="font-size: 0.8rem;"><span id="modal-filtered-count">{{ filtered_count }}</span> sites matching</span>
+                    </div>
+
+                    <!-- Hidden inputs to preserve search context -->
+                    <input type="hidden" id="modal-hidden-q" name="q" value="{{ query }}">
+                    <input type="hidden" id="modal-hidden-search-by" name="search_by" value="{{ search_by }}">
+                    <input type="hidden" id="modal-hidden-ssa" name="ssa" value="{{ selected_ssa }}">
+
+                    <!-- Step 1: Report Scope -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2">
+                            <i class="fa-solid fa-layer-group me-1 text-primary"></i> 1. Select Report Scope
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check card p-3 border shadow-sm h-100 cursor-pointer">
+                                    <input class="form-check-input me-2" type="radio" name="scope" id="scopeFiltered" value="filtered" checked>
+                                    <label class="form-check-label fw-semibold text-dark" for="scopeFiltered">
+                                        Filtered Search Results
+                                        <div class="text-muted small fw-normal mt-1">Export only records matching current search term and SSA filter.</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check card p-3 border shadow-sm h-100 cursor-pointer">
+                                    <input class="form-check-input me-2" type="radio" name="scope" id="scopeAll" value="all">
+                                    <label class="form-check-label fw-semibold text-dark" for="scopeAll">
+                                        Entire Database (All Sites)
+                                        <div class="text-muted small fw-normal mt-1">Export all <strong id="modal-total-count">{{ total_records }}</strong> sites in the database regardless of search filters.</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: File Format -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark mb-2">
+                            <i class="fa-solid fa-file-code me-1 text-primary"></i> 2. Select File Format
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check card p-3 border shadow-sm h-100 cursor-pointer">
+                                    <input class="form-check-input me-2" type="radio" name="format" id="formatXlsx" value="xlsx" checked>
+                                    <label class="form-check-label fw-semibold text-dark" for="formatXlsx">
+                                        <i class="fa-solid fa-file-excel text-success me-1 fa-lg"></i> Excel Spreadsheet (.xlsx)
+                                        <div class="text-muted small fw-normal mt-1">Standard Excel workbook format with formatted columns.</div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check card p-3 border shadow-sm h-100 cursor-pointer">
+                                    <input class="form-check-input me-2" type="radio" name="format" id="formatCsv" value="csv">
+                                    <label class="form-check-label fw-semibold text-dark" for="formatCsv">
+                                        <i class="fa-solid fa-file-csv text-info me-1 fa-lg"></i> CSV File (.csv)
+                                        <div class="text-muted small fw-normal mt-1">Comma-Separated Values format for universal software compatibility.</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Column Selection -->
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-dark mb-0">
+                                <i class="fa-solid fa-table-columns me-1 text-primary"></i> 3. Select Columns to Include in Report
+                            </label>
+                            <div>
+                                <button type="button" id="btn-select-all-cols" class="btn btn-link btn-sm text-decoration-none p-0 me-2 fw-semibold">Select All</button>
+                                <span class="text-muted">|</span>
+                                <button type="button" id="btn-deselect-all-cols" class="btn btn-link btn-sm text-decoration-none p-0 ms-2 fw-semibold text-secondary">Deselect All</button>
+                            </div>
+                        </div>
+                        <div class="row g-2 bg-light p-3 rounded border">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="site_id" id="col_site_id" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_site_id">Site ID</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="site_name" id="col_site_name" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_site_name">Site Name</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="enodeb_address" id="col_enodeb_address" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_enodeb_address">eNodeB IP</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="ssa" id="col_ssa" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_ssa">SSA</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="location" id="col_location" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_location">Location</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="cpan_maan_vsat" id="col_cpan_maan_vsat" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_cpan_maan_vsat">Type (CPAN/MAAN/VSAT)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="tx_system_ip" id="col_tx_system_ip" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_tx_system_ip">TX System IP</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="tx_system_location" id="col_tx_system_location" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_tx_system_location">TX System Location</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="tx_system_port" id="col_tx_system_port" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_tx_system_port">TX System Port</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="vlan" id="col_vlan" checked>
+                                    <label class="form-check-label small fw-semibold text-dark" for="col_vlan">VLAN</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-3">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="btn-download-report" class="btn btn-success fw-semibold px-4">
+                        <i class="fa-solid fa-download me-1"></i> Download Customized Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -312,6 +486,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 pageCurr.textContent = data.page;
                 pageTotal.textContent = data.total_pages;
                 filteredCountSpan.textContent = data.filtered_count;
+                syncModalContext(q, searchBy, ssa, data.filtered_count);
 
                 if (!data.records || data.records.length === 0) {
                     tbody.innerHTML = `
@@ -412,6 +587,63 @@ document.addEventListener('DOMContentLoaded', function () {
                 searchIcon.className = "fa-solid fa-magnifying-glass text-muted";
                 console.error("Search error:", err);
             });
+    }
+
+    const modalHiddenQ = document.getElementById('modal-hidden-q');
+    const modalHiddenSearchBy = document.getElementById('modal-hidden-search-by');
+    const modalHiddenSsa = document.getElementById('modal-hidden-ssa');
+    const modalActiveQuery = document.getElementById('modal-active-query');
+    const modalActiveSsa = document.getElementById('modal-active-ssa');
+    const modalFilteredCount = document.getElementById('modal-filtered-count');
+
+    function syncModalContext(q, searchBy, ssa, count) {
+        if (modalHiddenQ) modalHiddenQ.value = q;
+        if (modalHiddenSearchBy) modalHiddenSearchBy.value = searchBy;
+        if (modalHiddenSsa) modalHiddenSsa.value = ssa;
+        if (modalFilteredCount) modalFilteredCount.textContent = count;
+        
+        if (modalActiveQuery) {
+            if (q) {
+                const targetName = searchBySelect.options[searchBySelect.selectedIndex].text;
+                modalActiveQuery.innerHTML = `Search: "<em>${escapeHtml(q)}</em>" (${escapeHtml(targetName)})`;
+            } else {
+                modalActiveQuery.textContent = 'No search query';
+            }
+        }
+        if (modalActiveSsa) {
+            if (ssa) {
+                modalActiveSsa.innerHTML = `SSA: <strong>${escapeHtml(ssa)}</strong>`;
+            } else {
+                modalActiveSsa.textContent = 'All SSAs';
+            }
+        }
+    }
+
+    const btnSelectAll = document.getElementById('btn-select-all-cols');
+    const btnDeselectAll = document.getElementById('btn-deselect-all-cols');
+    const colCheckboxes = document.querySelectorAll('.col-checkbox');
+
+    if (btnSelectAll) {
+        btnSelectAll.addEventListener('click', function () {
+            colCheckboxes.forEach(cb => cb.checked = true);
+        });
+    }
+
+    if (btnDeselectAll) {
+        btnDeselectAll.addEventListener('click', function () {
+            colCheckboxes.forEach(cb => cb.checked = false);
+        });
+    }
+
+    const customReportForm = document.getElementById('custom-report-form');
+    if (customReportForm) {
+        customReportForm.addEventListener('submit', function (e) {
+            const checkedCols = document.querySelectorAll('.col-checkbox:checked');
+            if (checkedCols.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one column to include in your customized report.');
+            }
+        });
     }
 
     searchInput.addEventListener('input', function () {

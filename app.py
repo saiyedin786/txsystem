@@ -1,6 +1,8 @@
 import os
 import re
 import sqlite3
+from io import BytesIO
+from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -514,6 +516,20 @@ def delete_site(site_id):
     return redirect(url_for('index'))
 
 
+ALL_REPORT_COLUMNS = {
+    'site_id': 'Site ID',
+    'site_name': 'Site Name',
+    'enodeb_address': 'eNodeB IP',
+    'ssa': 'SSA',
+    'location': 'Location',
+    'cpan_maan_vsat': 'cpan/maan/vsat',
+    'tx_system_ip': 'tx-system-ip',
+    'tx_system_location': 'tx-system-location',
+    'tx_system_port': 'tx-system-port',
+    'vlan': 'VLAN'
+}
+
+
 @app.route('/export')
 @login_required
 def export_excel():
@@ -528,6 +544,102 @@ def export_excel():
         download_name='btsdatabase.xlsx',
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
+
+@app.route('/export/custom', methods=['GET', 'POST'])
+@login_required
+def export_custom_report():
+    if request.method == 'POST':
+        export_format = request.form.get('format', 'xlsx').lower()
+        scope = request.form.get('scope', 'filtered')
+        query = request.form.get('q', '').strip()
+        search_by = request.form.get('search_by', 'all').strip()
+        selected_ssa = request.form.get('ssa', '').strip()
+        selected_cols = request.form.getlist('cols')
+    else:
+        export_format = request.args.get('format', 'xlsx').lower()
+        scope = request.args.get('scope', 'filtered')
+        query = request.args.get('q', '').strip()
+        search_by = request.args.get('search_by', 'all').strip()
+        selected_ssa = request.args.get('ssa', '').strip()
+        selected_cols = request.args.getlist('cols')
+        
+    if not selected_cols:
+        selected_cols = list(ALL_REPORT_COLUMNS.keys())
+    else:
+        selected_cols = [c for c in selected_cols if c in ALL_REPORT_COLUMNS]
+        if not selected_cols:
+            selected_cols = list(ALL_REPORT_COLUMNS.keys())
+            
+    select_parts = [f"{col} AS '{ALL_REPORT_COLUMNS[col]}'" for col in selected_cols]
+    select_sql = ", ".join(select_parts)
+    
+    conn = get_db()
+    where_clauses = []
+    params = []
+    
+    if scope == 'filtered':
+        if search_by not in VALID_SEARCH_COLUMNS:
+            search_by = "all"
+            
+        if query:
+            q_like = f"%{query}%"
+            if search_by != "all":
+                where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+                params.append(q_like)
+            else:
+                where_clauses.append('''
+                    (LOWER(site_id) LIKE LOWER(?) OR
+                     LOWER(site_name) LIKE LOWER(?) OR
+                     LOWER(enodeb_address) LIKE LOWER(?) OR
+                     LOWER(ssa) LIKE LOWER(?) OR
+                     LOWER(location) LIKE LOWER(?) OR
+                     LOWER(cpan_maan_vsat) LIKE LOWER(?) OR
+                     LOWER(tx_system_ip) LIKE LOWER(?) OR
+                     LOWER(tx_system_location) LIKE LOWER(?) OR
+                     LOWER(tx_system_port) LIKE LOWER(?) OR
+                     LOWER(vlan) LIKE LOWER(?))
+                ''')
+                params.extend([q_like] * 10)
+                
+        if selected_ssa:
+            where_clauses.append("LOWER(ssa) = LOWER(?)")
+            params.append(selected_ssa)
+            
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    query_sql = f"SELECT {select_sql} FROM bts_sites {where_sql} ORDER BY id ASC;"
+    df = pd.read_sql_query(query_sql, conn, params=params)
+    conn.close()
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    if export_format == 'csv':
+        filename = f"CPAN_Report_{timestamp}.csv"
+        output = BytesIO()
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
+    else:
+        filename = f"CPAN_Report_{timestamp}.xlsx"
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Custom Report')
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
 
 
 if __name__ == '__main__':
