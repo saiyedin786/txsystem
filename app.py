@@ -70,28 +70,50 @@ def derive_ssa_and_location(site_name, existing_ssa="", existing_loc=""):
     return final_ssa, final_loc
 
 
-def search_db(query="", selected_ssa="", page=1, per_page=25):
+VALID_SEARCH_COLUMNS = {
+    'all': 'Generic (All Columns)',
+    'site_id': 'Site ID',
+    'site_name': 'Site Name',
+    'enodeb_address': 'eNodeB IP',
+    'ssa': 'SSA',
+    'location': 'Location',
+    'cpan_maan_vsat': 'Type (CPAN/MAAN/VSAT)',
+    'tx_system_ip': 'TX System IP',
+    'tx_system_location': 'TX System Location',
+    'tx_system_port': 'TX System Port',
+    'vlan': 'VLAN'
+}
+
+
+def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25):
     conn = get_db()
     cursor = conn.cursor()
     
     where_clauses = []
     params = []
     
+    if search_by not in VALID_SEARCH_COLUMNS:
+        search_by = "all"
+        
     if query:
         q_like = f"%{query.strip()}%"
-        where_clauses.append('''
-            (LOWER(site_id) LIKE LOWER(?) OR
-             LOWER(site_name) LIKE LOWER(?) OR
-             LOWER(enodeb_address) LIKE LOWER(?) OR
-             LOWER(ssa) LIKE LOWER(?) OR
-             LOWER(location) LIKE LOWER(?) OR
-             LOWER(cpan_maan_vsat) LIKE LOWER(?) OR
-             LOWER(tx_system_ip) LIKE LOWER(?) OR
-             LOWER(tx_system_location) LIKE LOWER(?) OR
-             LOWER(tx_system_port) LIKE LOWER(?) OR
-             LOWER(vlan) LIKE LOWER(?))
-        ''')
-        params.extend([q_like] * 10)
+        if search_by != "all":
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            where_clauses.append('''
+                (LOWER(site_id) LIKE LOWER(?) OR
+                 LOWER(site_name) LIKE LOWER(?) OR
+                 LOWER(enodeb_address) LIKE LOWER(?) OR
+                 LOWER(ssa) LIKE LOWER(?) OR
+                 LOWER(location) LIKE LOWER(?) OR
+                 LOWER(cpan_maan_vsat) LIKE LOWER(?) OR
+                 LOWER(tx_system_ip) LIKE LOWER(?) OR
+                 LOWER(tx_system_location) LIKE LOWER(?) OR
+                 LOWER(tx_system_port) LIKE LOWER(?) OR
+                 LOWER(vlan) LIKE LOWER(?))
+            ''')
+            params.extend([q_like] * 10)
         
     if selected_ssa:
         where_clauses.append("LOWER(ssa) = LOWER(?)")
@@ -125,6 +147,7 @@ def search_db(query="", selected_ssa="", page=1, per_page=25):
     return {
         'records': records,
         'query': query,
+        'search_by': search_by,
         'selected_ssa': selected_ssa,
         'unique_ssas': unique_ssas,
         'page': page,
@@ -325,11 +348,12 @@ def change_password():
 @login_required
 def index():
     query = request.args.get('q', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
     selected_ssa = request.args.get('ssa', '').strip()
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     
-    data = search_db(query=query, selected_ssa=selected_ssa, page=page, per_page=per_page)
+    data = search_db(query=query, search_by=search_by, selected_ssa=selected_ssa, page=page, per_page=per_page)
     return render_template('index.html', **data)
 
 
@@ -337,11 +361,12 @@ def index():
 @login_required
 def api_search():
     query = request.args.get('q', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
     selected_ssa = request.args.get('ssa', '').strip()
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     
-    data = search_db(query=query, selected_ssa=selected_ssa, page=page, per_page=per_page)
+    data = search_db(query=query, search_by=search_by, selected_ssa=selected_ssa, page=page, per_page=per_page)
     return jsonify(data)
 
 
