@@ -28,6 +28,70 @@
         .table-hover tbody tr:hover {
             background-color: #f1f4f8;
         }
+        /* Interactive IP Ping Button Styling */
+        .ip-ping-btn {
+            cursor: pointer !important;
+            transition: all 0.2s ease-in-out;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 4px;
+            padding: 2px 8px;
+            background-color: rgba(13, 110, 253, 0.08);
+            color: #0d6efd;
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid rgba(13, 110, 253, 0.25);
+        }
+        .ip-ping-btn:hover {
+            background-color: #0d6efd;
+            color: #ffffff !important;
+            border-color: #0d6efd;
+            box-shadow: 0 3px 8px rgba(13, 110, 253, 0.35);
+            transform: translateY(-1px);
+        }
+        .ip-ping-btn i {
+            font-size: 0.75rem;
+            opacity: 0.85;
+        }
+        .ip-ping-btn:hover i {
+            opacity: 1;
+        }
+        /* Quick View Button */
+        .site-quickview-btn {
+            cursor: pointer;
+            color: #0d6efd;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 0.15s ease-in-out;
+        }
+        .site-quickview-btn:hover {
+            color: #0a58ca;
+            text-decoration: underline;
+        }
+        /* Terminal Console */
+        .ping-terminal {
+            background-color: #0f172a;
+            color: #38bdf8;
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 180px;
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #1e293b;
+        }
+
+        /* High Z-Index for Nested Ping Modal over QuickView Modal */
+        #pingIpModal {
+            z-index: 1085 !important;
+        }
+        .modal-backdrop.show + .modal-backdrop.show {
+            z-index: 1080 !important;
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -125,6 +189,77 @@
         {% block content %}{% endblock %}
     </div>
 
+    <!-- Global Interactive IP Ping Modal -->
+    <div class="modal fade" id="pingIpModal" tabindex="-1" aria-labelledby="pingIpModalLabel" aria-hidden="true" style="z-index: 1085;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-dark text-white py-3">
+                    <h5 class="modal-title font-monospace fw-bold" id="pingIpModalLabel">
+                        <i class="fa-solid fa-terminal me-2 text-success"></i>Ping IP Diagnostic &bull; <span id="pingModalTargetIp" class="text-info">127.0.0.1</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="text-muted small text-uppercase">Target IP:</span>
+                            <code id="pingModalIpBadge" class="fs-6 px-2 py-1 bg-light border rounded text-primary fw-bold ms-1">0.0.0.0</code>
+                            <span id="pingStatusBadge" class="badge bg-secondary ms-2">Ready</span>
+                        </div>
+                        <button id="btnTriggerPing" type="button" class="btn btn-sm btn-primary fw-semibold px-3 shadow-sm">
+                            <i class="fa-solid fa-play me-1"></i> Send Ping Requests (4 Packets)
+                        </button>
+                    </div>
+
+                    <!-- Live Terminal Output Console -->
+                    <div class="position-relative">
+                        <pre id="pingTerminalConsole" class="ping-terminal mb-0">Click "Send Ping Requests" to initiate ICMP ping check...</pre>
+                        <div id="pingConsoleSpinner" class="d-none position-absolute top-50 start-50 translate-middle text-center bg-dark bg-opacity-75 p-3 rounded text-white" style="z-index: 10;">
+                            <div class="spinner-border text-info mb-2" role="status"></div>
+                            <div class="small fw-semibold">Pinging ICMP Host... Please wait</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
+                    <span class="text-muted small"><i class="fa-solid fa-shield-halved me-1 text-success"></i>Server ICMP Subprocess Diagnostics</span>
+                    <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Quick View Site Details Modal -->
+    <div class="modal fade" id="siteQuickViewModal" tabindex="-1" aria-labelledby="siteQuickViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-primary text-white py-3 px-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fa-solid fa-tower-cell fa-2x"></i>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0" id="qvModalSiteId">Site Details</h5>
+                            <span id="qvModalSiteName" class="badge bg-light text-primary mt-1 fw-normal">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a id="qvFullPageBtn" href="#" class="btn btn-sm btn-light text-primary fw-semibold">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Full Page View
+                        </a>
+                        <a id="qvEditBtn" href="#" class="btn btn-sm btn-warning fw-semibold">
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                        </a>
+                        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body p-4" id="qvModalBody">
+                    <div class="text-center py-5 text-muted">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <div>Loading site details...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-white border-top py-3 text-center text-muted small mt-auto">
         <div class="container">
@@ -134,6 +269,221 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Global Ping & QuickView Handler Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let activePingIp = '';
+
+        // Helper function to sanitize IP string
+        function cleanIpStr(str) {
+            if (!str) return '';
+            str = str.trim();
+            if (str.includes('/')) {
+                str = str.split('/')[0].trim();
+            }
+            return str;
+        }
+
+        // Global function to trigger Ping Modal
+        window.triggerPing = function (ip) {
+            const targetIp = cleanIpStr(ip);
+            if (!targetIp) return;
+
+            activePingIp = targetIp;
+            document.getElementById('pingModalTargetIp').textContent = targetIp;
+            document.getElementById('pingModalIpBadge').textContent = targetIp;
+            
+            const badge = document.getElementById('pingStatusBadge');
+            badge.className = 'badge bg-secondary ms-2';
+            badge.textContent = 'Ready';
+
+            const consoleElem = document.getElementById('pingTerminalConsole');
+            consoleElem.textContent = `Ready to ping ${targetIp}.\nClick "Send Ping Requests" below to test ICMP latency and response.`;
+            consoleElem.className = 'ping-terminal mb-0';
+
+            const modalElem = document.getElementById('pingIpModal');
+            const bsModal = bootstrap.Modal.getOrCreateInstance(modalElem);
+            bsModal.show();
+
+            // Auto-trigger ping request immediately for convenience
+            runPing(targetIp);
+        };
+
+        function runPing(ip) {
+            if (!ip) return;
+            const consoleElem = document.getElementById('pingTerminalConsole');
+            const spinner = document.getElementById('pingConsoleSpinner');
+            const badge = document.getElementById('pingStatusBadge');
+            const btn = document.getElementById('btnTriggerPing');
+
+            spinner.classList.remove('d-none');
+            btn.disabled = true;
+            badge.className = 'badge bg-warning text-dark ms-2';
+            badge.textContent = 'Pinging...';
+            consoleElem.textContent = `[System] Executing ICMP Ping: ping -n 4 ${ip} ...\nPlease wait for packets to return...`;
+
+            fetch('/api/ping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip: ip })
+            })
+            .then(res => res.json())
+            .then(data => {
+                spinner.classList.add('d-none');
+                btn.disabled = false;
+
+                if (data.success) {
+                    consoleElem.textContent = data.output;
+                    if (data.is_reachable) {
+                        badge.className = 'badge bg-success ms-2';
+                        badge.textContent = 'Reachable (Success)';
+                        consoleElem.className = 'ping-terminal mb-0 text-success-emphasis border-success';
+                    } else {
+                        badge.className = 'badge bg-danger ms-2';
+                        badge.textContent = 'Unreachable / Packet Loss';
+                        consoleElem.className = 'ping-terminal mb-0 text-danger-emphasis border-danger';
+                    }
+                } else {
+                    consoleElem.textContent = `[Error] ${data.message || 'Failed to ping target IP.'}`;
+                    badge.className = 'badge bg-danger ms-2';
+                    badge.textContent = 'Error';
+                }
+            })
+            .catch(err => {
+                spinner.classList.add('d-none');
+                btn.disabled = false;
+                consoleElem.textContent = `[Connection Error] Could not reach server ping service: ${err.message}`;
+                badge.className = 'badge bg-danger ms-2';
+                badge.textContent = 'Failed';
+            });
+        }
+
+        document.getElementById('btnTriggerPing').addEventListener('click', function () {
+            if (activePingIp) {
+                runPing(activePingIp);
+            }
+        });
+
+        // Global Quick View Site Modal Handler
+        window.openSiteQuickView = function (siteId) {
+            if (!siteId) return;
+
+            const qvModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('siteQuickViewModal'));
+            document.getElementById('qvModalSiteId').textContent = siteId;
+            document.getElementById('qvModalSiteName').textContent = 'Loading site data...';
+            document.getElementById('qvFullPageBtn').href = `/site/${encodeURIComponent(siteId)}`;
+            document.getElementById('qvEditBtn').href = `/site/${encodeURIComponent(siteId)}/edit`;
+
+            const bodyElem = document.getElementById('qvModalBody');
+            bodyElem.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <div>Fetching site records for <strong>${siteId}</strong>...</div>
+                </div>
+            `;
+            qvModal.show();
+
+            fetch(`/api/site/${encodeURIComponent(siteId)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.site) {
+                    const s = data.site;
+                    document.getElementById('qvModalSiteName').textContent = s.site_name || 'N/A';
+
+                    function ipBtnHtml(val) {
+                        if (!val) return 'N/A';
+                        const clean = cleanIpStr(val);
+                        if (!clean) return val;
+                        return `<code class="ip-ping-btn" data-ping-ip="${clean}" title="Click to Ping IP"><i class="fa-solid fa-network-wired me-1"></i>${val}</code>`;
+                    }
+
+                    bodyElem.innerHTML = `
+                        <!-- Quick View Details Body -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3"><div class="p-3 bg-light rounded border"><div class="text-muted small text-uppercase">SITE ID</div><div class="fw-bold text-dark">${s.site_id}</div></div></div>
+                            <div class="col-md-3"><div class="p-3 bg-light rounded border"><div class="text-muted small text-uppercase">eNodeB IP</div><div class="mt-1">${ipBtnHtml(s.enodeb_address)}</div></div></div>
+                            <div class="col-md-3"><div class="p-3 bg-light rounded border"><div class="text-muted small text-uppercase">SSA</div><div class="fw-bold text-dark"><span class="badge bg-secondary-subtle text-secondary border px-2 py-1">${s.ssa || 'N/A'}</span></div></div></div>
+                            <div class="col-md-3"><div class="p-3 bg-light rounded border"><div class="text-muted small text-uppercase">LOCATION</div><div class="fw-bold text-dark"><i class="fa-solid fa-location-dot text-danger me-1"></i>${s.location || s.Location || 'N/A'}</div></div></div>
+                        </div>
+
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2"><i class="fa-solid fa-network-wired me-2 text-primary"></i>VLANs</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col"><div class="p-2 border rounded text-center"><div class="text-muted small">OAM</div><div class="fw-bold text-dark mt-1">${s.oam_vlan || 'N/A'}</div></div></div>
+                            <div class="col"><div class="p-2 border rounded text-center"><div class="text-muted small">Mgmt/RAC</div><div class="fw-bold text-dark mt-1">${s.mgmt_rac_vlan || 'N/A'}</div></div></div>
+                            <div class="col"><div class="p-2 border rounded text-center"><div class="text-muted small">S1-C</div><div class="fw-bold text-dark mt-1">${s.s1_c_vlan || 'N/A'}</div></div></div>
+                            <div class="col"><div class="p-2 border rounded text-center"><div class="text-muted small">S1-U</div><div class="fw-bold text-dark mt-1">${s.s1_u_vlan || 'N/A'}</div></div></div>
+                            <div class="col"><div class="p-2 border rounded text-center"><div class="text-muted small">Service VLANs</div><div class="fw-bold text-dark mt-1">${s.service_vlans || 'N/A'}</div></div></div>
+                        </div>
+
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2"><i class="fa-solid fa-sitemap me-2 text-primary"></i>IP Addresses (Click any IP to Ping)</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">Mgmt IP</div><div class="mt-1">${ipBtnHtml(s.mgmt_ip)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">Mgmt Gateway</div><div class="mt-1">${ipBtnHtml(s.mgmt_gateway)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">S1-U IP</div><div class="mt-1">${ipBtnHtml(s.s1_u_ip)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">MME IP</div><div class="mt-1">${ipBtnHtml(s.mme_ip)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">Endpoint IP</div><div class="mt-1">${ipBtnHtml(s.endpoint_ip)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">L3 Gateway (MAAN)</div><div class="mt-1">${ipBtnHtml(s.l3_gateway_maan)}</div></div></div>
+                        </div>
+
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2"><i class="fa-solid fa-diagram-project me-2 text-primary"></i>CPAN & Endpoint Configuration</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">Endpoint Type</div><div class="fw-bold text-dark mt-1">${s.endpoint_type || 'N/A'}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">Endpoint Node/Router</div><div class="fw-bold text-dark mt-1">${s.endpoint_node_router || 'N/A'}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">Endpoint Port(s)</div><div class="fw-bold text-dark mt-1">${s.endpoint_ports || 'N/A'}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">CPAN A End Node</div><div class="fw-bold text-dark mt-1">${s.cpan_a_end_node || 'N/A'}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">CPAN A End IP</div><div class="mt-1">${ipBtnHtml(s.cpan_a_end_ip)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">CPAN A End Port(s)</div><div class="fw-bold text-dark mt-1">${s.cpan_a_end_ports || 'N/A'}</div></div></div>
+                            <div class="col-md-6"><div class="p-3 border rounded"><div class="text-muted small">CPAN Z End Node</div><div class="fw-bold text-dark mt-1">${s.cpan_z_end_node || 'N/A'}</div></div></div>
+                            <div class="col-md-6"><div class="p-3 border rounded"><div class="text-muted small">CPAN Z End IP</div><div class="mt-1">${ipBtnHtml(s.cpan_z_end_ip)}</div></div></div>
+                            <div class="col-12"><div class="p-3 border rounded"><div class="text-muted small">CPAN Service Name</div><div class="fw-bold text-dark mt-1 text-break"><code>${s.cpan_service || 'N/A'}</code></div></div></div>
+                        </div>
+
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2"><i class="fa-solid fa-route me-2 text-primary"></i>MAAN & OAM Network</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">MAAN L3 Interface</div><div class="fw-bold text-dark mt-1">${s.maan_l3_interface || 'N/A'}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">MAAN VPN</div><div class="fw-bold text-dark mt-1">${s.maan_vpn || 'N/A'}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">Subnet Mask</div><div class="fw-bold text-dark mt-1">${s.mask || 'N/A'}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">OAM CEF IP Pool</div><div class="mt-1">${ipBtnHtml(s.oam_cef_ip_pool)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">OAM HW Gateway</div><div class="mt-1">${ipBtnHtml(s.oam_hw_gw)}</div></div></div>
+                            <div class="col-md-4"><div class="p-3 border rounded"><div class="text-muted small">OAM HW IP</div><div class="mt-1">${ipBtnHtml(s.oam_hw_ip)}</div></div></div>
+                        </div>
+                    `;
+                } else {
+                    bodyElem.innerHTML = `<div class="alert alert-warning">${data.message || 'Failed to load site details.'}</div>`;
+                }
+            })
+            .catch(err => {
+                bodyElem.innerHTML = `<div class="alert alert-danger">Error loading site data: ${err.message}</div>`;
+            });
+        };
+
+        // Event delegation for IP Ping buttons & Quick View Site buttons across whole document
+        document.addEventListener('click', function (e) {
+            const ipElem = e.target.closest('.ip-ping-btn') || e.target.closest('[data-ping-ip]');
+            if (ipElem) {
+                e.preventDefault();
+                e.stopPropagation();
+                const ip = ipElem.getAttribute('data-ping-ip') || ipElem.textContent.trim();
+                if (ip) {
+                    window.triggerPing(ip);
+                }
+                return;
+            }
+
+            const qvElem = e.target.closest('.site-quickview-btn') || e.target.closest('[data-quickview-site]');
+            if (qvElem) {
+                e.preventDefault();
+                e.stopPropagation();
+                const siteId = qvElem.getAttribute('data-quickview-site') || qvElem.textContent.trim();
+                if (siteId) {
+                    window.openSiteQuickView(siteId);
+                }
+                return;
+            }
+        });
+    });
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

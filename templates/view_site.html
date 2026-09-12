@@ -3,23 +3,25 @@
 {% block title %}Site Details: {{ site['site_id'] }} &bull; CPAN Transmission System{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-9">
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
 
+        <!-- Top Control Bar -->
         <div class="mb-3 d-flex justify-content-between align-items-center">
-            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-sm shadow-sm">
                 <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
             </a>
             <div class="d-flex gap-2">
-                <a href="{{ url_for('edit_site', site_id=site['site_id']) }}" class="btn btn-warning btn-sm fw-semibold">
+                <a href="{{ url_for('edit_site', site_id=site['site_id']) }}" class="btn btn-warning btn-sm fw-semibold shadow-sm">
                     <i class="fa-solid fa-pen-to-square me-1"></i> Edit Site
                 </a>
-                <button type="button" class="btn btn-danger btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <button type="button" class="btn btn-danger btn-sm fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
                     <i class="fa-solid fa-trash me-1"></i> Delete
                 </button>
             </div>
         </div>
 
+        <!-- Main Banner Card -->
         <div class="card card-custom bg-white shadow-sm mb-4">
             <div class="card-header bg-primary text-white py-3 px-4 d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
@@ -30,90 +32,290 @@
                     </div>
                 </div>
                 <div>
-                    {% set type_val = site['cpan/maan/vsat'].upper() %}
+                    {% set type_val = (site['cpan_maan_vsat'] or '').upper() %}
                     {% if 'CPAN' in type_val %}
-                        <span class="badge bg-white text-primary fs-6 px-3 py-2">CPAN</span>
+                        <span class="badge bg-white text-primary fs-6 px-3 py-2 shadow-sm">CPAN</span>
                     {% elif 'MAAN' in type_val %}
-                        <span class="badge bg-success text-white fs-6 px-3 py-2">MAAN</span>
+                        <span class="badge bg-success text-white fs-6 px-3 py-2 shadow-sm">MAAN</span>
                     {% elif 'VSAT' in type_val %}
-                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">VSAT</span>
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2 shadow-sm">VSAT</span>
                     {% else %}
-                        <span class="badge bg-secondary fs-6 px-3 py-2">{{ site['cpan/maan/vsat'] or 'N/A' }}</span>
+                        <span class="badge bg-secondary fs-6 px-3 py-2 shadow-sm">{{ site['cpan_maan_vsat'] or 'N/A' }}</span>
                     {% endif %}
                 </div>
             </div>
 
             <div class="card-body p-4">
+                <!-- Section 1: Basic Site Metadata -->
                 <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
-                    <i class="fa-solid fa-circle-info me-2 text-primary"></i>Core CPAN Site Properties
+                    <i class="fa-solid fa-circle-info me-2 text-primary"></i>1. Core Site Metadata
                 </h6>
-
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <div class="p-3 bg-light rounded">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded border">
                             <div class="text-muted small text-uppercase">Site ID</div>
-                            <div class="fw-bold fs-5 text-dark">{{ site['site_id'] }}</div>
+                            <div class="fw-bold text-dark text-break">{{ site['site_id'] }}</div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="p-3 bg-light rounded">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded border">
                             <div class="text-muted small text-uppercase">eNodeB IP Address</div>
-                            <div class="fw-bold fs-5 text-primary">
-                                <i class="fa-solid fa-network-wired me-2"></i><code>{{ site['enodeb_address'] or 'N/A' }}</code>
+                            <div class="fw-bold text-primary text-break mt-1">
+                                {% if site['enodeb_address'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['enodeb_address'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['enodeb_address'] }}</code>
+                                {% else %}N/A{% endif %}
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="p-3 bg-light rounded">
-                            <div class="text-muted small text-uppercase">SSA Code / Secondary Area</div>
-                            <div class="fw-bold fs-5 text-dark">
-                                <span class="badge bg-secondary-subtle text-secondary border px-3 py-1">{{ site['ssa'] or 'N/A' }}</span>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded border">
+                            <div class="text-muted small text-uppercase">SSA Code / Area</div>
+                            <div class="fw-bold text-dark">
+                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">{{ site['ssa'] or 'N/A' }}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="p-3 bg-light rounded">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-light rounded border">
                             <div class="text-muted small text-uppercase">Location Name</div>
-                            <div class="fw-bold fs-5 text-dark">
-                                <i class="fa-solid fa-location-dot text-danger me-2"></i>{{ site['Location'] or 'N/A' }}
+                            <div class="fw-bold text-dark text-break">
+                                <i class="fa-solid fa-location-dot text-danger me-1"></i>{{ site['location'] or site['Location'] or 'N/A' }}
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Section 2: VLAN Configuration -->
                 <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
-                    <i class="fa-solid fa-server me-2 text-primary"></i>Transmission & Network Details
+                    <i class="fa-solid fa-network-wired me-2 text-primary"></i>2. VLAN Configuration
                 </h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-2-4 col-sm-6">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">OAM VLAN</div>
+                            <div class="fw-bold text-dark mt-1"><span class="badge bg-info-subtle text-info-emphasis border">{{ site['oam_vlan'] or 'N/A' }}</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2-4 col-sm-6">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Mgmt / RAC VLAN</div>
+                            <div class="fw-bold text-dark mt-1"><span class="badge bg-info-subtle text-info-emphasis border">{{ site['mgmt_rac_vlan'] or 'N/A' }}</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2-4 col-sm-6">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">S1-C VLAN</div>
+                            <div class="fw-bold text-dark mt-1"><span class="badge bg-primary-subtle text-primary border">{{ site['s1_c_vlan'] or 'N/A' }}</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2-4 col-sm-6">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">S1-U VLAN</div>
+                            <div class="fw-bold text-dark mt-1"><span class="badge bg-success-subtle text-success border">{{ site['s1_u_vlan'] or 'N/A' }}</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-2-4 col-sm-6">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Service VLANs</div>
+                            <div class="fw-bold text-dark mt-1"><span class="badge bg-warning-subtle text-warning-emphasis border">{{ site['service_vlans'] or 'N/A' }}</span></div>
+                        </div>
+                    </div>
+                </div>
 
-                <div class="row g-4">
-                    <div class="col-md-6 col-lg-3">
-                        <div class="p-3 border rounded">
-                            <div class="text-muted small">Network Type</div>
-                            <div class="fw-bold text-dark mt-1">{{ site['cpan/maan/vsat'] or 'N/A' }}</div>
+                <!-- Section 3: IP Address & Gateway Infrastructure -->
+                <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                    <i class="fa-solid fa-sitemap me-2 text-primary"></i>3. IP Addresses & Gateways (Click any IP to Ping)
+                </h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Mgmt IP</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['mgmt_ip'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['mgmt_ip'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['mgmt_ip'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="p-3 border rounded">
-                            <div class="text-muted small">VLAN</div>
-                            <div class="fw-bold text-dark mt-1">{{ site['vlan'] or 'N/A' }}</div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Mgmt Gateway</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['mgmt_gateway'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['mgmt_gateway'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['mgmt_gateway'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="p-3 border rounded">
-                            <div class="text-muted small">TX System IP</div>
-                            <div class="fw-bold text-dark mt-1"><code>{{ site['tx-system-ip'] or 'N/A' }}</code></div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">S1-U IP</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['s1_u_ip'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['s1_u_ip'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['s1_u_ip'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-3">
-                        <div class="p-3 border rounded">
-                            <div class="text-muted small">TX System Port</div>
-                            <div class="fw-bold text-dark mt-1">{{ site['tx-system-port'] or 'N/A' }}</div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">MME IP</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['mme_ip'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['mme_ip'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['mme_ip'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Endpoint IP</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['endpoint_ip'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['endpoint_ip'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['endpoint_ip'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">L3 Gateway (MAAN)</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['l3_gateway_maan'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['l3_gateway_maan'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['l3_gateway_maan'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Endpoint & Port Interface -->
+                <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                    <i class="fa-solid fa-server me-2 text-primary"></i>4. Endpoint Node & Ports
+                </h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Endpoint Type</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['endpoint_type'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Endpoint Node / Router</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['endpoint_node_router'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Endpoint Port(s)</div>
+                            <div class="fw-bold text-dark mt-1"><span class="badge bg-light text-dark border font-monospace">{{ site['endpoint_ports'] or 'N/A' }}</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: CPAN Endpoints & Service -->
+                <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                    <i class="fa-solid fa-diagram-project me-2 text-primary"></i>5. CPAN Endpoints & Service
+                </h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">CPAN A End Node</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['cpan_a_end_node'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">CPAN A End IP</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['cpan_a_end_ip'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['cpan_a_end_ip'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['cpan_a_end_ip'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">CPAN A End Port(s)</div>
+                            <div class="fw-bold text-dark mt-1"><span class="badge bg-light text-dark border font-monospace">{{ site['cpan_a_end_ports'] or 'N/A' }}</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">CPAN Z End Node</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['cpan_z_end_node'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">CPAN Z End IP</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['cpan_z_end_ip'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['cpan_z_end_ip'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['cpan_z_end_ip'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
                         </div>
                     </div>
                     <div class="col-12">
-                        <div class="p-3 border rounded">
-                            <div class="text-muted small">TX System Location</div>
-                            <div class="fw-bold text-dark mt-1">{{ site['tx-system-location'] or 'N/A' }}</div>
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">CPAN Service Name</div>
+                            <div class="fw-bold text-dark mt-1 text-break"><code>{{ site['cpan_service'] or 'N/A' }}</code></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 6: MAAN, OAM & Routing Details -->
+                <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                    <i class="fa-solid fa-route me-2 text-primary"></i>6. MAAN & OAM Network Details
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">MAAN L3 Interface</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['maan_l3_interface'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">MAAN VPN</div>
+                            <div class="fw-bold text-dark mt-1">{{ site['maan_vpn'] or 'N/A' }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">Subnet Mask</div>
+                            <div class="fw-bold text-dark mt-1"><code>{{ site['mask'] or 'N/A' }}</code></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">OAM CEF IP Pool</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['oam_cef_ip_pool'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['oam_cef_ip_pool'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['oam_cef_ip_pool'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">OAM HW Gateway</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['oam_hw_gw'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['oam_hw_gw'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['oam_hw_gw'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-white">
+                            <div class="text-muted small">OAM HW IP</div>
+                            <div class="fw-bold text-dark mt-1">
+                                {% if site['oam_hw_ip'] %}
+                                    <code class="ip-ping-btn" data-ping-ip="{{ site['oam_hw_ip'] }}" title="Click to Ping IP"><i class="fa-solid fa-network-wired"></i>{{ site['oam_hw_ip'] }}</code>
+                                {% else %}N/A{% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>

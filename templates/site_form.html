@@ -5,8 +5,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-10">
         <div class="card card-custom bg-white shadow-sm">
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
                 <h5 class="mb-0 fw-bold text-secondary">
@@ -16,7 +16,7 @@
                         <i class="fa-solid fa-pen-to-square me-2 text-warning"></i>Edit CPAN Site: <span class="text-primary">{{ site['site_id'] }}</span>
                     {% endif %}
                 </h5>
-                <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">
+                <a href="{% if mode == 'edit' %}{{ url_for('view_site', site_id=site['site_id']) }}{% else %}{{ url_for('index') }}{% endif %}" class="btn btn-sm btn-outline-secondary">
                     <i class="fa-solid fa-arrow-left me-1"></i> Back
                 </a>
             </div>
@@ -24,109 +24,239 @@
             <div class="card-body p-4">
                 <form method="POST" action="{% if mode == 'create' %}{{ url_for('create_site') }}{% else %}{{ url_for('edit_site', site_id=site['site_id']) }}{% endif %}">
                     
-                    <div class="row g-3 mb-3">
-                        <!-- Site ID -->
-                        <div class="col-md-6">
+                    <!-- Section 1: Core Site Metadata -->
+                    <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-circle-info me-2 text-primary"></i>1. Core Site Metadata
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
                             <label for="site_id" class="form-label fw-semibold">Site ID <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="site_id" name="site_id" 
                                    value="{{ form_data.get('site_id', '') }}" 
                                    placeholder="e.g. T4GJ28ADAHDP9AMD043" 
                                    {% if mode == 'edit' %}readonly disabled{% else %}required{% endif %}>
-                            <div class="form-text">Unique system identifier for the CPAN site.</div>
                         </div>
-
-                        <!-- eNodeB Address -->
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <label for="site_name" class="form-label fw-semibold">Site Name</label>
+                            <input type="text" class="form-control" id="site_name" name="site_name" 
+                                   value="{{ form_data.get('site_name', '') }}" 
+                                   placeholder="e.g. AMD043_Shahibaug">
+                        </div>
+                        <div class="col-md-4">
                             <label for="enodeb_address" class="form-label fw-semibold">eNodeB IP Address</label>
                             <input type="text" class="form-control" id="enodeb_address" name="enodeb_address" 
                                    value="{{ form_data.get('enodeb_address', '') }}" 
                                    placeholder="e.g. 10.113.71.82">
                         </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <!-- Site Name -->
-                        <label for="site_name" class="form-label fw-semibold">Site Name</label>
-                        <input type="text" class="form-control" id="site_name" name="site_name" 
-                               value="{{ form_data.get('site_name', '') }}" 
-                               placeholder="e.g. AMD043_Shahibaug or AMD163agad">
-                        <div class="form-text">If left unfilled, SSA and Location will be auto-derived if empty.</div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <!-- SSA -->
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="ssa" class="form-label fw-semibold">SSA Code / Area</label>
                             <input type="text" class="form-control" id="ssa" name="ssa" 
                                    value="{{ form_data.get('ssa', '') }}" 
-                                   placeholder="e.g. AMD043 or Ahmedabad">
+                                   placeholder="e.g. Ahmedabad">
                         </div>
-
-                        <!-- Location -->
-                        <div class="col-md-6">
-                            <label for="Location" class="form-label fw-semibold">Location</label>
-                            <input type="text" class="form-control" id="Location" name="Location" 
-                                   value="{{ form_data.get('Location', '') }}" 
+                        <div class="col-md-4">
+                            <label for="location" class="form-label fw-semibold">Location Name</label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ form_data.get('location', form_data.get('Location', '')) }}" 
                                    placeholder="e.g. Shahibaug">
                         </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
-                        <!-- Network Type -->
-                        <div class="col-md-6">
-                            <label for="cpan/maan/vsat" class="form-label fw-semibold">Network Type (CPAN / MAAN / VSAT)</label>
-                            <select class="form-select" id="cpan/maan/vsat" name="cpan/maan/vsat">
-                                {% set current_type = form_data.get('cpan/maan/vsat', '') %}
-                                <option value="CPAN" {% if current_type == 'CPAN' %}selected{% endif %}>CPAN</option>
-                                <option value="MAAN" {% if current_type == 'MAAN' %}selected{% endif %}>MAAN</option>
-                                <option value="VSAT" {% if current_type == 'VSAT' %}selected{% endif %}>VSAT</option>
+                        <div class="col-md-4">
+                            <label for="cpan_maan_vsat" class="form-label fw-semibold">Network Type</label>
+                            <select class="form-select" id="cpan_maan_vsat" name="cpan_maan_vsat">
+                                {% set current_type = (form_data.get('cpan_maan_vsat', form_data.get('cpan/maan/vsat', '')) or '').upper() %}
+                                <option value="CPAN" {% if 'CPAN' in current_type %}selected{% endif %}>CPAN</option>
+                                <option value="MAAN" {% if 'MAAN' in current_type %}selected{% endif %}>MAAN</option>
+                                <option value="VSAT" {% if 'VSAT' in current_type %}selected{% endif %}>VSAT</option>
                                 <option value="" {% if not current_type %}selected{% endif %}>-- None / Other --</option>
                             </select>
                         </div>
-
-                        <!-- VLAN -->
-                        <div class="col-md-6">
-                            <label for="vlan" class="form-label fw-semibold">VLAN</label>
-                            <input type="text" class="form-control" id="vlan" name="vlan" 
-                                   value="{{ form_data.get('vlan', '') }}" 
-                                   placeholder="e.g. 1024">
-                        </div>
                     </div>
 
-                    <hr class="my-4">
-                    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-network-wired me-2"></i>TX System Details</h6>
-
+                    <!-- Section 2: VLANs -->
+                    <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-network-wired me-2 text-primary"></i>2. VLAN Configuration
+                    </h6>
                     <div class="row g-3 mb-4">
-                        <!-- TX System IP -->
-                        <div class="col-md-4">
-                            <label for="tx-system-ip" class="form-label fw-semibold">TX System IP</label>
-                            <input type="text" class="form-control" id="tx-system-ip" name="tx-system-ip" 
-                                   value="{{ form_data.get('tx-system-ip', '') }}" 
-                                   placeholder="e.g. 10.200.15.2">
+                        <div class="col-md-2-4 col-sm-6">
+                            <label for="oam_vlan" class="form-label fw-semibold">OAM VLAN</label>
+                            <input type="text" class="form-control" id="oam_vlan" name="oam_vlan" 
+                                   value="{{ form_data.get('oam_vlan', '') }}" placeholder="e.g. 1649">
                         </div>
-
-                        <!-- TX System Location -->
-                        <div class="col-md-4">
-                            <label for="tx-system-location" class="form-label fw-semibold">TX System Location</label>
-                            <input type="text" class="form-control" id="tx-system-location" name="tx-system-location" 
-                                   value="{{ form_data.get('tx-system-location', '') }}" 
-                                   placeholder="e.g. Hub Room A">
+                        <div class="col-md-2-4 col-sm-6">
+                            <label for="mgmt_rac_vlan" class="form-label fw-semibold">Mgmt / RAC VLAN</label>
+                            <input type="text" class="form-control" id="mgmt_rac_vlan" name="mgmt_rac_vlan" 
+                                   value="{{ form_data.get('mgmt_rac_vlan', '') }}" placeholder="e.g. 1650">
                         </div>
-
-                        <!-- TX System Port -->
-                        <div class="col-md-4">
-                            <label for="tx-system-port" class="form-label fw-semibold">TX System Port</label>
-                            <input type="text" class="form-control" id="tx-system-port" name="tx-system-port" 
-                                   value="{{ form_data.get('tx-system-port', '') }}" 
-                                   placeholder="e.g. Eth-1/0/1">
+                        <div class="col-md-2-4 col-sm-6">
+                            <label for="s1_c_vlan" class="form-label fw-semibold">S1-C VLAN</label>
+                            <input type="text" class="form-control" id="s1_c_vlan" name="s1_c_vlan" 
+                                   value="{{ form_data.get('s1_c_vlan', '') }}" placeholder="e.g. 1651">
+                        </div>
+                        <div class="col-md-2-4 col-sm-6">
+                            <label for="s1_u_vlan" class="form-label fw-semibold">S1-U VLAN</label>
+                            <input type="text" class="form-control" id="s1_u_vlan" name="s1_u_vlan" 
+                                   value="{{ form_data.get('s1_u_vlan', '') }}" placeholder="e.g. 1652">
+                        </div>
+                        <div class="col-md-2-4 col-sm-6">
+                            <label for="service_vlans" class="form-label fw-semibold">Service VLANs</label>
+                            <input type="text" class="form-control" id="service_vlans" name="service_vlans" 
+                                   value="{{ form_data.get('service_vlans', '') }}" placeholder="e.g. 1649-1652">
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
+                    <!-- Section 3: IP Infrastructure -->
+                    <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-sitemap me-2 text-primary"></i>3. IP Addresses & Gateways
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="mgmt_ip" class="form-label fw-semibold">Mgmt IP</label>
+                            <input type="text" class="form-control" id="mgmt_ip" name="mgmt_ip" 
+                                   value="{{ form_data.get('mgmt_ip', '') }}" placeholder="e.g. 10.113.71.82">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="mgmt_gateway" class="form-label fw-semibold">Mgmt Gateway</label>
+                            <input type="text" class="form-control" id="mgmt_gateway" name="mgmt_gateway" 
+                                   value="{{ form_data.get('mgmt_gateway', '') }}" placeholder="e.g. 10.113.71.65">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="s1_u_ip" class="form-label fw-semibold">S1-U IP</label>
+                            <input type="text" class="form-control" id="s1_u_ip" name="s1_u_ip" 
+                                   value="{{ form_data.get('s1_u_ip', '') }}" placeholder="e.g. 10.113.73.82">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="mme_ip" class="form-label fw-semibold">MME IP</label>
+                            <input type="text" class="form-control" id="mme_ip" name="mme_ip" 
+                                   value="{{ form_data.get('mme_ip', '') }}" placeholder="e.g. 10.124.43.55">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="endpoint_ip" class="form-label fw-semibold">Endpoint IP</label>
+                            <input type="text" class="form-control" id="endpoint_ip" name="endpoint_ip" 
+                                   value="{{ form_data.get('endpoint_ip', form_data.get('tx-system-ip', '')) }}" placeholder="e.g. 10.121.18.151">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="l3_gateway_maan" class="form-label fw-semibold">L3 Gateway (MAAN)</label>
+                            <input type="text" class="form-control" id="l3_gateway_maan" name="l3_gateway_maan" 
+                                   value="{{ form_data.get('l3_gateway_maan', '') }}" placeholder="e.g. 10.124.10.1">
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Endpoints & Ports -->
+                    <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-server me-2 text-primary"></i>4. Endpoint Node & Ports
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="endpoint_type" class="form-label fw-semibold">Endpoint Type</label>
+                            <input type="text" class="form-control" id="endpoint_type" name="endpoint_type" 
+                                   value="{{ form_data.get('endpoint_type', '') }}" placeholder="e.g. CPAN node">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="endpoint_node_router" class="form-label fw-semibold">Endpoint Node / Router</label>
+                            <input type="text" class="form-control" id="endpoint_node_router" name="endpoint_node_router" 
+                                   value="{{ form_data.get('endpoint_node_router', form_data.get('tx-system-location', '')) }}" placeholder="e.g. Shahibaugh 2">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="endpoint_ports" class="form-label fw-semibold">Endpoint Port(s)</label>
+                            <input type="text" class="form-control" id="endpoint_ports" name="endpoint_ports" 
+                                   value="{{ form_data.get('endpoint_ports', form_data.get('tx-system-port', '')) }}" placeholder="e.g. S6/X01G11/J4/P1 or s6/p1">
+                        </div>
+                    </div>
+
+                    <!-- Section 5: CPAN Endpoints -->
+                    <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-diagram-project me-2 text-primary"></i>5. CPAN Endpoints & Service
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="cpan_a_end_node" class="form-label fw-semibold">CPAN A End Node</label>
+                            <input type="text" class="form-control" id="cpan_a_end_node" name="cpan_a_end_node" 
+                                   value="{{ form_data.get('cpan_a_end_node', '') }}" placeholder="e.g. Shahibaugh 2">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cpan_a_end_ip" class="form-label fw-semibold">CPAN A End IP</label>
+                            <input type="text" class="form-control" id="cpan_a_end_ip" name="cpan_a_end_ip" 
+                                   value="{{ form_data.get('cpan_a_end_ip', '') }}" placeholder="e.g. 10.121.18.151">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cpan_a_end_ports" class="form-label fw-semibold">CPAN A End Port(s)</label>
+                            <input type="text" class="form-control" id="cpan_a_end_ports" name="cpan_a_end_ports" 
+                                   value="{{ form_data.get('cpan_a_end_ports', '') }}" placeholder="e.g. S6/X01G11/J4/P1">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cpan_z_end_node" class="form-label fw-semibold">CPAN Z End Node</label>
+                            <input type="text" class="form-control" id="cpan_z_end_node" name="cpan_z_end_node" 
+                                   value="{{ form_data.get('cpan_z_end_node', '') }}" placeholder="e.g. SHAHIBAUG">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cpan_z_end_ip" class="form-label fw-semibold">CPAN Z End IP</label>
+                            <input type="text" class="form-control" id="cpan_z_end_ip" name="cpan_z_end_ip" 
+                                   value="{{ form_data.get('cpan_z_end_ip', '') }}" placeholder="e.g. 10.121.18.88">
+                        </div>
+                        <div class="col-12">
+                            <label for="cpan_service" class="form-label fw-semibold">CPAN Service Name</label>
+                            <input type="text" class="form-control" id="cpan_service" name="cpan_service" 
+                                   value="{{ form_data.get('cpan_service', '') }}" placeholder="e.g. Guj_AM_Shahibaugh2_6/4_to_SHAHIBAUG_6/5_Vlan_1649-1652">
+                        </div>
+                    </div>
+
+                    <!-- Section 6: MAAN, OAM & Routing Details -->
+                    <h6 class="fw-bold text-uppercase text-secondary small mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-route me-2 text-primary"></i>6. MAAN, OAM & Routing
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="maan_l3_interface" class="form-label fw-semibold">MAAN L3 Interface</label>
+                            <input type="text" class="form-control" id="maan_l3_interface" name="maan_l3_interface" 
+                                   value="{{ form_data.get('maan_l3_interface', '') }}" placeholder="e.g. Gi0/0/1">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="maan_vpn" class="form-label fw-semibold">MAAN VPN</label>
+                            <input type="text" class="form-control" id="maan_vpn" name="maan_vpn" 
+                                   value="{{ form_data.get('maan_vpn', '') }}" placeholder="e.g. VPN_4G">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="mask" class="form-label fw-semibold">Subnet Mask</label>
+                            <input type="text" class="form-control" id="mask" name="mask" 
+                                   value="{{ form_data.get('mask', '') }}" placeholder="e.g. 255.255.255.240">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="route_distinguisher" class="form-label fw-semibold">Route Distinguisher (RD)</label>
+                            <input type="text" class="form-control" id="route_distinguisher" name="route_distinguisher" 
+                                   value="{{ form_data.get('route_distinguisher', '') }}" placeholder="e.g. 65000:100">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="as_num" class="form-label fw-semibold">AS Number</label>
+                            <input type="text" class="form-control" id="as_num" name="as_num" 
+                                   value="{{ form_data.get('as_num', '') }}" placeholder="e.g. 65000">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ems" class="form-label fw-semibold">EMS System</label>
+                            <input type="text" class="form-control" id="ems" name="ems" 
+                                   value="{{ form_data.get('ems', '') }}" placeholder="e.g. U2000">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="oam_cef_ip_pool" class="form-label fw-semibold">OAM CEF IP Pool</label>
+                            <input type="text" class="form-control" id="oam_cef_ip_pool" name="oam_cef_ip_pool" 
+                                   value="{{ form_data.get('oam_cef_ip_pool', '') }}" placeholder="e.g. 10.113.63.160/28">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="oam_hw_gw" class="form-label fw-semibold">OAM HW Gateway</label>
+                            <input type="text" class="form-control" id="oam_hw_gw" name="oam_hw_gw" 
+                                   value="{{ form_data.get('oam_hw_gw', '') }}" placeholder="e.g. 10.113.63.161/28">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="oam_hw_ip" class="form-label fw-semibold">OAM HW IP</label>
+                            <input type="text" class="form-control" id="oam_hw_ip" name="oam_hw_ip" 
+                                   value="{{ form_data.get('oam_hw_ip', '') }}" placeholder="e.g. 10.113.63.167">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
                         <a href="{% if mode == 'edit' %}{{ url_for('view_site', site_id=site['site_id']) }}{% else %}{{ url_for('index') }}{% endif %}" class="btn btn-light border px-4">
                             Cancel
                         </a>
-                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold shadow-sm">
                             <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
                         </button>
                     </div>

@@ -89,20 +89,29 @@
                 <span class="input-group-text bg-light border-end-0">
                     <i id="search-icon" class="fa-solid fa-magnifying-glass text-muted"></i>
                 </span>
-                <select id="search-by-select" name="search_by" class="form-select bg-light border-end-0 flex-grow-0" style="width: auto; max-width: 190px; font-weight: 500;" title="Select Search Target Column">
+                <select id="search-by-select" name="search_by" class="form-select bg-light border-end-0 flex-grow-0" style="width: auto; max-width: 210px; font-weight: 500;" title="Select Search Target Column">
                     <option value="all" {% if search_by == 'all' or not search_by %}selected{% endif %}>Generic (All Columns)</option>
                     <option value="site_id" {% if search_by == 'site_id' %}selected{% endif %}>Site ID</option>
                     <option value="site_name" {% if search_by == 'site_name' %}selected{% endif %}>Site Name</option>
+                    <option value="oam_cef_ip_pool" {% if search_by == 'oam_cef_ip_pool' %}selected{% endif %}>OAM CEF IP Pool</option>
                     <option value="enodeb_address" {% if search_by == 'enodeb_address' %}selected{% endif %}>eNodeB IP</option>
                     <option value="ssa" {% if search_by == 'ssa' %}selected{% endif %}>SSA</option>
                     <option value="location" {% if search_by == 'location' %}selected{% endif %}>Location</option>
                     <option value="cpan_maan_vsat" {% if search_by == 'cpan_maan_vsat' %}selected{% endif %}>Type (CPAN/MAAN/VSAT)</option>
-                    <option value="tx_system_ip" {% if search_by == 'tx_system_ip' %}selected{% endif %}>TX System IP</option>
-                    <option value="tx_system_location" {% if search_by == 'tx_system_location' %}selected{% endif %}>TX System Location</option>
-                    <option value="tx_system_port" {% if search_by == 'tx_system_port' %}selected{% endif %}>TX System Port</option>
-                    <option value="vlan" {% if search_by == 'vlan' %}selected{% endif %}>VLAN</option>
+                    <option value="mgmt_ip" {% if search_by == 'mgmt_ip' %}selected{% endif %}>Mgmt IP</option>
+                    <option value="oam_vlan" {% if search_by == 'oam_vlan' %}selected{% endif %}>OAM VLAN</option>
+                    <option value="mgmt_rac_vlan" {% if search_by == 'mgmt_rac_vlan' %}selected{% endif %}>Mgmt / RAC VLAN</option>
+                    <option value="s1_c_vlan" {% if search_by == 's1_c_vlan' %}selected{% endif %}>S1-C VLAN</option>
+                    <option value="s1_u_vlan" {% if search_by == 's1_u_vlan' %}selected{% endif %}>S1-U VLAN</option>
+                    <option value="endpoint_ip" {% if search_by == 'endpoint_ip' %}selected{% endif %}>Endpoint IP</option>
+                    <option value="endpoint_node_router" {% if search_by == 'endpoint_node_router' %}selected{% endif %}>Endpoint Node/Router</option>
+                    <option value="cpan_a_end_node" {% if search_by == 'cpan_a_end_node' %}selected{% endif %}>CPAN A End Node</option>
+                    <option value="cpan_a_end_ip" {% if search_by == 'cpan_a_end_ip' %}selected{% endif %}>CPAN A End IP</option>
+                    <option value="cpan_z_end_node" {% if search_by == 'cpan_z_end_node' %}selected{% endif %}>CPAN Z End Node</option>
+                    <option value="cpan_z_end_ip" {% if search_by == 'cpan_z_end_ip' %}selected{% endif %}>CPAN Z End IP</option>
+                    <option value="oam_vlan" {% if search_by == 'oam_vlan' %}selected{% endif %}>OAM VLAN</option>
                 </select>
-                <input type="text" id="search-input" name="q" value="{{ query }}" class="form-control" placeholder="Search across all columns..." autocomplete="off">
+                <input type="text" id="search-input" name="q" value="{{ query }}" class="form-control" placeholder="Real-time instant search across all 33 network columns..." autocomplete="off">
             </div>
         </div>
         <div class="col-md-2">
@@ -122,14 +131,14 @@
         </div>
         <div class="col-md-2 d-flex gap-2">
             <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i> Apply</button>
-            <a href="{{ url_for('index') }}" id="clear-search-btn" class="btn btn-outline-secondary {% if not query and not selected_ssa and (not search_by or search_by == 'all') %}d-none{% endif %}" title="Clear Search">
+            <button type="button" id="clear-search-btn" class="btn btn-outline-secondary {% if not query and not selected_ssa and (not search_by or search_by == 'all') %}d-none{% endif %}" title="Clear Search">
                 <i class="fa-solid fa-xmark"></i>
-            </a>
+            </button>
         </div>
     </form>
 </div>
 
-<!-- Records Table Card (100% Viewport Width, Zero Horizontal Scroll) -->
+<!-- Records Table Card -->
 <div class="card card-custom bg-white overflow-hidden shadow-sm mb-4">
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
         <h5 class="mb-0 fw-bold text-secondary">
@@ -145,96 +154,122 @@
         </div>
     </div>
 
-    <div class="w-100 px-0">
-        <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%; font-size: 0.82rem;">
-            <thead class="table-light text-secondary small text-uppercase">
-                <tr>
-                    <th scope="col" style="width: 3%;" class="px-1 text-center">#</th>
-                    <th scope="col" style="width: 13%;" class="px-1">Site ID</th>
-                    <th scope="col" style="width: 14%;" class="px-1">Site Name</th>
-                    <th scope="col" style="width: 9%;" class="px-1">eNodeB IP</th>
-                    <th scope="col" style="width: 7%;" class="px-1">SSA</th>
-                    <th scope="col" style="width: 9%;" class="px-1">Location</th>
-                    <th scope="col" style="width: 5%;" class="px-1 text-center">Type</th>
-                    <th scope="col" style="width: 9%;" class="px-1">TX IP</th>
-                    <th scope="col" style="width: 9%;" class="px-1">TX Loc</th>
-                    <th scope="col" style="width: 13%;" class="px-1">TX Port</th>
-                    <th scope="col" style="width: 4%;" class="px-1 text-center">VLAN</th>
-                    <th scope="col" style="width: 5%;" class="px-1 text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="records-tbody">
-                {% if records %}
-                    {% for rec in records %}
-                        {% set row_num = (page - 1) * per_page + loop.index %}
-                        <tr>
-                            <td class="text-muted small fw-semibold px-1 text-center">{{ row_num }}</td>
-                            <td class="px-1 text-break">
-                                <a href="{{ url_for('view_site', site_id=rec['site_id']) }}" class="fw-bold text-decoration-none text-primary">
-                                    {{ rec['site_id'] }}
-                                </a>
-                            </td>
-                            <td class="fw-semibold text-dark px-1 text-break">{{ rec['site_name'] }}</td>
-                            <td class="px-1 text-break"><code class="text-dark">{{ rec['enodeb_address'] or '-' }}</code></td>
-                            <td class="px-1 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">{{ rec['ssa'] or '-' }}</span></td>
-                            <td class="px-1 text-break">{{ rec['Location'] or '-' }}</td>
-                            <td class="px-1 text-center">
-                                {% set type_val = rec['cpan/maan/vsat'].upper() %}
-                                {% if 'CPAN' in type_val %}
-                                    <span class="badge badge-cpan px-1 py-1">CPAN</span>
-                                {% elif 'MAAN' in type_val %}
-                                    <span class="badge badge-maan px-1 py-1">MAAN</span>
-                                {% elif 'VSAT' in type_val %}
-                                    <span class="badge badge-vsat px-1 py-1">VSAT</span>
-                                {% else %}
-                                    <span class="badge bg-secondary px-1 py-1">{{ rec['cpan/maan/vsat'] or '-' }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="px-1 text-break"><code>{{ rec['tx-system-ip'] or '-' }}</code></td>
-                            <td class="px-1 text-break">{{ rec['tx-system-location'] or '-' }}</td>
-                            <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.75rem;">{{ rec['tx-system-port'] or '-' }}</span></td>
-                            <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">{{ rec['vlan'] or '-' }}</span></td>
-                            <td class="px-1 text-end">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ url_for('view_site', site_id=rec['site_id']) }}" class="btn btn-outline-info p-1" title="View Details">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
-                                    <a href="{{ url_for('edit_site', site_id=rec['site_id']) }}" class="btn btn-outline-warning p-1" title="Edit Site">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-outline-danger p-1" title="Delete Site" data-bs-toggle="modal" data-bs-target="#deleteModal{{ row_num }}">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </div>
+    <div class="w-100 px-0 position-relative">
+        <!-- Live Table Loading Overlay -->
+        <div id="table-loading-overlay" class="d-none position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-flex align-items-center justify-content-center" style="z-index: 5;">
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="small fw-semibold text-secondary mt-2">Searching database...</div>
+            </div>
+        </div>
 
-                                <!-- Delete Confirmation Modal -->
-                                <div class="modal fade text-start" id="deleteModal{{ row_num }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
-                                                <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Deletion</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body py-4 text-wrap">
-                                                Are you sure you want to delete site <strong>{{ rec['site_id'] }}</strong> (<em>{{ rec['site_name'] }}</em>)?
-                                                <p class="text-danger small mb-0 mt-2"><i class="fa-solid fa-circle-exclamation me-1"></i>This action will remove the record from the database.</p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                                                <form method="POST" action="{{ url_for('delete_site', site_id=rec['site_id']) }}" class="d-inline">
-                                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Delete Site</button>
-                                                </form>
+        <div class="table-responsive w-100">
+            <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%; font-size: 0.78rem;">
+                <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.75rem;">
+                    <tr>
+                        <th scope="col" style="width: 2%;" class="px-1 text-center">#</th>
+                        <th scope="col" style="width: 11%;" class="px-1">Site ID</th>
+                        <th scope="col" style="width: 11%;" class="px-1">Site Name</th>
+                        <th scope="col" style="width: 9%;" class="px-1">OAM CEF IP Pool</th>
+                        <th scope="col" style="width: 5.5%;" class="ps-1 pe-3">SSA</th>
+                        <th scope="col" style="width: 8.5%;" class="ps-3 pe-1">Location</th>
+                        <th scope="col" style="width: 3.5%;" class="px-1 text-center">Type</th>
+                        <th scope="col" style="width: 9%;" class="px-1">Endpoint IP</th>
+                        <th scope="col" style="width: 8.5%;" class="px-1">Endpoint Node</th>
+                        <th scope="col" style="width: 8%;" class="px-1">Endpoint Port</th>
+                        <th scope="col" style="width: 4%;" class="px-1 text-center">OAM VLAN</th>
+                        <th scope="col" style="width: 5.5%;" class="px-1 text-center">Mgmt/RAC VLAN</th>
+                        <th scope="col" style="width: 4.5%;" class="px-1 text-center">S1-C VLAN</th>
+                        <th scope="col" style="width: 4.5%;" class="px-1 text-center">S1-U VLAN</th>
+                        <th scope="col" style="width: 6.5%;" class="px-1 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="records-tbody">
+                    {% if records %}
+                        {% set current_page_val = page if page else 1 %}
+                        {% set per_page_val = per_page if per_page else 25 %}
+                        {% for rec in records %}
+                            {% set row_num = (current_page_val - 1) * per_page_val + loop.index %}
+                            <tr>
+                                <td class="text-muted small fw-semibold px-1 text-center">{{ row_num }}</td>
+                                <td class="px-1 text-break">
+                                    <a href="javascript:void(0)" class="site-quickview-btn text-primary fw-semibold" data-quickview-site="{{ rec['site_id'] }}" title="Click for Quick Details Popup">
+                                        {{ rec['site_id'] }}
+                                    </a>
+                                </td>
+                                <td class="fw-semibold text-dark px-1 text-break">{{ rec['site_name'] }}</td>
+                                <td class="px-1 text-break">
+                                    {% if rec['oam_cef_ip_pool'] %}
+                                        <code class="ip-ping-btn" data-ping-ip="{{ rec['oam_cef_ip_pool'] }}" title="Click to Ping OAM CEF IP Pool"><i class="fa-solid fa-network-wired"></i>{{ rec['oam_cef_ip_pool'] }}</code>
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td class="ps-1 pe-3 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">{{ rec['ssa'] or '-' }}</span></td>
+                                <td class="ps-3 pe-1 text-break">{{ rec['location'] or rec['Location'] or '-' }}</td>
+                                <td class="px-1 text-center">
+                                    {% set type_val = (rec['cpan_maan_vsat'] or rec['cpan/maan/vsat'] or '').upper() %}
+                                    {% if 'CPAN' in type_val %}
+                                        <span class="badge badge-cpan px-1 py-0" style="font-size: 0.72rem;">CPAN</span>
+                                    {% elif 'MAAN' in type_val %}
+                                        <span class="badge badge-maan px-1 py-0" style="font-size: 0.72rem;">MAAN</span>
+                                    {% elif 'VSAT' in type_val %}
+                                        <span class="badge badge-vsat px-1 py-0" style="font-size: 0.72rem;">VSAT</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary px-1 py-0" style="font-size: 0.72rem;">{{ rec['cpan_maan_vsat'] or '-' }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-1 text-break">
+                                    {% set ep_ip = rec['endpoint_ip'] or rec['cpan_a_end_ip'] or rec['tx-system-ip'] %}
+                                    {% if ep_ip %}
+                                        <code class="ip-ping-btn" data-ping-ip="{{ ep_ip }}" title="Click to Ping Endpoint IP"><i class="fa-solid fa-network-wired"></i>{{ ep_ip }}</code>
+                                    {% else %}-{% endif %}
+                                </td>
+                                <td class="px-1 text-break">{{ rec['endpoint_node_router'] or rec['cpan_a_end_node'] or rec['tx-system-location'] or '-' }}</td>
+                                <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.74rem;">{{ rec['endpoint_ports'] or rec['cpan_a_end_ports'] or rec['tx-system-port'] or '-' }}</span></td>
+                                <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">{{ rec['oam_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">{{ rec['mgmt_rac_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">{{ rec['s1_c_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center"><span class="badge bg-primary-subtle text-primary border px-1 py-1">{{ rec['s1_u_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a href="javascript:void(0)" onclick="openSiteQuickView('{{ rec['site_id'] }}')" class="btn btn-sm btn-outline-info p-1" title="Quick View Popup">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('edit_site', site_id=rec['site_id']) }}" class="btn btn-sm btn-outline-warning p-1" title="Edit Site">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger p-1" title="Delete Site Record" data-bs-toggle="modal" data-bs-target="#deleteModal{{ row_num }}">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade text-start" id="deleteModal{{ row_num }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white py-3">
+                                                    <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Deletion</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body py-4 text-wrap">
+                                                    Are you sure you want to delete site <strong>{{ rec['site_id'] }}</strong> (<em>{{ rec['site_name'] }}</em>)?
+                                                    <p class="text-danger small mb-0 mt-2"><i class="fa-solid fa-circle-exclamation me-1"></i>This action will remove the record permanently from the database.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                                                    <form method="POST" action="{{ url_for('delete_site', site_id=rec['site_id']) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-danger fw-semibold"><i class="fa-solid fa-trash-can me-1"></i> Delete Site</button>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                            </td>
-                        </tr>
-                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="12" class="text-center py-5 text-muted">
+                        <td colspan="15" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-folder-open fa-3x mb-3 d-block text-secondary opacity-50"></i>
                             No matching site records found.
                         </td>
@@ -252,17 +287,17 @@
         <nav aria-label="Page navigation">
             <ul id="pagination-list" class="pagination pagination-sm mb-0">
                 <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('index', page=page-1, q=query, search_by=search_by, ssa=selected_ssa, per_page=per_page) }}">&laquo; Prev</a>
+                    <a class="page-link" href="javascript:void(0)" onclick="performAjaxSearch({{ page - 1 }})">&laquo; Prev</a>
                 </li>
                 
                 {% for p in range(max(1, page - 2), min(total_pages + 1, page + 3)) %}
                     <li class="page-item {% if p == page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('index', page=p, q=query, search_by=search_by, ssa=selected_ssa, per_page=per_page) }}">{{ p }}</a>
+                        <a class="page-link" href="javascript:void(0)" onclick="performAjaxSearch({{ p }})">{{ p }}</a>
                     </li>
                 {% endfor %}
 
                 <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('index', page=page+1, q=query, search_by=search_by, ssa=selected_ssa, per_page=per_page) }}">Next &raquo;</a>
+                    <a class="page-link" href="javascript:void(0)" onclick="performAjaxSearch({{ page + 1 }})">Next &raquo;</a>
                 </li>
             </ul>
         </nav>
@@ -271,7 +306,7 @@
 
 <!-- Customized Report Modal -->
 <div class="modal fade text-start" id="customReportModal" tabindex="-1" aria-labelledby="customReportModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content shadow-lg border-0">
             <form method="POST" action="{{ url_for('export_custom_report') }}" id="custom-report-form">
                 <div class="modal-header bg-primary text-white py-3">
@@ -363,67 +398,52 @@
                                 <button type="button" id="btn-deselect-all-cols" class="btn btn-link btn-sm text-decoration-none p-0 ms-2 fw-semibold text-secondary">Deselect All</button>
                             </div>
                         </div>
-                        <div class="row g-2 bg-light p-3 rounded border">
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="site_id" id="col_site_id" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_site_id">Site ID</label>
+                        <div class="row g-2 bg-light p-3 rounded border" style="max-height: 300px; overflow-y: auto;">
+                            {% set cols_list = [
+                                ('site_id', 'Site ID'),
+                                ('site_name', 'Site Name'),
+                                ('enodeb_address', 'eNodeB Address'),
+                                ('ssa', 'SSA'),
+                                ('location', 'Location'),
+                                ('cpan_maan_vsat', 'MAAN/CPAN/VSAT'),
+                                ('oam_vlan', 'OAM VLAN'),
+                                ('mgmt_rac_vlan', 'Mgmt / RAC VLAN'),
+                                ('s1_c_vlan', 'S1-C VLAN'),
+                                ('s1_u_vlan', 'S1-U VLAN'),
+                                ('mgmt_ip', 'Mgmt IP'),
+                                ('mgmt_gateway', 'Mgmt Gateway'),
+                                ('s1_u_ip', 'S1-U IP'),
+                                ('mme_ip', 'MME IP'),
+                                ('endpoint_type', 'Endpoint Type'),
+                                ('endpoint_node_router', 'Endpoint Node/Router'),
+                                ('endpoint_ip', 'Endpoint IP'),
+                                ('l3_gateway_maan', 'L3 Gateway (MAAN)'),
+                                ('endpoint_ports', 'Endpoint Port(s)'),
+                                ('cpan_a_end_node', 'CPAN A End Node'),
+                                ('cpan_a_end_ip', 'CPAN A End IP'),
+                                ('cpan_a_end_ports', 'CPAN A End Port(s)'),
+                                ('cpan_z_end_node', 'CPAN Z End Node'),
+                                ('cpan_z_end_ip', 'CPAN Z End IP'),
+                                ('cpan_service', 'CPAN Service'),
+                                ('service_vlans', 'Service VLANs'),
+                                ('maan_l3_interface', 'MAAN L3 Interface'),
+                                ('maan_vpn', 'MAAN VPN'),
+                                ('mask', 'Subnet Mask'),
+                                ('route_distinguisher', 'Route Distinguisher'),
+                                ('as_num', 'AS Number'),
+                                ('ems', 'EMS'),
+                                ('oam_cef_ip_pool', 'OAM CEF IP pool'),
+                                ('oam_hw_gw', 'OAM HW GW'),
+                                ('oam_hw_ip', 'OAM HW IP')
+                            ] %}
+                            {% for key, label in cols_list %}
+                                <div class="col-md-3 col-sm-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="{{ key }}" id="col_{{ key }}" checked>
+                                        <label class="form-check-label small fw-semibold text-dark" for="col_{{ key }}">{{ label }}</label>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="site_name" id="col_site_name" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_site_name">Site Name</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="enodeb_address" id="col_enodeb_address" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_enodeb_address">eNodeB IP</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="ssa" id="col_ssa" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_ssa">SSA</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="location" id="col_location" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_location">Location</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="cpan_maan_vsat" id="col_cpan_maan_vsat" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_cpan_maan_vsat">Type (CPAN/MAAN/VSAT)</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="tx_system_ip" id="col_tx_system_ip" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_tx_system_ip">TX System IP</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="tx_system_location" id="col_tx_system_location" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_tx_system_location">TX System Location</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="tx_system_port" id="col_tx_system_port" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_tx_system_port">TX System Port</label>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="form-check">
-                                    <input class="form-check-input col-checkbox" type="checkbox" name="cols" value="vlan" id="col_vlan" checked>
-                                    <label class="form-check-label small fw-semibold text-dark" for="col_vlan">VLAN</label>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -442,266 +462,254 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    const searchForm = document.getElementById('search-form');
     const searchInput = document.getElementById('search-input');
     const searchBySelect = document.getElementById('search-by-select');
     const ssaSelect = document.getElementById('ssa-select');
     const perPageSelect = document.getElementById('per-page-select');
     const clearBtn = document.getElementById('clear-search-btn');
     const searchIcon = document.getElementById('search-icon');
-    
-    const tbody = document.getElementById('records-tbody');
-    const metricFiltered = document.getElementById('metric-filtered');
-    const metricCpan = document.getElementById('metric-cpan');
-    const metricMaan = document.getElementById('metric-maan');
-    const pageCurr = document.getElementById('page-curr');
-    const pageTotal = document.getElementById('page-total');
-    const filteredCountSpan = document.getElementById('filtered-count-span');
-    const paginationList = document.getElementById('pagination-list');
-    
+    const recordsTbody = document.getElementById('records-tbody');
+    const loadingOverlay = document.getElementById('table-loading-overlay');
+
     let debounceTimer = null;
-    let currentPage = 1;
+    let currentAjaxRequest = null;
 
-    function updatePlaceholder() {
-        const val = searchBySelect.value;
-        const text = searchBySelect.options[searchBySelect.selectedIndex].text;
-        if (val === 'all') {
-            searchInput.placeholder = "Search across all columns...";
-        } else {
-            searchInput.placeholder = `Search in ${text}...`;
-        }
-    }
-    updatePlaceholder();
-
-    function renderTypeBadge(typeVal) {
-        if (!typeVal) return '<span class="badge bg-secondary px-1 py-1">-</span>';
-        const upper = typeVal.toUpperCase();
-        if (upper.includes('CPAN')) return '<span class="badge badge-cpan px-1 py-1">CPAN</span>';
-        if (upper.includes('MAAN')) return '<span class="badge badge-maan px-1 py-1">MAAN</span>';
-        if (upper.includes('VSAT')) return '<span class="badge badge-vsat px-1 py-1">VSAT</span>';
-        return `<span class="badge bg-secondary px-1 py-1">${escapeHtml(typeVal)}</span>`;
-    }
-
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    function performSearch(page = 1) {
-        currentPage = page;
-        const q = searchInput.value.trim();
+    // Global function for AJAX Pagination and Live Searching
+    window.performAjaxSearch = function (targetPage = 1) {
+        const query = searchInput.value.trim();
         const searchBy = searchBySelect.value;
-        const ssa = ssaSelect.value.trim();
+        const ssa = ssaSelect.value;
         const perPage = perPageSelect.value;
 
-        if (q || ssa || (searchBy && searchBy !== 'all')) {
+        // Show loading spinners
+        searchIcon.className = 'fa-solid fa-spinner fa-spin text-primary';
+        if (loadingOverlay) loadingOverlay.classList.remove('d-none');
+
+        // Toggle clear button visibility
+        if (query || ssa || (searchBy && searchBy !== 'all')) {
             clearBtn.classList.remove('d-none');
         } else {
             clearBtn.classList.add('d-none');
         }
 
-        searchIcon.className = "fa-solid fa-spinner fa-spin text-primary";
+        // Cancel previous pending fetch if any
+        if (currentAjaxRequest) {
+            currentAjaxRequest.abort();
+        }
+
+        const controller = new AbortController();
+        currentAjaxRequest = controller;
 
         const params = new URLSearchParams({
-            q: q,
+            q: query,
             search_by: searchBy,
             ssa: ssa,
             per_page: perPage,
-            page: page
+            page: targetPage
         });
 
-        fetch('/api/search?' + params.toString())
-            .then(res => res.json())
-            .then(data => {
-                searchIcon.className = "fa-solid fa-magnifying-glass text-muted";
-                
-                metricFiltered.textContent = data.filtered_count;
-                if (metricCpan) metricCpan.textContent = data.cpan_filtered_count;
-                if (metricMaan) metricMaan.textContent = data.maan_filtered_count;
-                pageCurr.textContent = data.page;
-                pageTotal.textContent = data.total_pages;
-                filteredCountSpan.textContent = data.filtered_count;
-                syncModalContext(q, searchBy, ssa, data.filtered_count);
+        // Update URL history without page reload
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.replaceState(null, '', newUrl);
 
-                if (!data.records || data.records.length === 0) {
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="12" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-folder-open fa-3x mb-3 d-block text-secondary opacity-50"></i>
-                                No matching site records found.
-                            </td>
-                        </tr>`;
-                } else {
-                    let html = '';
-                    data.records.forEach((rec, idx) => {
-                        const rowNum = (data.page - 1) * data.per_page + idx + 1;
-                        html += `
+        fetch(`/api/search?${params.toString()}`, { signal: controller.signal })
+        .then(res => res.json())
+        .then(data => {
+            searchIcon.className = 'fa-solid fa-magnifying-glass text-muted';
+            if (loadingOverlay) loadingOverlay.classList.add('d-none');
+
+            // 1. Update Metrics Summary Cards
+            document.getElementById('metric-total').textContent = data.total_records;
+            document.getElementById('metric-cpan').textContent = data.cpan_filtered_count;
+            document.getElementById('metric-maan').textContent = data.maan_filtered_count;
+            document.getElementById('metric-filtered').textContent = data.filtered_count;
+            document.getElementById('metric-ssas').textContent = data.unique_ssas.length;
+
+            // 2. Update Custom Report Modal hidden state
+            document.getElementById('modal-hidden-q').value = data.query;
+            document.getElementById('modal-hidden-search-by').value = data.search_by;
+            document.getElementById('modal-hidden-ssa').value = data.selected_ssa;
+            document.getElementById('modal-filtered-count').textContent = data.filtered_count;
+            document.getElementById('modal-total-count').textContent = data.total_records;
+            document.getElementById('modal-active-query').innerHTML = data.query ? `Search: "<em>${escapeHtml(data.query)}</em>" (Target: ${data.search_by})` : 'No search query';
+            document.getElementById('modal-active-ssa').innerHTML = data.selected_ssa ? `SSA: <strong>${escapeHtml(data.selected_ssa)}</strong>` : 'All SSAs';
+
+            // 3. Render Table Body Rows
+            if (data.records && data.records.length > 0) {
+                let html = '';
+                data.records.forEach((rec, idx) => {
+                    const rowNum = (data.page - 1) * data.per_page + idx + 1;
+                    const typeVal = (rec.cpan_maan_vsat || rec['cpan/maan/vsat'] || '').toUpperCase();
+                    let typeBadge = `<span class="badge bg-secondary px-1 py-0" style="font-size: 0.72rem;">${rec.cpan_maan_vsat || '-'}</span>`;
+                    if (typeVal.includes('CPAN')) {
+                        typeBadge = `<span class="badge badge-cpan px-1 py-0" style="font-size: 0.72rem;">CPAN</span>`;
+                    } else if (typeVal.includes('MAAN')) {
+                        typeBadge = `<span class="badge badge-maan px-1 py-0" style="font-size: 0.72rem;">MAAN</span>`;
+                    } else if (typeVal.includes('VSAT')) {
+                        typeBadge = `<span class="badge badge-vsat px-1 py-0" style="font-size: 0.72rem;">VSAT</span>`;
+                    }
+
+                    const oamIp = rec.oam_cef_ip_pool ? `<code class="ip-ping-btn" data-ping-ip="${escapeHtml(rec.oam_cef_ip_pool)}" title="Click to Ping OAM CEF IP Pool"><i class="fa-solid fa-network-wired me-1"></i>${escapeHtml(rec.oam_cef_ip_pool)}</code>` : '-';
+                    const epIpVal = rec.endpoint_ip || rec.cpan_a_end_ip || rec['tx-system-ip'];
+                    const epIp = epIpVal ? `<code class="ip-ping-btn" data-ping-ip="${escapeHtml(epIpVal)}" title="Click to Ping Endpoint IP"><i class="fa-solid fa-network-wired me-1"></i>${escapeHtml(epIpVal)}</code>` : '-';
+                    const epNode = escapeHtml(rec.endpoint_node_router || rec.cpan_a_end_node || rec['tx-system-location'] || '-');
+                    const epPort = escapeHtml(rec.endpoint_ports || rec.cpan_a_end_ports || rec['tx-system-port'] || '-');
+                    const oamVlan = escapeHtml(rec.oam_vlan || '-');
+                    const mgmtRacVlan = escapeHtml(rec.mgmt_rac_vlan || '-');
+                    const s1cVlan = escapeHtml(rec.s1_c_vlan || '-');
+                    const s1uVlan = escapeHtml(rec.s1_u_vlan || '-');
+
+                    html += `
                         <tr>
                             <td class="text-muted small fw-semibold px-1 text-center">${rowNum}</td>
                             <td class="px-1 text-break">
-                                <a href="/site/${encodeURIComponent(rec.site_id)}" class="fw-bold text-decoration-none text-primary">
+                                <a href="javascript:void(0)" class="site-quickview-btn text-primary fw-semibold" data-quickview-site="${escapeHtml(rec.site_id)}" title="Click for Quick Details Popup">
                                     ${escapeHtml(rec.site_id)}
                                 </a>
                             </td>
-                            <td class="fw-semibold text-dark px-1 text-break">${escapeHtml(rec.site_name)}</td>
-                            <td class="px-1 text-break"><code class="text-dark">${escapeHtml(rec.enodeb_address) || '-'}</code></td>
-                            <td class="px-1 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">${escapeHtml(rec.ssa) || '-'}</span></td>
-                            <td class="px-1 text-break">${escapeHtml(rec.Location) || '-'}</td>
-                            <td class="px-1 text-center">${renderTypeBadge(rec['cpan/maan/vsat'])}</td>
-                            <td class="px-1 text-break"><code>${escapeHtml(rec['tx-system-ip']) || '-'}</code></td>
-                            <td class="px-1 text-break">${escapeHtml(rec['tx-system-location']) || '-'}</td>
-                            <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.75rem;">${escapeHtml(rec['tx-system-port']) || '-'}</span></td>
-                            <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">${escapeHtml(rec.vlan) || '-'}</span></td>
-                            <td class="px-1 text-end">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="/site/${encodeURIComponent(rec.site_id)}" class="btn btn-outline-info p-1" title="View Details">
+                            <td class="fw-semibold text-dark px-1 text-break">${escapeHtml(rec.site_name || '-')}</td>
+                            <td class="px-1 text-break">${oamIp}</td>
+                            <td class="ps-1 pe-3 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">${escapeHtml(rec.ssa || '-')}</span></td>
+                            <td class="ps-3 pe-1 text-break">${escapeHtml(rec.location || rec.Location || '-')}</td>
+                            <td class="px-1 text-center">${typeBadge}</td>
+                            <td class="px-1 text-break">${epIp}</td>
+                            <td class="px-1 text-break">${epNode}</td>
+                            <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.74rem;">${epPort}</span></td>
+                            <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">${oamVlan}</span></td>
+                            <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">${mgmtRacVlan}</span></td>
+                            <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">${s1cVlan}</span></td>
+                            <td class="px-1 text-center"><span class="badge bg-primary-subtle text-primary border px-1 py-1">${s1uVlan}</span></td>
+                            <td class="px-1 text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <a href="javascript:void(0)" onclick="openSiteQuickView('${escapeHtml(rec.site_id)}')" class="btn btn-sm btn-outline-info p-1" title="Quick View Popup">
                                         <i class="fa-solid fa-eye"></i>
                                     </a>
-                                    <a href="/site/${encodeURIComponent(rec.site_id)}/edit" class="btn btn-outline-warning p-1" title="Edit Site">
+                                    <a href="/site/${encodeURIComponent(rec.site_id)}/edit" class="btn btn-sm btn-outline-warning p-1" title="Edit Site">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
-                                    <button type="button" class="btn btn-outline-danger p-1" title="Delete Site" data-bs-toggle="modal" data-bs-target="#deleteModal${rowNum}">
-                                        <i class="fa-solid fa-trash"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-1" title="Delete Site Record" data-bs-toggle="modal" data-bs-target="#deleteModal${rowNum}">
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
 
                                 <div class="modal fade text-start" id="deleteModal${rowNum}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
+                                            <div class="modal-header bg-danger text-white py-3">
                                                 <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Deletion</h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body py-4 text-wrap">
                                                 Are you sure you want to delete site <strong>${escapeHtml(rec.site_id)}</strong> (<em>${escapeHtml(rec.site_name)}</em>)?
-                                                <p class="text-danger small mb-0 mt-2"><i class="fa-solid fa-circle-exclamation me-1"></i>This action will remove the record from the database.</p>
+                                                <p class="text-danger small mb-0 mt-2"><i class="fa-solid fa-circle-exclamation me-1"></i>This action will remove the record permanently from the database.</p>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                                                 <form method="POST" action="/site/${encodeURIComponent(rec.site_id)}/delete" class="d-inline">
-                                                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Delete Site</button>
+                                                    <button type="submit" class="btn btn-danger fw-semibold"><i class="fa-solid fa-trash-can me-1"></i> Delete Site</button>
                                                 </form>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </td>
-                        </tr>`;
-                    });
-                    tbody.innerHTML = html;
-                }
-
-                let pagHtml = '';
-                const isPrevDisabled = data.page <= 1 ? 'disabled' : '';
-                pagHtml += `<li class="page-item ${isPrevDisabled}"><a class="page-link" href="#" data-page="${data.page - 1}">&laquo; Prev</a></li>`;
-
-                const startP = Math.max(1, data.page - 2);
-                const endP = Math.min(data.total_pages, data.page + 2);
-                for (let p = startP; p <= endP; p++) {
-                    const isActive = p === data.page ? 'active' : '';
-                    pagHtml += `<li class="page-item ${isActive}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
-                }
-
-                const isNextDisabled = data.page >= data.total_pages ? 'disabled' : '';
-                pagHtml += `<li class="page-item ${isNextDisabled}"><a class="page-link" href="#" data-page="${data.page + 1}">Next &raquo;</a></li>`;
-
-                paginationList.innerHTML = pagHtml;
-
-                paginationList.querySelectorAll('a.page-link').forEach(link => {
-                    link.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const p = parseInt(this.getAttribute('data-page'));
-                        if (p && p >= 1 && p <= data.total_pages && p !== data.page) {
-                            performSearch(p);
-                        }
-                    });
+                        </tr>
+                    `;
                 });
-            })
-            .catch(err => {
-                searchIcon.className = "fa-solid fa-magnifying-glass text-muted";
-                console.error("Search error:", err);
-            });
-    }
-
-    const modalHiddenQ = document.getElementById('modal-hidden-q');
-    const modalHiddenSearchBy = document.getElementById('modal-hidden-search-by');
-    const modalHiddenSsa = document.getElementById('modal-hidden-ssa');
-    const modalActiveQuery = document.getElementById('modal-active-query');
-    const modalActiveSsa = document.getElementById('modal-active-ssa');
-    const modalFilteredCount = document.getElementById('modal-filtered-count');
-
-    function syncModalContext(q, searchBy, ssa, count) {
-        if (modalHiddenQ) modalHiddenQ.value = q;
-        if (modalHiddenSearchBy) modalHiddenSearchBy.value = searchBy;
-        if (modalHiddenSsa) modalHiddenSsa.value = ssa;
-        if (modalFilteredCount) modalFilteredCount.textContent = count;
-        
-        if (modalActiveQuery) {
-            if (q) {
-                const targetName = searchBySelect.options[searchBySelect.selectedIndex].text;
-                modalActiveQuery.innerHTML = `Search: "<em>${escapeHtml(q)}</em>" (${escapeHtml(targetName)})`;
+                recordsTbody.innerHTML = html;
             } else {
-                modalActiveQuery.textContent = 'No search query';
+                recordsTbody.innerHTML = `
+                    <tr>
+                        <td colspan="15" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-folder-open fa-3x mb-3 d-block text-secondary opacity-50"></i>
+                            No matching site records found for query "${escapeHtml(data.query)}".
+                        </td>
+                    </tr>
+                `;
             }
-        }
-        if (modalActiveSsa) {
-            if (ssa) {
-                modalActiveSsa.innerHTML = `SSA: <strong>${escapeHtml(ssa)}</strong>`;
-            } else {
-                modalActiveSsa.textContent = 'All SSAs';
+
+            // 4. Update Pagination Controls
+            document.getElementById('page-curr').textContent = data.page;
+            document.getElementById('page-total').textContent = data.total_pages;
+            document.getElementById('filtered-count-span').textContent = data.filtered_count;
+
+            const paginationList = document.getElementById('pagination-list');
+            let pagHtml = `
+                <li class="page-item ${data.page <= 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="performAjaxSearch(${data.page - 1})">&laquo; Prev</a>
+                </li>
+            `;
+
+            const startP = Math.max(1, data.page - 2);
+            const endP = Math.min(data.total_pages, data.page + 2);
+            for (let p = startP; p <= endP; p++) {
+                pagHtml += `
+                    <li class="page-item ${p === data.page ? 'active' : ''}">
+                        <a class="page-link" href="javascript:void(0)" onclick="performAjaxSearch(${p})">${p}</a>
+                    </li>
+                `;
             }
-        }
-    }
 
-    const btnSelectAll = document.getElementById('btn-select-all-cols');
-    const btnDeselectAll = document.getElementById('btn-deselect-all-cols');
-    const colCheckboxes = document.querySelectorAll('.col-checkbox');
-
-    if (btnSelectAll) {
-        btnSelectAll.addEventListener('click', function () {
-            colCheckboxes.forEach(cb => cb.checked = true);
+            pagHtml += `
+                <li class="page-item ${data.page >= data.total_pages ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" onclick="performAjaxSearch(${data.page + 1})">Next &raquo;</a>
+                </li>
+            `;
+            paginationList.innerHTML = pagHtml;
+        })
+        .catch(err => {
+            if (err.name === 'AbortError') return; // Ignore aborted previous requests
+            searchIcon.className = 'fa-solid fa-magnifying-glass text-muted';
+            if (loadingOverlay) loadingOverlay.classList.add('d-none');
+            console.error('AJAX search error:', err);
         });
+    };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
-    if (btnDeselectAll) {
-        btnDeselectAll.addEventListener('click', function () {
-            colCheckboxes.forEach(cb => cb.checked = false);
-        });
-    }
-
-    const customReportForm = document.getElementById('custom-report-form');
-    if (customReportForm) {
-        customReportForm.addEventListener('submit', function (e) {
-            const checkedCols = document.querySelectorAll('.col-checkbox:checked');
-            if (checkedCols.length === 0) {
-                e.preventDefault();
-                alert('Please select at least one column to include in your customized report.');
-            }
-        });
-    }
-
+    // Attach Event Listeners for Real-time Instant Search
     searchInput.addEventListener('input', function () {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => performSearch(1), 150);
+        debounceTimer = setTimeout(function () {
+            performAjaxSearch(1);
+        }, 200); // 200ms smooth debounce
     });
 
-    searchBySelect.addEventListener('change', function () {
-        updatePlaceholder();
-        performSearch(1);
+    searchBySelect.addEventListener('change', function () { performAjaxSearch(1); });
+    ssaSelect.addEventListener('change', function () { performAjaxSearch(1); });
+    perPageSelect.addEventListener('change', function () { performAjaxSearch(1); });
+
+    searchForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        performAjaxSearch(1);
     });
 
-    ssaSelect.addEventListener('change', function () {
-        performSearch(1);
+    clearBtn.addEventListener('click', function () {
+        searchInput.value = '';
+        searchBySelect.value = 'all';
+        ssaSelect.value = '';
+        performAjaxSearch(1);
     });
 
-    perPageSelect.addEventListener('change', function () {
-        performSearch(1);
-    });
+    // Report modal select/deselect all handlers
+    const btnSelectAll = document.getElementById('btn-select-all-cols');
+    const btnDeselectAll = document.getElementById('btn-deselect-all-cols');
+    const checkboxes = document.querySelectorAll('.col-checkbox');
+
+    if (btnSelectAll && checkboxes) {
+        btnSelectAll.addEventListener('click', function () {
+            checkboxes.forEach(cb => cb.checked = true);
+        });
+    }
+    if (btnDeselectAll && checkboxes) {
+        btnDeselectAll.addEventListener('click', function () {
+            checkboxes.forEach(cb => cb.checked = false);
+        });
+    }
 });
 </script>
 {% endblock %}
