@@ -1,6 +1,6 @@
-# CPAN Transmission Management System
+# CPAN NOC
 
-A web-based Transmission Management System built with **Flask**, **SQLite**, **Bootstrap 5**, and **Pandas** for managing, searching, uploading, and diagnosing CPAN, MAAN, and VSAT network transmission nodes and site database records.
+A web-based Network Operations Center (NOC) system built with **Flask**, **SQLite**, **Bootstrap 5**, and **Pandas** for managing, searching, uploading, and diagnosing CPAN, MAAN, and VSAT network transmission nodes and site database records.
 
 ---
 

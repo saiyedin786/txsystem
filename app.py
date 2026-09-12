@@ -1392,7 +1392,7 @@ def export_cpan_nodes():
 
 if __name__ == '__main__':
     init_db()
-    print("Starting CPAN Transmission System on http://127.0.0.1:5000 ...")
+    print("Starting CPAN NOC on http://127.0.0.1:5000 ...")
     app.run(host='127.0.0.1', port=5000, debug=True)
 
 
