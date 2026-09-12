@@ -4,10 +4,13 @@ import sqlite3
 import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'btsdatabase.db')
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+os.makedirs(DATA_DIR, exist_ok=True)
 
-NEW_EXCEL_PATH = os.path.join(BASE_DIR, 'btsdatabase_updated - v1.xlsx')
-OLD_EXCEL_PATH = os.path.join(BASE_DIR, 'btsdatabase.xlsx')
+DB_PATH = os.path.join(DATA_DIR, 'btsdatabase.db') if os.path.exists(os.path.join(DATA_DIR, 'btsdatabase.db')) else os.path.join(BASE_DIR, 'btsdatabase.db')
+
+NEW_EXCEL_PATH = os.path.join(DATA_DIR, 'btsdatabase_updated - v1.xlsx') if os.path.exists(os.path.join(DATA_DIR, 'btsdatabase_updated - v1.xlsx')) else os.path.join(BASE_DIR, 'btsdatabase_updated - v1.xlsx')
+OLD_EXCEL_PATH = os.path.join(DATA_DIR, 'btsdatabase.xlsx') if os.path.exists(os.path.join(DATA_DIR, 'btsdatabase.xlsx')) else os.path.join(BASE_DIR, 'btsdatabase.xlsx')
 
 EXCEL_PATH = NEW_EXCEL_PATH if os.path.exists(NEW_EXCEL_PATH) else OLD_EXCEL_PATH
 
@@ -224,6 +227,32 @@ def init_db(force_reimport=False):
     
     cursor.execute("DELETE FROM users WHERE staff_no = 'STAFF001';")
     conn.commit()
+
+    # Create cpan_nodes table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cpan_nodes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ne_ip TEXT,
+            location TEXT,
+            type TEXT,
+            ssa TEXT,
+            phase TEXT,
+            ne_name TEXT,
+            ne_id TEXT,
+            dcc_ip TEXT,
+            software_version TEXT,
+            hardware_version TEXT,
+            pcb_version TEXT,
+            last_upload_time TEXT,
+            orig_location TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_ne_ip ON cpan_nodes(ne_ip);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_location ON cpan_nodes(location);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_type ON cpan_nodes(type);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_ssa ON cpan_nodes(ssa);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_ne_name ON cpan_nodes(ne_name);')
     
     cursor.execute('SELECT COUNT(*) FROM users;')
     user_count = cursor.fetchone()[0]
@@ -369,9 +398,136 @@ def init_db(force_reimport=False):
             print("No excel file found. Initialized empty database.")
     else:
         print(f"Database initialized with {count} site records and {user_count} registered user(s).")
-        
+
+    # Import CPAN nodes if table is empty or force_reimport
+    cursor.execute('SELECT COUNT(*) FROM cpan_nodes;')
+    cpan_node_count = cursor.fetchone()[0]
+    if cpan_node_count == 0 or force_reimport:
+        cpan_csv = os.path.join(DATA_DIR, 'GUJ_CPAN-NODE_LIST.csv') if os.path.exists(os.path.join(DATA_DIR, 'GUJ_CPAN-NODE_LIST.csv')) else os.path.join(BASE_DIR, 'GUJ_CPAN-NODE_LIST.csv')
+        cpan_processed_csv = os.path.join(DATA_DIR, 'cpandatabase.csv') if os.path.exists(os.path.join(DATA_DIR, 'cpandatabase.csv')) else os.path.join(BASE_DIR, 'cpandatabase.csv')
+        source_path = cpan_csv if os.path.exists(cpan_csv) else (cpan_processed_csv if os.path.exists(cpan_processed_csv) else None)
+        if source_path:
+            print(f"Importing CPAN Nodes from {source_path}...")
+            import_cpan_nodes_csv(source_path, conn)
+
     conn.close()
+
+
+def import_cpan_nodes_csv(csv_source, conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+    
+    if isinstance(csv_source, str) and os.path.exists(csv_source):
+        df = pd.read_csv(csv_source)
+    elif isinstance(csv_source, pd.DataFrame):
+        df = csv_source
+    else:
+        if close_conn:
+            conn.close()
+        return 0
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cpan_nodes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ne_ip TEXT,
+            location TEXT,
+            type TEXT,
+            ssa TEXT,
+            phase TEXT,
+            ne_name TEXT,
+            ne_id TEXT,
+            dcc_ip TEXT,
+            software_version TEXT,
+            hardware_version TEXT,
+            pcb_version TEXT,
+            last_upload_time TEXT,
+            orig_location TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_ne_ip ON cpan_nodes(ne_ip);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_location ON cpan_nodes(location);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_type ON cpan_nodes(type);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_ssa ON cpan_nodes(ssa);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_ne_name ON cpan_nodes(ne_name);')
+    
+    records = []
+    for idx, row in df.iterrows():
+        ne_name_raw = row.get('NE Name', row.get('ne_name', ''))
+        if pd.isna(ne_name_raw) or not str(ne_name_raw).strip():
+            continue
+            
+        ne_name = str(ne_name_raw).strip()
+        obj_fid = str(row.get('Object Fid', '')).strip() if pd.notna(row.get('Object Fid')) else ''
+        
+        ne_ip = str(row.get('ne_ip', '')).strip() if pd.notna(row.get('ne_ip')) else ''
+        location = str(row.get('location', '')).strip() if pd.notna(row.get('location')) else ''
+        ne_type = str(row.get('type', '')).strip() if pd.notna(row.get('type')) else ''
+        ssa = str(row.get('ssa', '')).strip() if pd.notna(row.get('ssa')) else ''
+        phase = str(row.get('phase', '')).strip() if pd.notna(row.get('phase')) else ''
+        
+        # If pre-parsed fields are not available in CSV, parse from NE Name
+        if not (ne_ip and location and ne_type and ssa):
+            parts = ne_name.split('_')
+            if len(parts) == 6:
+                ne_ip = parts[0].strip()
+                location = parts[1].strip()
+                ne_type = parts[2].strip()
+                ssa = f"{parts[3].strip()}_{parts[4].strip()}"
+                phase = parts[5].strip()
+            else:
+                clean_fid = obj_fid.lstrip('\\').strip()
+                fid_parts = clean_fid.split('_')
+                if len(fid_parts) == 6:
+                    ne_ip = fid_parts[0].strip()
+                    location = fid_parts[1].strip()
+                    ne_type = fid_parts[2].strip()
+                    ssa = f"{fid_parts[3].strip()}_{fid_parts[4].strip()}"
+                    phase = fid_parts[5].strip()
+                else:
+                    ip_match = re.match(r'^(\d+\.\d+\.\d+\.\d+)', ne_name)
+                    ne_ip = ip_match.group(1) if ip_match else str(row.get('DCC IP', '')).strip()
+                    type_match = re.search(r'(TN\d+[A-Z]?)', ne_name)
+                    ne_type = type_match.group(1) if type_match else str(row.get('NE Type', '')).split()[0]
+                    loc_match = re.search(r'^\d+\.\d+\.\d+\.\d+[-_](.*?)[-_]TN', ne_name)
+                    location = loc_match.group(1).strip() if loc_match else ""
+                    if "BHAVNAGAR" in ne_name.upper():
+                        ssa = "GJ_SSA BV"
+                    else:
+                        ssa = ""
+                    phase_match = re.search(r'(PH\d*)', ne_name)
+                    phase = phase_match.group(1) if phase_match else ""
+
+        records.append((
+            ne_ip, location, ne_type, ssa, phase, ne_name,
+            str(row.get('NE ID', row.get('ne_id', ''))).lstrip('\\').strip() if pd.notna(row.get('NE ID', row.get('ne_id'))) else '',
+            str(row.get('DCC IP', row.get('dcc_ip', ''))).strip() if pd.notna(row.get('DCC IP', row.get('dcc_ip'))) else '',
+            str(row.get('Software Version', row.get('software_version', ''))).strip() if pd.notna(row.get('Software Version', row.get('software_version'))) else '',
+            str(row.get('Hardware Version', row.get('hardware_version', ''))).strip() if pd.notna(row.get('Hardware Version', row.get('hardware_version'))) else '',
+            str(row.get('PCB Version', row.get('pcb_version', ''))).strip() if pd.notna(row.get('PCB Version', row.get('pcb_version'))) else '',
+            str(row.get('Last Upload Time', row.get('last_upload_time', ''))).strip() if pd.notna(row.get('Last Upload Time', row.get('last_upload_time'))) else '',
+            str(row.get('Location', row.get('orig_location', ''))).strip() if pd.notna(row.get('Location', row.get('orig_location'))) else ''
+        ))
+        
+    cursor.execute('DELETE FROM cpan_nodes;')
+    cursor.executemany('''
+        INSERT INTO cpan_nodes (
+            ne_ip, location, type, ssa, phase, ne_name,
+            ne_id, dcc_ip, software_version, hardware_version,
+            pcb_version, last_upload_time, orig_location
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    ''', records)
+    conn.commit()
+    count = len(records)
+    print(f"Imported {count} CPAN nodes into cpan_nodes table.")
+    if close_conn:
+        conn.close()
+    return count
 
 
 if __name__ == '__main__':
     init_db(force_reimport=True)
+

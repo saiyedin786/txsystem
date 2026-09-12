@@ -1009,7 +1009,390 @@ def export_custom_report():
         )
 
 
+# ==========================================
+# CPAN NODES MANAGEMENT & SEARCH ROUTES
+# ==========================================
+
+VALID_CPAN_SEARCH_COLUMNS = {
+    'all': 'Generic (All Columns)',
+    'ne_ip': 'NE IP',
+    'location': 'Location',
+    'type': 'Type',
+    'ssa': 'SSA',
+    'phase': 'Phase',
+    'ne_name': 'NE Name',
+    'dcc_ip': 'DCC IP'
+}
+
+ALL_CPAN_SEARCHABLE_COLS = [
+    'ne_ip', 'location', 'type', 'ssa', 'phase', 'ne_name',
+    'dcc_ip', 'orig_location'
+]
+
+
+def search_cpan_nodes(query="", search_by="all", selected_ssa="", selected_type="", page=1, per_page=25):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    where_clauses = []
+    params = []
+    
+    if search_by not in VALID_CPAN_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    if query:
+        terms = [t.strip() for t in query.strip().split() if t.strip()]
+        for t in terms:
+            t_like = f"%{t}%"
+            if search_by != "all":
+                where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+                params.append(t_like)
+            else:
+                or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_SEARCHABLE_COLS]
+                where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+                params.extend([t_like] * len(ALL_CPAN_SEARCHABLE_COLS))
+
+        
+    if selected_ssa:
+        where_clauses.append("LOWER(ssa) = LOWER(?)")
+        params.append(selected_ssa.strip())
+        
+    if selected_type:
+        where_clauses.append("LOWER(type) = LOWER(?)")
+        params.append(selected_type.strip())
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    cursor.execute("SELECT COUNT(*) FROM cpan_nodes;")
+    total_records = cursor.fetchone()[0]
+    
+    count_sql = f"SELECT COUNT(*) FROM cpan_nodes {where_sql};"
+    cursor.execute(count_sql, params)
+    filtered_count = cursor.fetchone()[0]
+    
+    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * per_page
+    
+    data_sql = f"SELECT * FROM cpan_nodes {where_sql} ORDER BY id ASC LIMIT ? OFFSET ?;"
+    cursor.execute(data_sql, params + [per_page, offset])
+    rows = [dict(r) for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT DISTINCT ssa FROM cpan_nodes WHERE ssa IS NOT NULL AND ssa != '' ORDER BY ssa ASC;")
+    unique_ssas = [r['ssa'] for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT DISTINCT type FROM cpan_nodes WHERE type IS NOT NULL AND type != '' ORDER BY type ASC;")
+    unique_types = [r['type'] for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT COUNT(DISTINCT location) FROM cpan_nodes WHERE location IS NOT NULL AND location != '';")
+    unique_locations_count = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        'nodes': rows,
+        'rows': rows,
+        'total_records': total_records,
+        'filtered_count': filtered_count,
+        'unique_ssas': unique_ssas,
+        'unique_types': unique_types,
+        'unique_locations_count': unique_locations_count,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'query': query,
+        'search_by': search_by,
+        'selected_ssa': selected_ssa,
+        'selected_type': selected_type
+    }
+
+
+@app.route('/cpan-nodes')
+@login_required
+def cpan_nodes():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_ssa = request.args.get('ssa', '').strip()
+    selected_type = request.args.get('type', '').strip()
+    
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+        
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500):
+            per_page = 25
+    except ValueError:
+        per_page = 25
+        
+    res = search_cpan_nodes(query, search_by, selected_ssa, selected_type, page, per_page)
+    
+    return render_template(
+        'cpan_nodes.html',
+        nodes=res['rows'],
+        total_records=res['total_records'],
+        filtered_count=res['filtered_count'],
+        unique_ssas=res['unique_ssas'],
+        unique_types=res['unique_types'],
+        unique_locations_count=res['unique_locations_count'],
+        page=res['page'],
+        per_page=res['per_page'],
+        total_pages=res['total_pages'],
+        query=query,
+        search_by=search_by,
+        selected_ssa=selected_ssa,
+        selected_type=selected_type,
+        search_columns=VALID_CPAN_SEARCH_COLUMNS
+    )
+
+
+@app.route('/api/cpan-nodes/search')
+@login_required
+def api_search_cpan_nodes():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_ssa = request.args.get('ssa', '').strip()
+    selected_type = request.args.get('type', '').strip()
+    
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+        
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500):
+            per_page = 25
+    except ValueError:
+        per_page = 25
+        
+    res = search_cpan_nodes(query, search_by, selected_ssa, selected_type, page, per_page)
+    return jsonify(res)
+
+
+
+@app.route('/cpan-node/new', methods=['POST'])
+@login_required
+def create_cpan_node():
+    ne_ip = request.form.get('ne_ip', '').strip()
+    location = request.form.get('location', '').strip()
+    ne_type = request.form.get('type', '').strip()
+    ssa = request.form.get('ssa', '').strip()
+    phase = request.form.get('phase', '').strip()
+    ne_name = request.form.get('ne_name', '').strip()
+    dcc_ip = request.form.get('dcc_ip', '').strip()
+    
+    if not ne_ip or not location:
+        flash('NE IP and Location are required fields.', 'warning')
+        return redirect(url_for('cpan_nodes'))
+        
+    if not ne_name:
+        ne_name = f"{ne_ip}_{location}_{ne_type}_{ssa}_{phase}".rstrip('_')
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO cpan_nodes (ne_ip, location, type, ssa, phase, ne_name, dcc_ip)
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+        ''', (ne_ip, location, ne_type, ssa, phase, ne_name, dcc_ip))
+        conn.commit()
+        flash(f'CPAN Node {ne_ip} ({location}) added successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error adding CPAN Node: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_nodes'))
+
+
+@app.route('/api/cpan-node/<int:node_id>')
+@login_required
+def get_cpan_node(node_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM cpan_nodes WHERE id = ?;", (node_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row is None:
+        return jsonify({'error': 'CPAN Node not found'}), 404
+        
+    return jsonify(dict(row))
+
+
+@app.route('/cpan-node/<int:node_id>/edit', methods=['POST'])
+@login_required
+def edit_cpan_node(node_id):
+    ne_ip = request.form.get('ne_ip', '').strip()
+    location = request.form.get('location', '').strip()
+    ne_type = request.form.get('type', '').strip()
+    ssa = request.form.get('ssa', '').strip()
+    phase = request.form.get('phase', '').strip()
+    ne_name = request.form.get('ne_name', '').strip()
+    dcc_ip = request.form.get('dcc_ip', '').strip()
+    
+    if not ne_ip or not location:
+        flash('NE IP and Location are required fields.', 'warning')
+        return redirect(url_for('cpan_nodes'))
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            UPDATE cpan_nodes
+            SET ne_ip = ?, location = ?, type = ?, ssa = ?, phase = ?, ne_name = ?, dcc_ip = ?
+            WHERE id = ?;
+        ''', (ne_ip, location, ne_type, ssa, phase, ne_name, dcc_ip, node_id))
+        conn.commit()
+        flash(f'CPAN Node {ne_ip} ({location}) updated successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error updating CPAN Node: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_nodes'))
+
+
+@app.route('/cpan-node/<int:node_id>/delete', methods=['POST'])
+@login_required
+def delete_cpan_node(node_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT ne_ip, location FROM cpan_nodes WHERE id = ?;", (node_id,))
+        node = cursor.fetchone()
+        node_label = f"{node['ne_ip']} ({node['location']})" if node else f"ID #{node_id}"
+            
+        cursor.execute("DELETE FROM cpan_nodes WHERE id = ?;", (node_id,))
+        conn.commit()
+        flash(f'CPAN Node {node_label} deleted successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error deleting CPAN Node: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_nodes'))
+
+
+@app.route('/upload-cpan-nodes', methods=['POST'])
+@login_required
+def upload_cpan_nodes():
+    if 'file' not in request.files:
+        flash('No file uploaded.', 'danger')
+        return redirect(url_for('cpan_nodes'))
+        
+    file = request.files['file']
+    if file.filename == '':
+        flash('No file selected.', 'warning')
+        return redirect(url_for('cpan_nodes'))
+        
+    if not (file.filename.endswith('.csv') or file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        flash('Invalid file format. Please upload a CSV file (e.g. GUJ_CPAN-NODE_LIST.csv).', 'danger')
+        return redirect(url_for('cpan_nodes'))
+        
+    try:
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file)
+            
+        from init_db import import_cpan_nodes_csv
+        imported_count = import_cpan_nodes_csv(df)
+        flash(f'Successfully uploaded and processed {imported_count} CPAN Nodes into database!', 'success')
+    except Exception as e:
+        flash(f'Error processing file: {str(e)}', 'danger')
+        
+    return redirect(url_for('cpan_nodes'))
+
+
+@app.route('/export-cpan-nodes')
+@login_required
+def export_cpan_nodes():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_ssa = request.args.get('ssa', '').strip()
+    selected_type = request.args.get('type', '').strip()
+    export_format = request.args.get('format', 'csv').strip().lower()
+    
+    conn = get_db()
+    where_clauses = []
+    params = []
+    
+    if search_by not in VALID_CPAN_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    if query:
+        terms = [t.strip() for t in query.strip().split() if t.strip()]
+        for t in terms:
+            t_like = f"%{t}%"
+            if search_by != "all":
+                where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+                params.append(t_like)
+            else:
+                or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_SEARCHABLE_COLS]
+                where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+                params.extend([t_like] * len(ALL_CPAN_SEARCHABLE_COLS))
+
+            
+    if selected_ssa:
+        where_clauses.append("LOWER(ssa) = LOWER(?)")
+        params.append(selected_ssa)
+        
+    if selected_type:
+        where_clauses.append("LOWER(type) = LOWER(?)")
+        params.append(selected_type)
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    query_sql = f"""
+        SELECT ne_ip AS 'NE IP', location AS 'Location', type AS 'Type', ssa AS 'SSA', phase AS 'Phase',
+               ne_name AS 'NE Name', dcc_ip AS 'DCC IP'
+        FROM cpan_nodes {where_sql} ORDER BY id ASC;
+    """
+    df = pd.read_sql_query(query_sql, conn, params=params)
+    conn.close()
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    if export_format in ('excel', 'xlsx'):
+        filename = f"CPAN_Nodes_{timestamp}.xlsx"
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='CPAN Nodes')
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
+        filename = f"CPAN_Nodes_{timestamp}.csv"
+        output = BytesIO()
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
+
+
 if __name__ == '__main__':
     init_db()
     print("Starting CPAN Transmission System on http://127.0.0.1:5000 ...")
     app.run(host='127.0.0.1', port=5000, debug=True)
+
+
