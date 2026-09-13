@@ -163,6 +163,18 @@
             </button>
         </div>
     </form>
+
+    <!-- SSA Quick Filter Pills Bar -->
+    <div class="mt-2 pt-2 border-top d-flex align-items-center flex-wrap gap-1" id="ssa-pills-bar">
+        <span class="small text-muted me-1 font-monospace"><i class="fa-solid fa-location-dot text-primary me-1"></i>Quick SSA:</span>
+        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0 px-2 small {% if not selected_ssa %}active fw-bold{% endif %}" onclick="filterBySsaPill('')">All</button>
+        {% for s in unique_ssas[:14] %}
+            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0 px-2 small {% if selected_ssa == s %}active fw-bold{% endif %}" onclick="filterBySsaPill('{{ s }}')">{{ s }}</button>
+        {% endfor %}
+        {% if unique_ssas|length > 14 %}
+            <span class="small text-muted font-monospace">+{{ unique_ssas|length - 14 }} more in dropdown</span>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Multi-Item Batch Search Modal -->
@@ -210,12 +222,66 @@
         <h5 class="mb-0 fw-bold text-secondary">
             <i class="fa-solid fa-list me-2"></i>CPAN Transmission Site Records
         </h5>
-        <div class="d-flex gap-2">
+        <div class="d-flex align-items-center gap-2">
+            <!-- Live Status Batch Ping Button (CEF & Endpoint IPs) -->
+            <button type="button" id="btn-ping-all-cef" class="btn btn-sm btn-outline-success fw-semibold" onclick="pingAllVisibleIps()" title="Batch Ping OAM CEF & Endpoint IPs to test live UP/DOWN status for all visible BTS sites">
+                <i class="fa-solid fa-bolt me-1"></i> Live Status (CEF & EP)
+            </button>
+
+            <!-- Copy Table Data -->
+            <button type="button" id="btn-copy-table" class="btn btn-sm btn-outline-secondary fw-semibold" onclick="copyEntireTableData()" title="Copy rendered table data to clipboard">
+                <i class="fa-solid fa-copy me-1"></i> Copy Table
+            </button>
+
+            <!-- Column Customizer Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle fw-semibold" type="button" id="columnToggleDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" title="Customize Visible Table Columns">
+                    <i class="fa-solid fa-sliders me-1"></i> Columns
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow p-3" aria-labelledby="columnToggleDropdown" style="min-width: 230px; font-size: 0.82rem;">
+                    <div class="fw-bold text-dark mb-2 pb-1 border-bottom d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-columns me-1 text-primary"></i>Toggle Columns</span>
+                        <button type="button" class="btn btn-link btn-xs text-primary p-0 text-decoration-none fw-bold" onclick="resetColumnVisibility()">Reset All</button>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-site-id" checked> Site ID</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-site-name" checked> Site Name</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-cef-ip" checked> OAM CEF IP Pool</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-ssa" checked> SSA</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-location" checked> Location</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-type" checked> Type</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-endpoint-ip" checked> Endpoint IP</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-endpoint-node" checked> Endpoint Node</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-endpoint-port" checked> Endpoint Port</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-oam-vlan" checked> OAM VLAN</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-mgmt-vlan" checked> Mgmt/RAC VLAN</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-s1c-vlan" checked> S1-C VLAN</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-s1u-vlan" checked> S1-U VLAN</label>
+                    </div>
+                </div>
+            </div>
+
             <a href="{{ url_for('create_site') }}" class="btn btn-sm btn-primary fw-semibold shadow-sm">
                 <i class="fa-solid fa-circle-plus me-1"></i> Add BTS Site
             </a>
             <button type="button" class="btn btn-sm btn-success fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#customReportModal">
                 <i class="fa-solid fa-file-export me-1"></i> Custom Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Floating Bulk Selection Bar -->
+    <div id="bulk-selection-bar" class="alert alert-primary py-2 px-4 mb-0 rounded-0 border-0 border-bottom d-none align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2 small">
+            <i class="fa-solid fa-square-check text-primary fa-lg"></i>
+            <span><strong><span id="selected-rows-count">0</span></strong> site(s) selected</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-primary py-1 px-3 fw-bold" onclick="copySelectedIps()">
+                <i class="fa-solid fa-copy me-1"></i> Copy Selected IPs
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" onclick="deselectAllRows()">
+                <i class="fa-solid fa-xmark me-1"></i> Deselect All
             </button>
         </div>
     </div>
@@ -233,47 +299,49 @@
             <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%; font-size: 0.78rem;">
                 <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.75rem;">
                     <tr>
-                        <th scope="col" style="width: 2.2%;" class="px-1 text-center">#</th>
-                        <th scope="col" style="width: 11%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="site_id" title="Click to Sort by Site ID">
+                        <th scope="col" style="width: 2.5%;" class="px-1 text-center">
+                            <input type="checkbox" id="select-all-cb" class="form-check-input" onclick="toggleSelectAllRows(this)" title="Select All Rows on Page">
+                        </th>
+                        <th scope="col" style="width: 10.5%;" class="px-1 sortable-col user-select-none cursor-pointer col-site-id" data-sort="site_id" title="Click to Sort by Site ID">
                             Site ID <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 11%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="site_name" title="Click to Sort by Site Name">
+                        <th scope="col" style="width: 10.5%;" class="px-1 sortable-col user-select-none cursor-pointer col-site-name" data-sort="site_name" title="Click to Sort by Site Name">
                             Site Name <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 9%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="oam_cef_ip_pool" title="Click to Sort by OAM CEF IP">
+                        <th scope="col" style="width: 9%;" class="px-1 sortable-col user-select-none cursor-pointer col-cef-ip" data-sort="oam_cef_ip_pool" title="Click to Sort by OAM CEF IP">
                             OAM CEF IP Pool <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 5.5%;" class="ps-1 pe-3 sortable-col user-select-none cursor-pointer" data-sort="ssa" title="Click to Sort by SSA">
+                        <th scope="col" style="width: 5.5%;" class="ps-1 pe-3 sortable-col user-select-none cursor-pointer col-ssa" data-sort="ssa" title="Click to Sort by SSA">
                             SSA <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 8.5%;" class="ps-3 pe-1 sortable-col user-select-none cursor-pointer" data-sort="location" title="Click to Sort by Location">
+                        <th scope="col" style="width: 8.5%;" class="ps-3 pe-1 sortable-col user-select-none cursor-pointer col-location" data-sort="location" title="Click to Sort by Location">
                             Location <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 3.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="cpan_maan_vsat" title="Click to Sort by Type">
+                        <th scope="col" style="width: 3.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer col-type" data-sort="cpan_maan_vsat" title="Click to Sort by Type">
                             Type <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 9%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="endpoint_ip" title="Click to Sort by Endpoint IP">
+                        <th scope="col" style="width: 9%;" class="px-1 sortable-col user-select-none cursor-pointer col-endpoint-ip" data-sort="endpoint_ip" title="Click to Sort by Endpoint IP">
                             Endpoint IP <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 8.5%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="endpoint_node_router" title="Click to Sort by Endpoint Node">
+                        <th scope="col" style="width: 8.5%;" class="px-1 sortable-col user-select-none cursor-pointer col-endpoint-node" data-sort="endpoint_node_router" title="Click to Sort by Endpoint Node">
                             Endpoint Node <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 8%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="endpoint_ports" title="Click to Sort by Endpoint Port">
+                        <th scope="col" style="width: 8%;" class="px-1 sortable-col user-select-none cursor-pointer col-endpoint-port" data-sort="endpoint_ports" title="Click to Sort by Endpoint Port">
                             Endpoint Port <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 4%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="oam_vlan" title="Click to Sort by OAM VLAN">
+                        <th scope="col" style="width: 4%;" class="px-1 text-center sortable-col user-select-none cursor-pointer col-oam-vlan" data-sort="oam_vlan" title="Click to Sort by OAM VLAN">
                             OAM VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 5.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="mgmt_rac_vlan" title="Click to Sort by Mgmt/RAC VLAN">
+                        <th scope="col" style="width: 5.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer col-mgmt-vlan" data-sort="mgmt_rac_vlan" title="Click to Sort by Mgmt/RAC VLAN">
                             Mgmt/RAC VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 4.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="s1_c_vlan" title="Click to Sort by S1-C VLAN">
+                        <th scope="col" style="width: 4.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer col-s1c-vlan" data-sort="s1_c_vlan" title="Click to Sort by S1-C VLAN">
                             S1-C VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 4.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="s1_u_vlan" title="Click to Sort by S1-U VLAN">
+                        <th scope="col" style="width: 4.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer col-s1u-vlan" data-sort="s1_u_vlan" title="Click to Sort by S1-U VLAN">
                             S1-U VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 6.5%;" class="px-1 text-center">Actions</th>
+                        <th scope="col" style="width: 6.5%;" class="px-1 text-center col-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="records-tbody">
@@ -282,22 +350,30 @@
                         {% set per_page_val = per_page if per_page else 25 %}
                         {% for rec in records %}
                             {% set row_num = (current_page_val - 1) * per_page_val + loop.index %}
+                            {% set ep_ip = rec['endpoint_ip'] or rec['cpan_a_end_ip'] or rec['tx-system-ip'] or '' %}
                             <tr>
-                                <td class="text-muted small fw-semibold px-1 text-center">{{ row_num }}</td>
-                                <td class="px-1 text-break">
+                                <td class="text-muted small fw-semibold px-1 text-center">
+                                    <input type="checkbox" class="form-check-input row-select-cb" value="{{ rec['site_id'] }}" data-cef-ip="{{ rec['oam_cef_ip_pool'] or '' }}" data-ep-ip="{{ ep_ip }}" onclick="onRowCheckboxChange()">
+                                </td>
+                                <td class="px-1 text-break col-site-id">
                                     <a href="javascript:void(0)" class="site-quickview-btn text-primary fw-semibold" data-quickview-site="{{ rec['site_id'] }}" title="Click for Quick Details Popup">
                                         {{ rec['site_id'] }}
                                     </a>
                                 </td>
-                                <td class="fw-semibold text-dark px-1 text-break">{{ rec['site_name'] }}</td>
-                                <td class="px-1 text-break">
+                                <td class="fw-semibold text-dark px-1 text-break col-site-name">{{ rec['site_name'] }}</td>
+                                <td class="px-1 text-break col-cef-ip">
                                     {% if rec['oam_cef_ip_pool'] %}
-                                        <code class="ip-ping-btn" data-ping-ip="{{ rec['oam_cef_ip_pool'] }}" title="Click to Ping OAM CEF IP Pool"><i class="fa-solid fa-network-wired"></i>{{ rec['oam_cef_ip_pool'] }}</code>
+                                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                                            <code class="ip-ping-btn" data-ping-ip="{{ rec['oam_cef_ip_pool'] }}" title="Click to Ping OAM CEF IP Pool"><i class="fa-solid fa-network-wired me-1"></i>{{ rec['oam_cef_ip_pool'] }}</code>
+                                            <span class="badge bg-light text-secondary border live-ip-status-badge cef-status-badge cursor-pointer user-select-none py-1 px-1" data-ip-raw="{{ rec['oam_cef_ip_pool'] }}" onclick="pingSingleIpBadge(this)" title="Click to test live UP/DOWN status">
+                                                <i class="fa-solid fa-signal text-muted me-1"></i><span class="status-text">Check</span>
+                                            </span>
+                                        </div>
                                     {% else %}-{% endif %}
                                 </td>
-                                <td class="ps-1 pe-3 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">{{ rec['ssa'] or '-' }}</span></td>
-                                <td class="ps-3 pe-1 text-break">{{ rec['location'] or rec['Location'] or '-' }}</td>
-                                <td class="px-1 text-center">
+                                <td class="ps-1 pe-3 text-break col-ssa"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">{{ rec['ssa'] or '-' }}</span></td>
+                                <td class="ps-3 pe-1 text-break col-location">{{ rec['location'] or rec['Location'] or '-' }}</td>
+                                <td class="px-1 text-center col-type">
                                     {% set type_val = (rec['cpan_maan_vsat'] or rec['cpan/maan/vsat'] or '').upper() %}
                                     {% if 'CPAN' in type_val %}
                                         <span class="badge badge-cpan px-1 py-0" style="font-size: 0.72rem;">CPAN</span>
@@ -309,19 +385,23 @@
                                         <span class="badge bg-secondary px-1 py-0" style="font-size: 0.72rem;">{{ rec['cpan_maan_vsat'] or '-' }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-1 text-break">
-                                    {% set ep_ip = rec['endpoint_ip'] or rec['cpan_a_end_ip'] or rec['tx-system-ip'] %}
+                                <td class="px-1 text-break col-endpoint-ip">
                                     {% if ep_ip %}
-                                        <code class="ip-ping-btn" data-ping-ip="{{ ep_ip }}" title="Click to Ping Endpoint IP"><i class="fa-solid fa-network-wired"></i>{{ ep_ip }}</code>
+                                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                                            <code class="ip-ping-btn" data-ping-ip="{{ ep_ip }}" title="Click to Ping Endpoint IP"><i class="fa-solid fa-network-wired me-1"></i>{{ ep_ip }}</code>
+                                            <span class="badge bg-light text-secondary border live-ip-status-badge ep-status-badge cursor-pointer user-select-none py-1 px-1" data-ip-raw="{{ ep_ip }}" onclick="pingSingleIpBadge(this)" title="Click to test live UP/DOWN status">
+                                                <i class="fa-solid fa-signal text-muted me-1"></i><span class="status-text">Check</span>
+                                            </span>
+                                        </div>
                                     {% else %}-{% endif %}
                                 </td>
-                                <td class="px-1 text-break">{{ rec['endpoint_node_router'] or rec['cpan_a_end_node'] or rec['tx-system-location'] or '-' }}</td>
-                                <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.74rem;">{{ rec['endpoint_ports'] or rec['cpan_a_end_ports'] or rec['tx-system-port'] or '-' }}</span></td>
-                                <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">{{ rec['oam_vlan'] or '-' }}</span></td>
-                                <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">{{ rec['mgmt_rac_vlan'] or '-' }}</span></td>
-                                <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">{{ rec['s1_c_vlan'] or '-' }}</span></td>
-                                <td class="px-1 text-center"><span class="badge bg-primary-subtle text-primary border px-1 py-1">{{ rec['s1_u_vlan'] or '-' }}</span></td>
-                                <td class="px-1 text-center">
+                                <td class="px-1 text-break col-endpoint-node">{{ rec['endpoint_node_router'] or rec['cpan_a_end_node'] or rec['tx-system-location'] or '-' }}</td>
+                                <td class="px-1 text-break col-endpoint-port" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.74rem;">{{ rec['endpoint_ports'] or rec['cpan_a_end_ports'] or rec['tx-system-port'] or '-' }}</span></td>
+                                <td class="px-1 text-center col-oam-vlan"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">{{ rec['oam_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center col-mgmt-vlan"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">{{ rec['mgmt_rac_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center col-s1c-vlan"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">{{ rec['s1_c_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center col-s1u-vlan"><span class="badge bg-primary-subtle text-primary border px-1 py-1">{{ rec['s1_u_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center col-actions">
                                     <div class="d-flex justify-content-center gap-1">
                                         <a href="javascript:void(0)" onclick="openSiteQuickView('{{ rec['site_id'] }}')" class="btn btn-sm btn-outline-info p-1" title="Quick View Popup">
                                             <i class="fa-solid fa-eye"></i>
@@ -572,6 +652,341 @@ document.addEventListener('DOMContentLoaded', function () {
     const sortOrderIcon = document.getElementById('sort-order-icon');
     const sortOrderInput = document.getElementById('sort-order-input');
 
+    // -------------------------------------------------------------
+    // Live IP Status UP/DOWN Ping Handlers (CEF & Endpoint IPs)
+    // -------------------------------------------------------------
+    window.pingSingleIpBadge = function(badgeElem) {
+        if (!badgeElem) return;
+        const rawIp = badgeElem.getAttribute('data-ip-raw');
+        if (!rawIp) return;
+
+        badgeElem.className = 'badge bg-warning-subtle text-warning-emphasis border live-ip-status-badge py-1 px-1';
+        badgeElem.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i><span class="status-text">Testing...</span>`;
+
+        fetch('/api/ping-cef-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ips: [rawIp] })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.results && data.results[rawIp]) {
+                const resObj = data.results[rawIp];
+                if (resObj.status === 'UP') {
+                    badgeElem.className = 'badge bg-success text-white shadow-sm live-ip-status-badge py-1 px-2 fw-bold';
+                    badgeElem.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i><span class="status-text">UP</span>`;
+                } else {
+                    badgeElem.className = 'badge bg-danger text-white shadow-sm live-ip-status-badge py-1 px-2 fw-bold';
+                    badgeElem.innerHTML = `<i class="fa-solid fa-circle-xmark me-1"></i><span class="status-text">DOWN</span>`;
+                }
+            } else {
+                badgeElem.className = 'badge bg-secondary text-white live-ip-status-badge py-1 px-1';
+                badgeElem.innerHTML = `<i class="fa-solid fa-circle-question me-1"></i><span class="status-text">Error</span>`;
+            }
+        })
+        .catch(err => {
+            badgeElem.className = 'badge bg-secondary text-white live-ip-status-badge py-1 px-1';
+            badgeElem.innerHTML = `<i class="fa-solid fa-circle-exclamation me-1"></i><span class="status-text">Failed</span>`;
+        });
+    };
+
+    window.pingAllVisibleIps = function() {
+        const badges = document.querySelectorAll('.live-ip-status-badge');
+        if (badges.length === 0) return;
+
+        const ips = [];
+        badges.forEach(b => {
+            const rawIp = b.getAttribute('data-ip-raw');
+            if (rawIp) {
+                ips.push(rawIp);
+                b.className = 'badge bg-warning-subtle text-warning-emphasis border live-ip-status-badge py-1 px-1';
+                b.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i><span class="status-text">Testing...</span>`;
+            }
+        });
+
+        const mainBtn = document.getElementById('btn-ping-all-cef');
+        let origBtnHtml = '';
+        if (mainBtn) {
+            origBtnHtml = mainBtn.innerHTML;
+            mainBtn.disabled = true;
+            mainBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Pinging ${ips.length} IPs...`;
+        }
+
+        fetch('/api/ping-cef-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ips: ips })
+        })
+        .then(res => res.json())
+        .then(data => {
+            let upCount = 0;
+            let downCount = 0;
+
+            if (data.success && data.results) {
+                badges.forEach(b => {
+                    const rawIp = b.getAttribute('data-ip-raw');
+                    if (rawIp && data.results[rawIp]) {
+                        const resObj = data.results[rawIp];
+                        if (resObj.status === 'UP') {
+                            upCount++;
+                            b.className = 'badge bg-success text-white shadow-sm live-ip-status-badge py-1 px-2 fw-bold';
+                            b.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i><span class="status-text">UP</span>`;
+                        } else {
+                            downCount++;
+                            b.className = 'badge bg-danger text-white shadow-sm live-ip-status-badge py-1 px-2 fw-bold';
+                            b.innerHTML = `<i class="fa-solid fa-circle-xmark me-1"></i><span class="status-text">DOWN</span>`;
+                        }
+                    }
+                });
+            }
+
+            if (mainBtn) {
+                mainBtn.disabled = false;
+                mainBtn.className = 'btn btn-sm btn-success fw-semibold shadow-sm';
+                mainBtn.innerHTML = `<i class="fa-solid fa-bolt me-1"></i> Status: ${upCount} UP, ${downCount} DOWN`;
+                setTimeout(() => {
+                    mainBtn.className = 'btn btn-sm btn-outline-success fw-semibold';
+                    mainBtn.innerHTML = origBtnHtml;
+                }, 6000);
+            }
+        })
+        .catch(err => {
+            console.error('Batch ping error:', err);
+            if (mainBtn) {
+                mainBtn.disabled = false;
+                mainBtn.innerHTML = origBtnHtml;
+            }
+        });
+    };
+
+    // -------------------------------------------------------------
+    // SSA Quick Filter Pills Handler
+    // -------------------------------------------------------------
+    window.filterBySsaPill = function(ssaVal) {
+        if (!ssaSelect) return;
+        ssaSelect.value = ssaVal;
+        
+        // Update active class on SSA pill buttons
+        const pillsBar = document.getElementById('ssa-pills-bar');
+        if (pillsBar) {
+            pillsBar.querySelectorAll('button').forEach(btn => {
+                const onclickAttr = btn.getAttribute('onclick') || '';
+                if (onclickAttr.includes(`'${ssaVal}'`)) {
+                    btn.className = 'btn btn-xs btn-outline-primary rounded-pill py-0 px-2 small active fw-bold';
+                } else if (ssaVal === '' && onclickAttr.includes("''")) {
+                    btn.className = 'btn btn-xs btn-outline-secondary rounded-pill py-0 px-2 small active fw-bold';
+                } else {
+                    btn.className = btn.textContent.trim() === 'All' ? 
+                        'btn btn-xs btn-outline-secondary rounded-pill py-0 px-2 small' : 
+                        'btn btn-xs btn-outline-primary rounded-pill py-0 px-2 small';
+                }
+            });
+        }
+        performAjaxSearch(1);
+    };
+
+    // -------------------------------------------------------------
+    // Bulk Selection Bar Handlers
+    // -------------------------------------------------------------
+    window.toggleSelectAllRows = function(masterCb) {
+        const rowCbs = document.querySelectorAll('.row-select-cb');
+        rowCbs.forEach(cb => {
+            cb.checked = masterCb.checked;
+        });
+        onRowCheckboxChange();
+    };
+
+    window.onRowCheckboxChange = function() {
+        const rowCbs = document.querySelectorAll('.row-select-cb');
+        const checkedCbs = document.querySelectorAll('.row-select-cb:checked');
+        const masterCb = document.getElementById('select-all-cb');
+        const bulkBar = document.getElementById('bulk-selection-bar');
+        const countSpan = document.getElementById('selected-rows-count');
+
+        // Toggle row highlight background
+        rowCbs.forEach(cb => {
+            const tr = cb.closest('tr');
+            if (tr) {
+                if (cb.checked) tr.classList.add('table-primary');
+                else tr.classList.remove('table-primary');
+            }
+        });
+
+        if (masterCb) {
+            masterCb.checked = (rowCbs.length > 0 && checkedCbs.length === rowCbs.length);
+            masterCb.indeterminate = (checkedCbs.length > 0 && checkedCbs.length < rowCbs.length);
+        }
+
+        if (countSpan) countSpan.textContent = checkedCbs.length;
+
+        if (bulkBar) {
+            if (checkedCbs.length > 0) {
+                bulkBar.classList.remove('d-none');
+                bulkBar.classList.add('d-flex');
+            } else {
+                bulkBar.classList.add('d-none');
+                bulkBar.classList.remove('d-flex');
+            }
+        }
+    };
+
+    window.deselectAllRows = function() {
+        const masterCb = document.getElementById('select-all-cb');
+        if (masterCb) {
+            masterCb.checked = false;
+            masterCb.indeterminate = false;
+        }
+        const rowCbs = document.querySelectorAll('.row-select-cb');
+        rowCbs.forEach(cb => {
+            cb.checked = false;
+            const tr = cb.closest('tr');
+            if (tr) tr.classList.remove('table-primary');
+        });
+        onRowCheckboxChange();
+    };
+
+    window.copySelectedIps = function() {
+        const checkedCbs = document.querySelectorAll('.row-select-cb:checked');
+        if (checkedCbs.length === 0) return;
+
+        const ipSet = new Set();
+        checkedCbs.forEach(cb => {
+            const cefIp = (cb.getAttribute('data-cef-ip') || '').trim();
+            const epIp = (cb.getAttribute('data-ep-ip') || '').trim();
+            if (cefIp && cefIp !== '-') ipSet.add(cefIp);
+            if (epIp && epIp !== '-') ipSet.add(epIp);
+        });
+
+        const ipList = Array.from(ipSet);
+        if (ipList.length === 0) {
+            alert('No valid IP addresses found in selected rows.');
+            return;
+        }
+
+        const textToCopy = ipList.join('\n');
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const bulkBtn = document.querySelector('#bulk-selection-bar button.btn-primary');
+            if (bulkBtn) {
+                const originalText = bulkBtn.innerHTML;
+                bulkBtn.innerHTML = `<i class="fa-solid fa-check me-1"></i> Copied ${ipList.length} IP(s)!`;
+                bulkBtn.classList.replace('btn-primary', 'btn-success');
+                setTimeout(() => {
+                    bulkBtn.innerHTML = originalText;
+                    bulkBtn.classList.replace('btn-success', 'btn-primary');
+                }, 2000);
+            }
+        }).catch(err => {
+            console.error('Clipboard copy failed:', err);
+            alert(`IP List:\n\n${textToCopy}`);
+        });
+    };
+
+    // -------------------------------------------------------------
+    // Copy Rendered Table to Clipboard (TSV format)
+    // -------------------------------------------------------------
+    window.copyEntireTableData = function() {
+        const table = document.querySelector('.table-responsive table');
+        if (!table) return;
+
+        const rows = [];
+        
+        // Headers (only visible headers, excluding select box and actions)
+        const headers = [];
+        table.querySelectorAll('thead th').forEach(th => {
+            if (th.querySelector('#select-all-cb') || th.classList.contains('col-actions')) return;
+            if (window.getComputedStyle(th).display === 'none') return;
+            
+            let text = th.innerText.replace(/\s+/g, ' ').trim();
+            headers.push(text);
+        });
+        rows.push(headers.join('\t'));
+
+        // Data Rows
+        table.querySelectorAll('tbody tr').forEach(tr => {
+            if (tr.querySelector('td[colspan]')) return; // empty state row
+            
+            const rowData = [];
+            tr.querySelectorAll('td').forEach(td => {
+                if (td.querySelector('.row-select-cb') || td.classList.contains('col-actions')) return;
+                if (window.getComputedStyle(td).display === 'none') return;
+                
+                let text = td.innerText.replace(/\s+/g, ' ').trim();
+                rowData.push(text);
+            });
+            if (rowData.length > 0) {
+                rows.push(rowData.join('\t'));
+            }
+        });
+
+        const tsvData = rows.join('\n');
+        navigator.clipboard.writeText(tsvData).then(() => {
+            const copyBtn = document.getElementById('btn-copy-table');
+            if (copyBtn) {
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = `<i class="fa-solid fa-check me-1 text-success"></i> Copied!`;
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                }, 2000);
+            }
+        }).catch(err => {
+            console.error('Failed to copy table:', err);
+        });
+    };
+
+    // -------------------------------------------------------------
+    // Column Customizer & LocalStorage Persistence Handlers
+    // -------------------------------------------------------------
+    window.applyColumnVisibility = function() {
+        let hiddenCols = [];
+        try {
+            const saved = localStorage.getItem('noc_table_column_vis');
+            if (saved) hiddenCols = JSON.parse(saved);
+        } catch(e) { hiddenCols = []; }
+
+        document.querySelectorAll('.col-toggle-cb').forEach(cb => {
+            const colClass = cb.getAttribute('data-col');
+            const isHidden = hiddenCols.includes(colClass);
+            cb.checked = !isHidden;
+
+            document.querySelectorAll(`.${colClass}`).forEach(el => {
+                if (isHidden) {
+                    el.style.setProperty('display', 'none', 'important');
+                } else {
+                    el.style.removeProperty('display');
+                }
+            });
+        });
+    };
+
+    function onColumnToggleChange() {
+        const hiddenCols = [];
+        document.querySelectorAll('.col-toggle-cb').forEach(cb => {
+            const colClass = cb.getAttribute('data-col');
+            if (!cb.checked) {
+                hiddenCols.push(colClass);
+            }
+        });
+        localStorage.setItem('noc_table_column_vis', JSON.stringify(hiddenCols));
+        applyColumnVisibility();
+    }
+
+    window.initColumnVisibility = function() {
+        applyColumnVisibility();
+        document.querySelectorAll('.col-toggle-cb').forEach(cb => {
+            cb.removeEventListener('change', onColumnToggleChange);
+            cb.addEventListener('change', onColumnToggleChange);
+        });
+    };
+
+    window.resetColumnVisibility = function() {
+        localStorage.removeItem('noc_table_column_vis');
+        document.querySelectorAll('.col-toggle-cb').forEach(cb => cb.checked = true);
+        applyColumnVisibility();
+    };
+
+    // -------------------------------------------------------------
+    // Sorting & Table Header Indicators
+    // -------------------------------------------------------------
     function updateHeaderSortIcons(activeSortBy, activeSortOrder) {
         document.querySelectorAll('.sortable-col').forEach(th => {
             const col = th.getAttribute('data-sort');
@@ -591,7 +1006,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Global function for AJAX Pagination and Live Searching
+    // -------------------------------------------------------------
+    // Dynamic AJAX Search & Pagination Engine
+    // -------------------------------------------------------------
     window.performAjaxSearch = function (targetPage = 1) {
         const query = searchInput.value.trim();
         const searchBy = searchBySelect.value;
@@ -673,9 +1090,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         typeBadge = `<span class="badge badge-vsat px-1 py-0" style="font-size: 0.72rem;">VSAT</span>`;
                     }
 
-                    const oamIp = rec.oam_cef_ip_pool ? `<code class="ip-ping-btn" data-ping-ip="${escapeHtml(rec.oam_cef_ip_pool)}" title="Click to Ping OAM CEF IP Pool"><i class="fa-solid fa-network-wired me-1"></i>${escapeHtml(rec.oam_cef_ip_pool)}</code>` : '-';
-                    const epIpVal = rec.endpoint_ip || rec.cpan_a_end_ip || rec['tx-system-ip'];
-                    const epIp = epIpVal ? `<code class="ip-ping-btn" data-ping-ip="${escapeHtml(epIpVal)}" title="Click to Ping Endpoint IP"><i class="fa-solid fa-network-wired me-1"></i>${escapeHtml(epIpVal)}</code>` : '-';
+                    const oamIp = rec.oam_cef_ip_pool ? `
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                            <code class="ip-ping-btn" data-ping-ip="${escapeHtml(rec.oam_cef_ip_pool)}" title="Click to Ping OAM CEF IP Pool"><i class="fa-solid fa-network-wired me-1"></i>${escapeHtml(rec.oam_cef_ip_pool)}</code>
+                            <span class="badge bg-light text-secondary border live-ip-status-badge cef-status-badge cursor-pointer user-select-none py-1 px-1" data-ip-raw="${escapeHtml(rec.oam_cef_ip_pool)}" onclick="pingSingleIpBadge(this)" title="Click to test live UP/DOWN status">
+                                <i class="fa-solid fa-signal text-muted me-1"></i><span class="status-text">Check</span>
+                            </span>
+                        </div>
+                    ` : '-';
+                    const epIpVal = rec.endpoint_ip || rec.cpan_a_end_ip || rec['tx-system-ip'] || '';
+                    const epIp = epIpVal ? `
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
+                            <code class="ip-ping-btn" data-ping-ip="${escapeHtml(epIpVal)}" title="Click to Ping Endpoint IP"><i class="fa-solid fa-network-wired me-1"></i>${escapeHtml(epIpVal)}</code>
+                            <span class="badge bg-light text-secondary border live-ip-status-badge ep-status-badge cursor-pointer user-select-none py-1 px-1" data-ip-raw="${escapeHtml(epIpVal)}" onclick="pingSingleIpBadge(this)" title="Click to test live UP/DOWN status">
+                                <i class="fa-solid fa-signal text-muted me-1"></i><span class="status-text">Check</span>
+                            </span>
+                        </div>
+                    ` : '-';
                     const epNode = escapeHtml(rec.endpoint_node_router || rec.cpan_a_end_node || rec['tx-system-location'] || '-');
                     const epPort = escapeHtml(rec.endpoint_ports || rec.cpan_a_end_ports || rec['tx-system-port'] || '-');
                     const oamVlan = escapeHtml(rec.oam_vlan || '-');
@@ -685,25 +1116,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     html += `
                         <tr>
-                            <td class="text-muted small fw-semibold px-1 text-center">${rowNum}</td>
-                            <td class="px-1 text-break">
+                            <td class="text-muted small fw-semibold px-1 text-center">
+                                <input type="checkbox" class="form-check-input row-select-cb" value="${escapeHtml(rec.site_id)}" data-cef-ip="${escapeHtml(rec.oam_cef_ip_pool || '')}" data-ep-ip="${escapeHtml(epIpVal)}" onclick="onRowCheckboxChange()">
+                            </td>
+                            <td class="px-1 text-break col-site-id">
                                 <a href="javascript:void(0)" class="site-quickview-btn text-primary fw-semibold" data-quickview-site="${escapeHtml(rec.site_id)}" title="Click for Quick Details Popup">
                                     ${escapeHtml(rec.site_id)}
                                 </a>
                             </td>
-                            <td class="fw-semibold text-dark px-1 text-break">${escapeHtml(rec.site_name || '-')}</td>
-                            <td class="px-1 text-break">${oamIp}</td>
-                            <td class="ps-1 pe-3 text-break"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">${escapeHtml(rec.ssa || '-')}</span></td>
-                            <td class="ps-3 pe-1 text-break">${escapeHtml(rec.location || rec.Location || '-')}</td>
-                            <td class="px-1 text-center">${typeBadge}</td>
-                            <td class="px-1 text-break">${epIp}</td>
-                            <td class="px-1 text-break">${epNode}</td>
-                            <td class="px-1 text-break" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.74rem;">${epPort}</span></td>
-                            <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">${oamVlan}</span></td>
-                            <td class="px-1 text-center"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">${mgmtRacVlan}</span></td>
-                            <td class="px-1 text-center"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">${s1cVlan}</span></td>
-                            <td class="px-1 text-center"><span class="badge bg-primary-subtle text-primary border px-1 py-1">${s1uVlan}</span></td>
-                            <td class="px-1 text-center">
+                            <td class="fw-semibold text-dark px-1 text-break col-site-name">${escapeHtml(rec.site_name || '-')}</td>
+                            <td class="px-1 text-break col-cef-ip">${oamIp}</td>
+                            <td class="ps-1 pe-3 text-break col-ssa"><span class="badge bg-secondary-subtle text-secondary border px-1 py-1">${escapeHtml(rec.ssa || '-')}</span></td>
+                            <td class="ps-3 pe-1 text-break col-location">${escapeHtml(rec.location || rec.Location || '-')}</td>
+                            <td class="px-1 text-center col-type">${typeBadge}</td>
+                            <td class="px-1 text-break col-endpoint-ip">${epIp}</td>
+                            <td class="px-1 text-break col-endpoint-node">${epNode}</td>
+                            <td class="px-1 text-break col-endpoint-port" style="word-break: break-all;"><span class="badge bg-light text-dark border text-wrap text-start font-monospace" style="font-size: 0.74rem;">${epPort}</span></td>
+                            <td class="px-1 text-center col-oam-vlan"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">${oamVlan}</span></td>
+                            <td class="px-1 text-center col-mgmt-vlan"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">${mgmtRacVlan}</span></td>
+                            <td class="px-1 text-center col-s1c-vlan"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">${s1cVlan}</span></td>
+                            <td class="px-1 text-center col-s1u-vlan"><span class="badge bg-primary-subtle text-primary border px-1 py-1">${s1uVlan}</span></td>
+                            <td class="px-1 text-center col-actions">
                                 <div class="d-flex justify-content-center gap-1">
                                     <a href="javascript:void(0)" onclick="openSiteQuickView('${escapeHtml(rec.site_id)}')" class="btn btn-sm btn-outline-info p-1" title="Quick View Popup">
                                         <i class="fa-solid fa-eye"></i>
@@ -752,7 +1185,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
             }
 
-            // 4. Update Pagination Controls
+            // 4. Re-apply column visibility & reset selection state
+            applyColumnVisibility();
+            deselectAllRows();
+
+            // 5. Update Pagination Controls
             document.getElementById('page-curr').textContent = data.page;
             document.getElementById('page-total').textContent = data.total_pages;
             document.getElementById('filtered-count-span').textContent = data.filtered_count;
@@ -782,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', function () {
             paginationList.innerHTML = pagHtml;
         })
         .catch(err => {
-            if (err.name === 'AbortError') return; // Ignore aborted previous requests
+            if (err.name === 'AbortError') return;
             searchIcon.className = 'fa-solid fa-magnifying-glass text-muted';
             if (loadingOverlay) loadingOverlay.classList.add('d-none');
             console.error('AJAX search error:', err);
@@ -929,10 +1366,11 @@ document.addEventListener('DOMContentLoaded', function () {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(function () {
             performAjaxSearch(1);
-        }, 200); // 200ms smooth debounce
+        }, 200);
     });
 
-    // Check initial state on page load
+    // Initialize Column Customizer & Check initial state on page load
+    initColumnVisibility();
     updateMultiItemPill();
 
     searchBySelect.addEventListener('change', function () { performAjaxSearch(1); });

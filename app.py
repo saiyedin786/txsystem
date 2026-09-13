@@ -1,8 +1,10 @@
 import os
 import re
+import time
 import sqlite3
 import ipaddress
 import subprocess
+import concurrent.futures
 from io import BytesIO
 from datetime import datetime
 from functools import wraps
@@ -656,6 +658,55 @@ def api_ping():
             'output': err_msg,
             'message': err_msg
         }), 500
+
+
+@app.route('/api/ping-cef-batch', methods=['POST'])
+@login_required
+def api_ping_cef_batch():
+    data = request.get_json(silent=True) or {}
+    raw_ips = data.get('ips', [])
+    if not isinstance(raw_ips, list) or not raw_ips:
+        return jsonify({'success': False, 'message': 'No IP list provided.'}), 400
+
+    def ping_single_ip(raw_ip):
+        if not raw_ip:
+            return (raw_ip, {'status': 'DOWN', 'is_reachable': False, 'message': 'No IP'})
+
+        clean_ip = str(raw_ip).split('/')[0].strip()
+        try:
+            ip_obj = str(ipaddress.ip_address(clean_ip))
+        except ValueError:
+            return (raw_ip, {'status': 'DOWN', 'is_reachable': False, 'message': 'Invalid IP format'})
+
+        if os.name == 'nt':
+            cmd = ['ping', '-n', '1', '-w', '1000', ip_obj]
+        else:
+            cmd = ['ping', '-c', '1', '-W', '1', ip_obj]
+
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=2.5)
+            output = (proc.stdout or proc.stderr or '').upper()
+            is_reachable = (proc.returncode == 0) and (
+                'TTL=' in output or 'BYTES=' in output or 'TIME=' in output or 'REPLY FROM' in output
+            ) and ('UNREACHABLE' not in output and 'TIMED OUT' not in output and '100% LOSS' not in output)
+
+            return (raw_ip, {
+                'ip': ip_obj,
+                'status': 'UP' if is_reachable else 'DOWN',
+                'is_reachable': is_reachable
+            })
+        except Exception:
+            return (raw_ip, {'ip': ip_obj, 'status': 'DOWN', 'is_reachable': False})
+
+    unique_ips = list(set(raw_ips))
+    results = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(30, max(1, len(unique_ips)))) as executor:
+        futures = [executor.submit(ping_single_ip, ip) for ip in unique_ips]
+        for future in concurrent.futures.as_completed(futures):
+            r_ip, res = future.result()
+            results[r_ip] = res
+
+    return jsonify({'success': True, 'results': results})
 
 
 @app.route('/site/new', methods=['GET', 'POST'])
@@ -1633,6 +1684,7 @@ def export_cpan_nodes():
             download_name=filename,
             mimetype='text/csv'
         )
+
 
 
 if __name__ == '__main__':
