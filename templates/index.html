@@ -111,7 +111,13 @@
                     <option value="cpan_z_end_ip" {% if search_by == 'cpan_z_end_ip' %}selected{% endif %}>CPAN Z End IP</option>
                     <option value="oam_vlan" {% if search_by == 'oam_vlan' %}selected{% endif %}>OAM VLAN</option>
                 </select>
-                <input type="text" id="search-input" name="q" value="{{ query }}" class="form-control" placeholder="Real-time instant search across all 33 network columns..." autocomplete="off">
+                <input type="text" id="search-input" name="q" value="{{ query }}" class="form-control" placeholder="Search single term or paste multiple items (e.g. MEH247, MEH037, MEH068...)" autocomplete="off">
+                <button type="button" class="btn btn-outline-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#bulkSearchModal" title="Batch Multi-Item Paste & Search">
+                    <i class="fa-solid fa-list-check me-1"></i> Multi-Item
+                </button>
+            </div>
+            <div id="multi-item-pill" class="mt-1 small d-none">
+                <span class="badge bg-primary-subtle text-primary border"><i class="fa-solid fa-bolt me-1"></i><span id="multi-item-count-label">0</span> items in multi-search</span>
             </div>
         </div>
         <div class="col-md-2">
@@ -123,19 +129,79 @@
             </select>
         </div>
         <div class="col-md-2">
+            <div class="input-group">
+                <select id="sort-by-select" name="sort_by" class="form-select bg-light" title="Sort by Column">
+                    <option value="id" {% if sort_by == 'id' or not sort_by %}selected{% endif %}>Sort: Default (ID)</option>
+                    <option value="site_id" {% if sort_by == 'site_id' %}selected{% endif %}>Sort: Site ID</option>
+                    <option value="site_name" {% if sort_by == 'site_name' %}selected{% endif %}>Sort: Site Name</option>
+                    <option value="ssa" {% if sort_by == 'ssa' %}selected{% endif %}>Sort: SSA</option>
+                    <option value="location" {% if sort_by == 'location' %}selected{% endif %}>Sort: Location</option>
+                    <option value="cpan_maan_vsat" {% if sort_by == 'cpan_maan_vsat' %}selected{% endif %}>Sort: Type</option>
+                    <option value="oam_cef_ip_pool" {% if sort_by == 'oam_cef_ip_pool' %}selected{% endif %}>Sort: OAM CEF IP</option>
+                    <option value="endpoint_ip" {% if sort_by == 'endpoint_ip' %}selected{% endif %}>Sort: Endpoint IP</option>
+                    <option value="endpoint_node_router" {% if sort_by == 'endpoint_node_router' %}selected{% endif %}>Sort: Endpoint Node</option>
+                    <option value="oam_vlan" {% if sort_by == 'oam_vlan' %}selected{% endif %}>Sort: OAM VLAN</option>
+                    <option value="mgmt_rac_vlan" {% if sort_by == 'mgmt_rac_vlan' %}selected{% endif %}>Sort: Mgmt/RAC VLAN</option>
+                    <option value="s1_c_vlan" {% if sort_by == 's1_c_vlan' %}selected{% endif %}>Sort: S1-C VLAN</option>
+                    <option value="s1_u_vlan" {% if sort_by == 's1_u_vlan' %}selected{% endif %}>Sort: S1-U VLAN</option>
+                </select>
+                <button type="button" id="sort-order-btn" class="btn btn-outline-secondary" title="Toggle Ascending/Descending">
+                    <i id="sort-order-icon" class="fa-solid {% if sort_order == 'desc' %}fa-arrow-down-z-a{% else %}fa-arrow-up-a-z{% endif %}"></i>
+                </button>
+                <input type="hidden" id="sort-order-input" name="sort_order" value="{{ sort_order or 'asc' }}">
+            </div>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
             <select id="per-page-select" name="per_page" class="form-select">
                 <option value="25" {% if per_page == 25 %}selected{% endif %}>25 per page</option>
                 <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
                 <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
             </select>
-        </div>
-        <div class="col-md-2 d-flex gap-2">
-            <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i> Apply</button>
-            <button type="button" id="clear-search-btn" class="btn btn-outline-secondary {% if not query and not selected_ssa and (not search_by or search_by == 'all') %}d-none{% endif %}" title="Clear Search">
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i></button>
+            <button type="button" id="clear-search-btn" class="btn btn-outline-secondary {% if not query and not selected_ssa and (not search_by or search_by == 'all') and (not sort_by or sort_by == 'id') %}d-none{% endif %}" title="Clear Search & Filters">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
     </form>
+</div>
+
+<!-- Multi-Item Batch Search Modal -->
+<div class="modal fade" id="bulkSearchModal" tabindex="-1" aria-labelledby="bulkSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="bulkSearchModalLabel">
+                    <i class="fa-solid fa-layer-group me-2"></i>Multi-Item Batch Search
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">
+                    Paste your list of site IDs, codes, IPs, or names below. Items can be separated by <strong>commas</strong>, <strong>spaces</strong>, <strong>tabs</strong>, or <strong>newlines</strong>.
+                </p>
+                <div class="mb-3">
+                    <textarea id="bulk-search-textarea" class="form-control font-monospace p-3" rows="10" placeholder="Example:&#10;MEH247, MEH037, MEH068, MEH006, MEH344, MEH282, MEH097, MEH158, MEH119, MEH243..."></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="bulk-detected-badge" class="badge bg-secondary-subtle text-dark border px-3 py-2" style="font-size: 0.82rem;">0 items detected</span>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="bulk-format-btn" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Clean & Format List
+                        </button>
+                        <button type="button" id="bulk-clear-btn" class="btn btn-sm btn-outline-danger">
+                            <i class="fa-solid fa-eraser me-1"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-3">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="bulk-apply-btn" class="btn btn-primary fw-semibold px-4">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Search All Items
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Records Table Card -->
@@ -167,20 +233,46 @@
             <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%; font-size: 0.78rem;">
                 <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.75rem;">
                     <tr>
-                        <th scope="col" style="width: 2%;" class="px-1 text-center">#</th>
-                        <th scope="col" style="width: 11%;" class="px-1">Site ID</th>
-                        <th scope="col" style="width: 11%;" class="px-1">Site Name</th>
-                        <th scope="col" style="width: 9%;" class="px-1">OAM CEF IP Pool</th>
-                        <th scope="col" style="width: 5.5%;" class="ps-1 pe-3">SSA</th>
-                        <th scope="col" style="width: 8.5%;" class="ps-3 pe-1">Location</th>
-                        <th scope="col" style="width: 3.5%;" class="px-1 text-center">Type</th>
-                        <th scope="col" style="width: 9%;" class="px-1">Endpoint IP</th>
-                        <th scope="col" style="width: 8.5%;" class="px-1">Endpoint Node</th>
-                        <th scope="col" style="width: 8%;" class="px-1">Endpoint Port</th>
-                        <th scope="col" style="width: 4%;" class="px-1 text-center">OAM VLAN</th>
-                        <th scope="col" style="width: 5.5%;" class="px-1 text-center">Mgmt/RAC VLAN</th>
-                        <th scope="col" style="width: 4.5%;" class="px-1 text-center">S1-C VLAN</th>
-                        <th scope="col" style="width: 4.5%;" class="px-1 text-center">S1-U VLAN</th>
+                        <th scope="col" style="width: 2.2%;" class="px-1 text-center">#</th>
+                        <th scope="col" style="width: 11%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="site_id" title="Click to Sort by Site ID">
+                            Site ID <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 11%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="site_name" title="Click to Sort by Site Name">
+                            Site Name <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 9%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="oam_cef_ip_pool" title="Click to Sort by OAM CEF IP">
+                            OAM CEF IP Pool <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 5.5%;" class="ps-1 pe-3 sortable-col user-select-none cursor-pointer" data-sort="ssa" title="Click to Sort by SSA">
+                            SSA <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 8.5%;" class="ps-3 pe-1 sortable-col user-select-none cursor-pointer" data-sort="location" title="Click to Sort by Location">
+                            Location <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 3.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="cpan_maan_vsat" title="Click to Sort by Type">
+                            Type <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 9%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="endpoint_ip" title="Click to Sort by Endpoint IP">
+                            Endpoint IP <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 8.5%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="endpoint_node_router" title="Click to Sort by Endpoint Node">
+                            Endpoint Node <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 8%;" class="px-1 sortable-col user-select-none cursor-pointer" data-sort="endpoint_ports" title="Click to Sort by Endpoint Port">
+                            Endpoint Port <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 4%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="oam_vlan" title="Click to Sort by OAM VLAN">
+                            OAM VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 5.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="mgmt_rac_vlan" title="Click to Sort by Mgmt/RAC VLAN">
+                            Mgmt/RAC VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 4.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="s1_c_vlan" title="Click to Sort by S1-C VLAN">
+                            S1-C VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 4.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer" data-sort="s1_u_vlan" title="Click to Sort by S1-U VLAN">
+                            S1-U VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
                         <th scope="col" style="width: 6.5%;" class="px-1 text-center">Actions</th>
                     </tr>
                 </thead>
@@ -475,19 +567,45 @@ document.addEventListener('DOMContentLoaded', function () {
     let debounceTimer = null;
     let currentAjaxRequest = null;
 
+    const sortBySelect = document.getElementById('sort-by-select');
+    const sortOrderBtn = document.getElementById('sort-order-btn');
+    const sortOrderIcon = document.getElementById('sort-order-icon');
+    const sortOrderInput = document.getElementById('sort-order-input');
+
+    function updateHeaderSortIcons(activeSortBy, activeSortOrder) {
+        document.querySelectorAll('.sortable-col').forEach(th => {
+            const col = th.getAttribute('data-sort');
+            const icon = th.querySelector('.sort-icon');
+            if (!icon) return;
+            if (col === activeSortBy) {
+                if (activeSortOrder === 'desc') {
+                    icon.className = 'fa-solid fa-sort-down text-primary ms-1';
+                } else {
+                    icon.className = 'fa-solid fa-sort-up text-primary ms-1';
+                }
+                th.classList.add('bg-primary-subtle');
+            } else {
+                icon.className = 'fa-solid fa-sort text-muted opacity-50 ms-1';
+                th.classList.remove('bg-primary-subtle');
+            }
+        });
+    }
+
     // Global function for AJAX Pagination and Live Searching
     window.performAjaxSearch = function (targetPage = 1) {
         const query = searchInput.value.trim();
         const searchBy = searchBySelect.value;
         const ssa = ssaSelect.value;
         const perPage = perPageSelect.value;
+        const sortBy = sortBySelect ? sortBySelect.value : 'id';
+        const sortOrder = sortOrderInput ? sortOrderInput.value : 'asc';
 
         // Show loading spinners
         searchIcon.className = 'fa-solid fa-spinner fa-spin text-primary';
         if (loadingOverlay) loadingOverlay.classList.remove('d-none');
 
         // Toggle clear button visibility
-        if (query || ssa || (searchBy && searchBy !== 'all')) {
+        if (query || ssa || (searchBy && searchBy !== 'all') || (sortBy && sortBy !== 'id')) {
             clearBtn.classList.remove('d-none');
         } else {
             clearBtn.classList.add('d-none');
@@ -506,7 +624,9 @@ document.addEventListener('DOMContentLoaded', function () {
             search_by: searchBy,
             ssa: ssa,
             per_page: perPage,
-            page: targetPage
+            page: targetPage,
+            sort_by: sortBy,
+            sort_order: sortOrder
         });
 
         // Update URL history without page reload
@@ -525,6 +645,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('metric-maan').textContent = data.maan_filtered_count;
             document.getElementById('metric-filtered').textContent = data.filtered_count;
             document.getElementById('metric-ssas').textContent = data.unique_ssas.length;
+
+            // Update sort icon indicators on table header
+            updateHeaderSortIcons(data.sort_by, data.sort_order);
 
             // 2. Update Custom Report Modal hidden state
             document.getElementById('modal-hidden-q').value = data.query;
@@ -666,18 +789,151 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     };
 
+    // Attach Table Header Column Click Listeners for Sorting
+    document.querySelectorAll('.sortable-col').forEach(th => {
+        th.addEventListener('click', function() {
+            const col = this.getAttribute('data-sort');
+            if (sortBySelect.value === col) {
+                sortOrderInput.value = (sortOrderInput.value === 'asc') ? 'desc' : 'asc';
+            } else {
+                sortBySelect.value = col;
+                sortOrderInput.value = 'asc';
+            }
+            if (sortOrderIcon) {
+                sortOrderIcon.className = 'fa-solid ' + (sortOrderInput.value === 'desc' ? 'fa-arrow-down-z-a' : 'fa-arrow-up-a-z');
+            }
+            performAjaxSearch(1);
+        });
+    });
+
+    if (sortOrderBtn) {
+        sortOrderBtn.addEventListener('click', function() {
+            sortOrderInput.value = (sortOrderInput.value === 'asc') ? 'desc' : 'asc';
+            if (sortOrderIcon) {
+                sortOrderIcon.className = 'fa-solid ' + (sortOrderInput.value === 'desc' ? 'fa-arrow-down-z-a' : 'fa-arrow-up-a-z');
+            }
+            performAjaxSearch(1);
+        });
+    }
+
+    if (sortBySelect) {
+        sortBySelect.addEventListener('change', function() {
+            performAjaxSearch(1);
+        });
+    }
+
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
+    // Multi-Item Batch Search Logic
+    const bulkTextarea = document.getElementById('bulk-search-textarea');
+    const bulkDetectedBadge = document.getElementById('bulk-detected-badge');
+    const bulkFormatBtn = document.getElementById('bulk-format-btn');
+    const bulkClearBtn = document.getElementById('bulk-clear-btn');
+    const bulkApplyBtn = document.getElementById('bulk-apply-btn');
+    const bulkModalEl = document.getElementById('bulkSearchModal');
+    const multiItemPill = document.getElementById('multi-item-pill');
+    const multiItemCountLabel = document.getElementById('multi-item-count-label');
+
+    function parseMultiItems(rawText) {
+        if (!rawText) return [];
+        const str = rawText.trim();
+        if (!str) return [];
+        if (/[,;\r\n\t]/.test(str)) {
+            return str.split(/[,;\r\n\t]+/).map(s => s.trim()).filter(s => s.length > 0);
+        } else {
+            const tokens = str.split(/\s+/).map(s => s.trim()).filter(s => s.length > 0);
+            if (tokens.length > 1 && tokens.every(t => /^[A-Za-z0-9_\-\.\/:]+$/.test(t))) {
+                return tokens;
+            }
+            return [str];
+        }
+    }
+
+    function updateMultiItemPill() {
+        const items = parseMultiItems(searchInput.value);
+        if (items.length > 1) {
+            multiItemPill.classList.remove('d-none');
+            multiItemCountLabel.textContent = items.length;
+        } else {
+            multiItemPill.classList.add('d-none');
+        }
+    }
+
+    function updateBulkDetectedCount() {
+        if (!bulkTextarea || !bulkDetectedBadge) return;
+        const items = parseMultiItems(bulkTextarea.value);
+        bulkDetectedBadge.textContent = `${items.length} item${items.length === 1 ? '' : 's'} detected`;
+        if (items.length > 0) {
+            bulkDetectedBadge.className = 'badge bg-primary text-white px-3 py-2';
+        } else {
+            bulkDetectedBadge.className = 'badge bg-secondary-subtle text-dark border px-3 py-2';
+        }
+    }
+
+    if (bulkTextarea) {
+        bulkTextarea.addEventListener('input', updateBulkDetectedCount);
+    }
+
+    if (bulkFormatBtn && bulkTextarea) {
+        bulkFormatBtn.addEventListener('click', function () {
+            const items = parseMultiItems(bulkTextarea.value);
+            if (items.length > 0) {
+                bulkTextarea.value = items.join(', ');
+                updateBulkDetectedCount();
+            }
+        });
+    }
+
+    if (bulkClearBtn && bulkTextarea) {
+        bulkClearBtn.addEventListener('click', function () {
+            bulkTextarea.value = '';
+            updateBulkDetectedCount();
+        });
+    }
+
+    if (bulkApplyBtn && bulkTextarea && searchInput) {
+        bulkApplyBtn.addEventListener('click', function () {
+            const items = parseMultiItems(bulkTextarea.value);
+            if (items.length > 0) {
+                searchInput.value = items.join(', ');
+            } else {
+                searchInput.value = bulkTextarea.value.trim();
+            }
+            updateMultiItemPill();
+            const bsModal = bootstrap.Modal.getInstance(bulkModalEl) || new bootstrap.Modal(bulkModalEl);
+            bsModal.hide();
+            performAjaxSearch(1);
+        });
+    }
+
+    if (bulkModalEl && bulkTextarea && searchInput) {
+        bulkModalEl.addEventListener('show.bs.modal', function () {
+            if (!bulkTextarea.value.trim() && searchInput.value.trim()) {
+                const items = parseMultiItems(searchInput.value);
+                if (items.length > 1) {
+                    bulkTextarea.value = items.join(',\n');
+                } else {
+                    bulkTextarea.value = searchInput.value;
+                }
+            }
+            updateBulkDetectedCount();
+        });
+    }
+
     // Attach Event Listeners for Real-time Instant Search
     searchInput.addEventListener('input', function () {
+        updateMultiItemPill();
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(function () {
             performAjaxSearch(1);
         }, 200); // 200ms smooth debounce
     });
+
+    // Check initial state on page load
+    updateMultiItemPill();
 
     searchBySelect.addEventListener('change', function () { performAjaxSearch(1); });
     ssaSelect.addEventListener('change', function () { performAjaxSearch(1); });
@@ -690,8 +946,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     clearBtn.addEventListener('click', function () {
         searchInput.value = '';
+        if (bulkTextarea) bulkTextarea.value = '';
         searchBySelect.value = 'all';
         ssaSelect.value = '';
+        updateMultiItemPill();
         performAjaxSearch(1);
     });
 

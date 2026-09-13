@@ -187,34 +187,55 @@ ALL_SEARCHABLE_COLS = [
 ]
 
 
-def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25):
+VALID_SORT_COLUMNS = {
+    'id': 'bts_sites.id',
+    'site_id': 'site_id',
+    'site_name': 'site_name',
+    'ssa': 'ssa',
+    'location': 'location',
+    'cpan_maan_vsat': 'cpan_maan_vsat',
+    'oam_cef_ip_pool': 'oam_cef_ip_pool',
+    'enodeb_address': 'enodeb_address',
+    'endpoint_ip': 'endpoint_ip',
+    'endpoint_node_router': 'endpoint_node_router',
+    'endpoint_ports': 'endpoint_ports',
+    'oam_vlan': 'oam_vlan',
+    'mgmt_rac_vlan': 'mgmt_rac_vlan',
+    's1_c_vlan': 's1_c_vlan',
+    's1_u_vlan': 's1_u_vlan',
+    'mgmt_ip': 'mgmt_ip',
+    'created_at': 'created_at',
+    'updated_at': 'updated_at'
+}
+
+
+def parse_search_query(query):
+    if not query:
+        return []
+    raw = str(query).strip()
+    if not raw:
+        return []
+    if any(c in raw for c in [',', ';', '\n', '\r', '\t']):
+        items = [t.strip() for t in re.split(r'[,;\r\n\t]+', raw) if t.strip()]
+    else:
+        tokens = [t.strip() for t in raw.split() if t.strip()]
+        if len(tokens) > 1 and all(re.match(r'^[A-Za-z0-9_\-\.\/:]+$', t) for t in tokens):
+            items = tokens
+        else:
+            items = [raw]
+    return items
+
+
+def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25, sort_by="id", sort_order="asc"):
     conn = get_db()
     cursor = conn.cursor()
-    
-    where_clauses = []
-    params = []
     
     if search_by not in VALID_SEARCH_COLUMNS:
         search_by = "all"
         
-    if query:
-        q_like = f"%{query.strip()}%"
-        if search_by != "all":
-            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
-            params.append(q_like)
-        else:
-            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_SEARCHABLE_COLS]
-            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
-            params.extend([q_like] * len(ALL_SEARCHABLE_COLS))
-        
-    if selected_ssa:
-        where_clauses.append("LOWER(ssa) = LOWER(?)")
-        params.append(selected_ssa.strip())
-        
-    where_sql = ""
-    if where_clauses:
-        where_sql = "WHERE " + " AND ".join(where_clauses)
-        
+    sort_col = VALID_SORT_COLUMNS.get(sort_by, 'bts_sites.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
     cursor.execute("SELECT COUNT(*) FROM bts_sites;")
     total_records = cursor.fetchone()[0]
     
@@ -224,31 +245,100 @@ def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25):
     cursor.execute("SELECT COUNT(*) FROM bts_sites WHERE LOWER(cpan_maan_vsat) LIKE '%maan%';")
     maan_total_count = cursor.fetchone()[0]
     
-    count_sql = f"SELECT COUNT(*) FROM bts_sites {where_sql};"
-    cursor.execute(count_sql, params)
-    filtered_count = cursor.fetchone()[0]
-    
-    cpan_where = list(where_clauses) + ["LOWER(cpan_maan_vsat) LIKE '%cpan%'"]
-    cpan_where_sql = "WHERE " + " AND ".join(cpan_where)
-    cursor.execute(f"SELECT COUNT(*) FROM bts_sites {cpan_where_sql};", params)
-    cpan_filtered_count = cursor.fetchone()[0]
-    
-    maan_where = list(where_clauses) + ["LOWER(cpan_maan_vsat) LIKE '%maan%'"]
-    maan_where_sql = "WHERE " + " AND ".join(maan_where)
-    cursor.execute(f"SELECT COUNT(*) FROM bts_sites {maan_where_sql};", params)
-    maan_filtered_count = cursor.fetchone()[0]
-    
-    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
-    page = max(1, min(page, total_pages))
-    offset = (page - 1) * per_page
-    
-    data_sql = f"SELECT * FROM bts_sites {where_sql} ORDER BY id ASC LIMIT ? OFFSET ?;"
-    cursor.execute(data_sql, params + [per_page, offset])
-    rows = cursor.fetchall()
-    
     cursor.execute("SELECT DISTINCT ssa FROM bts_sites WHERE ssa IS NOT NULL AND ssa != '' ORDER BY ssa ASC;")
     unique_ssas = [r['ssa'] for r in cursor.fetchall()]
     
+    items = parse_search_query(query)
+    
+    if len(items) > 1:
+        ssa_where = ""
+        ssa_params = []
+        if selected_ssa:
+            ssa_where = "WHERE LOWER(ssa) = LOWER(?)"
+            ssa_params = [selected_ssa.strip()]
+            
+        if search_by != "all" and search_by in ALL_SEARCHABLE_COLS:
+            text_expr = f"IFNULL({search_by}, '')"
+        else:
+            text_expr = " || ' ' || ".join([f"IFNULL({c}, '')" for c in ALL_SEARCHABLE_COLS])
+            
+        sql = f"SELECT id, cpan_maan_vsat, ({text_expr}) as search_text FROM bts_sites {ssa_where} ORDER BY {sort_col} {sort_dir};"
+        cursor.execute(sql, ssa_params)
+        all_rows = cursor.fetchall()
+        
+        pattern = re.compile('|'.join([re.escape(it) for it in items]), re.IGNORECASE)
+        
+        matched_ids = []
+        cpan_filtered_count = 0
+        maan_filtered_count = 0
+        
+        for r in all_rows:
+            if pattern.search(r['search_text']):
+                matched_ids.append(r['id'])
+                t_val = (r['cpan_maan_vsat'] or '').lower()
+                if 'cpan' in t_val:
+                    cpan_filtered_count += 1
+                if 'maan' in t_val:
+                    maan_filtered_count += 1
+                    
+        filtered_count = len(matched_ids)
+        total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+        page = max(1, min(page, total_pages))
+        offset = (page - 1) * per_page
+        
+        page_ids = matched_ids[offset : offset + per_page]
+        
+        if page_ids:
+            placeholders = ','.join(['?']*len(page_ids))
+            page_sql = f"SELECT * FROM bts_sites WHERE id IN ({placeholders}) ORDER BY {sort_col} {sort_dir};"
+            cursor.execute(page_sql, page_ids)
+            rows = cursor.fetchall()
+        else:
+            rows = []
+    else:
+        where_clauses = []
+        params = []
+        
+        if query:
+            q_like = f"%{query.strip()}%"
+            if search_by != "all" and search_by in ALL_SEARCHABLE_COLS:
+                where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+                params.append(q_like)
+            else:
+                or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_SEARCHABLE_COLS]
+                where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+                params.extend([q_like] * len(ALL_SEARCHABLE_COLS))
+                
+        if selected_ssa:
+            where_clauses.append("LOWER(ssa) = LOWER(?)")
+            params.append(selected_ssa.strip())
+            
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+            
+        count_sql = f"SELECT COUNT(*) FROM bts_sites {where_sql};"
+        cursor.execute(count_sql, params)
+        filtered_count = cursor.fetchone()[0]
+        
+        cpan_where = list(where_clauses) + ["LOWER(cpan_maan_vsat) LIKE '%cpan%'"]
+        cpan_where_sql = "WHERE " + " AND ".join(cpan_where)
+        cursor.execute(f"SELECT COUNT(*) FROM bts_sites {cpan_where_sql};", params)
+        cpan_filtered_count = cursor.fetchone()[0]
+        
+        maan_where = list(where_clauses) + ["LOWER(cpan_maan_vsat) LIKE '%maan%'"]
+        maan_where_sql = "WHERE " + " AND ".join(maan_where)
+        cursor.execute(f"SELECT COUNT(*) FROM bts_sites {maan_where_sql};", params)
+        maan_filtered_count = cursor.fetchone()[0]
+        
+        total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+        page = max(1, min(page, total_pages))
+        offset = (page - 1) * per_page
+        
+        data_sql = f"SELECT * FROM bts_sites {where_sql} ORDER BY {sort_col} {sort_dir} LIMIT ? OFFSET ?;"
+        cursor.execute(data_sql, params + [per_page, offset])
+        rows = cursor.fetchall()
+
     conn.close()
     
     records = [row_to_dict(r) for r in rows]
@@ -257,6 +347,8 @@ def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25):
         'query': query,
         'search_by': search_by,
         'selected_ssa': selected_ssa,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
         'unique_ssas': unique_ssas,
         'page': page,
         'per_page': per_page,
@@ -462,10 +554,12 @@ def index():
     query = request.args.get('q', '').strip()
     search_by = request.args.get('search_by', 'all').strip()
     selected_ssa = request.args.get('ssa', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     
-    data = search_db(query=query, search_by=search_by, selected_ssa=selected_ssa, page=page, per_page=per_page)
+    data = search_db(query=query, search_by=search_by, selected_ssa=selected_ssa, page=page, per_page=per_page, sort_by=sort_by, sort_order=sort_order)
     return render_template('index.html', **data)
 
 
@@ -475,10 +569,12 @@ def api_search():
     query = request.args.get('q', '').strip()
     search_by = request.args.get('search_by', 'all').strip()
     selected_ssa = request.args.get('ssa', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 25, type=int)
     
-    data = search_db(query=query, search_by=search_by, selected_ssa=selected_ssa, page=page, per_page=per_page)
+    data = search_db(query=query, search_by=search_by, selected_ssa=selected_ssa, page=page, per_page=per_page, sort_by=sort_by, sort_order=sort_order)
     return jsonify(data)
 
 
@@ -516,11 +612,14 @@ def api_ping():
             'message': f'"{raw_ip}" is not a valid IPv4/IPv6 address.'
         }), 400
         
-    cmd = ['ping', '-n', '4', str(ip_obj)]
+    if os.name == 'nt':
+        cmd = ['ping', '-n', '4', '-w', '1000', str(ip_obj)]
+    else:
+        cmd = ['ping', '-c', '4', '-W', '1', str(ip_obj)]
     
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=8)
-        output = proc.stdout or proc.stderr or "No ping output returned."
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        output = (proc.stdout or proc.stderr or "No ping output returned.").strip()
         output_upper = output.upper()
         
         is_reachable = (proc.returncode == 0) and (
@@ -534,23 +633,28 @@ def api_ping():
             'success': True,
             'ip': str(ip_obj),
             'raw_ip': raw_ip,
-            'output': output.strip(),
+            'output': output,
+            'message': output,
             'is_reachable': is_reachable,
             'exit_code': proc.returncode
         })
     except subprocess.TimeoutExpired:
+        timeout_msg = f"Ping request to {ip_obj} timed out (exceeded 10s timeout)."
         return jsonify({
-            'success': False,
+            'success': True,
             'ip': str(ip_obj),
             'raw_ip': raw_ip,
-            'output': f'Ping request to {ip_obj} timed out (exceeded 8s timeout).',
+            'output': timeout_msg,
+            'message': timeout_msg,
             'is_reachable': False,
             'exit_code': -1
         })
     except Exception as e:
+        err_msg = f"Error executing ping: {str(e)}"
         return jsonify({
             'success': False,
-            'message': f'Error executing ping: {str(e)}'
+            'output': err_msg,
+            'message': err_msg
         }), 500
 
 
@@ -932,6 +1036,8 @@ def export_custom_report():
         query = request.form.get('q', '').strip()
         search_by = request.form.get('search_by', 'all').strip()
         selected_ssa = request.form.get('ssa', '').strip()
+        sort_by = request.form.get('sort_by', 'id').strip()
+        sort_order = request.form.get('sort_order', 'asc').strip()
         selected_cols = request.form.getlist('cols')
     else:
         export_format = request.args.get('format', 'xlsx').lower()
@@ -939,6 +1045,8 @@ def export_custom_report():
         query = request.args.get('q', '').strip()
         search_by = request.args.get('search_by', 'all').strip()
         selected_ssa = request.args.get('ssa', '').strip()
+        sort_by = request.args.get('sort_by', 'id').strip()
+        sort_order = request.args.get('sort_order', 'asc').strip()
         selected_cols = request.args.getlist('cols')
         
     if not selected_cols:
@@ -951,34 +1059,69 @@ def export_custom_report():
     select_parts = [f"{col} AS '{ALL_REPORT_COLUMNS[col]}'" for col in selected_cols]
     select_sql = ", ".join(select_parts)
     
-    conn = get_db()
-    where_clauses = []
-    params = []
+    sort_col = VALID_SORT_COLUMNS.get(sort_by, 'bts_sites.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
     
-    if scope == 'filtered':
+    conn = get_db()
+    cursor = conn.cursor()
+    items = parse_search_query(query)
+    
+    if scope == 'filtered' and len(items) > 1:
         if search_by not in VALID_SEARCH_COLUMNS:
             search_by = "all"
             
-        if query:
-            q_like = f"%{query}%"
-            if search_by != "all":
-                where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
-                params.append(q_like)
-            else:
-                or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_SEARCHABLE_COLS]
-                where_clauses.append("(" + " OR ".join(or_clauses) + ")")
-                params.extend([q_like] * len(ALL_SEARCHABLE_COLS))
-                
+        ssa_where = ""
+        ssa_params = []
         if selected_ssa:
-            where_clauses.append("LOWER(ssa) = LOWER(?)")
-            params.append(selected_ssa)
+            ssa_where = "WHERE LOWER(ssa) = LOWER(?)"
+            ssa_params = [selected_ssa.strip()]
             
-    where_sql = ""
-    if where_clauses:
-        where_sql = "WHERE " + " AND ".join(where_clauses)
+        if search_by != "all" and search_by in ALL_SEARCHABLE_COLS:
+            text_expr = f"IFNULL({search_by}, '')"
+        else:
+            text_expr = " || ' ' || ".join([f"IFNULL({c}, '')" for c in ALL_SEARCHABLE_COLS])
+            
+        sql = f"SELECT id, ({text_expr}) as search_text FROM bts_sites {ssa_where} ORDER BY {sort_col} {sort_dir};"
+        cursor.execute(sql, ssa_params)
+        all_rows = cursor.fetchall()
         
-    query_sql = f"SELECT {select_sql} FROM bts_sites {where_sql} ORDER BY id ASC;"
-    df = pd.read_sql_query(query_sql, conn, params=params)
+        pattern = re.compile('|'.join([re.escape(it) for it in items]), re.IGNORECASE)
+        matched_ids = [r['id'] for r in all_rows if pattern.search(r['search_text'])]
+        
+        if matched_ids:
+            placeholders = ','.join(['?']*len(matched_ids))
+            query_sql = f"SELECT {select_sql} FROM bts_sites WHERE id IN ({placeholders}) ORDER BY {sort_col} {sort_dir};"
+            df = pd.read_sql_query(query_sql, conn, params=matched_ids)
+        else:
+            df = pd.DataFrame(columns=[ALL_REPORT_COLUMNS[c] for c in selected_cols])
+    else:
+        where_clauses = []
+        params = []
+        
+        if scope == 'filtered':
+            if search_by not in VALID_SEARCH_COLUMNS:
+                search_by = "all"
+                
+            if query:
+                q_like = f"%{query}%"
+                if search_by != "all":
+                    where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+                    params.append(q_like)
+                else:
+                    or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_SEARCHABLE_COLS]
+                    where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+                    params.extend([q_like] * len(ALL_SEARCHABLE_COLS))
+                    
+            if selected_ssa:
+                where_clauses.append("LOWER(ssa) = LOWER(?)")
+                params.append(selected_ssa)
+                
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+            
+        query_sql = f"SELECT {select_sql} FROM bts_sites {where_sql} ORDER BY {sort_col} {sort_dir};"
+        df = pd.read_sql_query(query_sql, conn, params=params)
     conn.close()
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -1030,55 +1173,30 @@ ALL_CPAN_SEARCHABLE_COLS = [
 ]
 
 
-def search_cpan_nodes(query="", search_by="all", selected_ssa="", selected_type="", page=1, per_page=25):
+VALID_CPAN_SORT_COLUMNS = {
+    'id': 'cpan_nodes.id',
+    'ne_ip': 'ne_ip',
+    'location': 'location',
+    'type': 'type',
+    'ssa': 'ssa',
+    'phase': 'phase',
+    'ne_name': 'ne_name',
+    'dcc_ip': 'dcc_ip'
+}
+
+
+def search_cpan_nodes(query="", search_by="all", selected_ssa="", selected_type="", page=1, per_page=25, sort_by="id", sort_order="asc"):
     conn = get_db()
     cursor = conn.cursor()
-    
-    where_clauses = []
-    params = []
     
     if search_by not in VALID_CPAN_SEARCH_COLUMNS:
         search_by = "all"
         
-    if query:
-        terms = [t.strip() for t in query.strip().split() if t.strip()]
-        for t in terms:
-            t_like = f"%{t}%"
-            if search_by != "all":
-                where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
-                params.append(t_like)
-            else:
-                or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_SEARCHABLE_COLS]
-                where_clauses.append("(" + " OR ".join(or_clauses) + ")")
-                params.extend([t_like] * len(ALL_CPAN_SEARCHABLE_COLS))
-
-        
-    if selected_ssa:
-        where_clauses.append("LOWER(ssa) = LOWER(?)")
-        params.append(selected_ssa.strip())
-        
-    if selected_type:
-        where_clauses.append("LOWER(type) = LOWER(?)")
-        params.append(selected_type.strip())
-        
-    where_sql = ""
-    if where_clauses:
-        where_sql = "WHERE " + " AND ".join(where_clauses)
-        
+    sort_col = VALID_CPAN_SORT_COLUMNS.get(sort_by, 'cpan_nodes.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
     cursor.execute("SELECT COUNT(*) FROM cpan_nodes;")
     total_records = cursor.fetchone()[0]
-    
-    count_sql = f"SELECT COUNT(*) FROM cpan_nodes {where_sql};"
-    cursor.execute(count_sql, params)
-    filtered_count = cursor.fetchone()[0]
-    
-    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
-    page = max(1, min(page, total_pages))
-    offset = (page - 1) * per_page
-    
-    data_sql = f"SELECT * FROM cpan_nodes {where_sql} ORDER BY id ASC LIMIT ? OFFSET ?;"
-    cursor.execute(data_sql, params + [per_page, offset])
-    rows = [dict(r) for r in cursor.fetchall()]
     
     cursor.execute("SELECT DISTINCT ssa FROM cpan_nodes WHERE ssa IS NOT NULL AND ssa != '' ORDER BY ssa ASC;")
     unique_ssas = [r['ssa'] for r in cursor.fetchall()]
@@ -1089,6 +1207,83 @@ def search_cpan_nodes(query="", search_by="all", selected_ssa="", selected_type=
     cursor.execute("SELECT COUNT(DISTINCT location) FROM cpan_nodes WHERE location IS NOT NULL AND location != '';")
     unique_locations_count = cursor.fetchone()[0]
     
+    items = parse_search_query(query)
+    
+    if len(items) > 1:
+        where_parts = []
+        params = []
+        if selected_ssa:
+            where_parts.append("LOWER(ssa) = LOWER(?)")
+            params.append(selected_ssa.strip())
+        if selected_type:
+            where_parts.append("LOWER(type) = LOWER(?)")
+            params.append(selected_type.strip())
+            
+        where_sql = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
+        
+        if search_by != "all" and search_by in ALL_CPAN_SEARCHABLE_COLS:
+            text_expr = f"IFNULL({search_by}, '')"
+        else:
+            text_expr = " || ' ' || ".join([f"IFNULL({c}, '')" for c in ALL_CPAN_SEARCHABLE_COLS])
+            
+        sql = f"SELECT id, ({text_expr}) as search_text FROM cpan_nodes {where_sql} ORDER BY {sort_col} {sort_dir};"
+        cursor.execute(sql, params)
+        all_rows = cursor.fetchall()
+        
+        pattern = re.compile('|'.join([re.escape(it) for it in items]), re.IGNORECASE)
+        matched_ids = [r['id'] for r in all_rows if pattern.search(r['search_text'])]
+        
+        filtered_count = len(matched_ids)
+        total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+        page = max(1, min(page, total_pages))
+        offset = (page - 1) * per_page
+        
+        page_ids = matched_ids[offset : offset + per_page]
+        
+        if page_ids:
+            placeholders = ','.join(['?']*len(page_ids))
+            cursor.execute(f"SELECT * FROM cpan_nodes WHERE id IN ({placeholders}) ORDER BY {sort_col} {sort_dir};", page_ids)
+            rows = [dict(r) for r in cursor.fetchall()]
+        else:
+            rows = []
+    else:
+        where_clauses = []
+        params = []
+        
+        if query:
+            q_like = f"%{query.strip()}%"
+            if search_by != "all" and search_by in ALL_CPAN_SEARCHABLE_COLS:
+                where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+                params.append(q_like)
+            else:
+                or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_SEARCHABLE_COLS]
+                where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+                params.extend([q_like] * len(ALL_CPAN_SEARCHABLE_COLS))
+                
+        if selected_ssa:
+            where_clauses.append("LOWER(ssa) = LOWER(?)")
+            params.append(selected_ssa.strip())
+            
+        if selected_type:
+            where_clauses.append("LOWER(type) = LOWER(?)")
+            params.append(selected_type.strip())
+            
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+            
+        count_sql = f"SELECT COUNT(*) FROM cpan_nodes {where_sql};"
+        cursor.execute(count_sql, params)
+        filtered_count = cursor.fetchone()[0]
+        
+        total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+        page = max(1, min(page, total_pages))
+        offset = (page - 1) * per_page
+        
+        data_sql = f"SELECT * FROM cpan_nodes {where_sql} ORDER BY {sort_col} {sort_dir} LIMIT ? OFFSET ?;"
+        cursor.execute(data_sql, params + [per_page, offset])
+        rows = [dict(r) for r in cursor.fetchall()]
+        
     conn.close()
     
     return {
@@ -1105,7 +1300,9 @@ def search_cpan_nodes(query="", search_by="all", selected_ssa="", selected_type=
         'query': query,
         'search_by': search_by,
         'selected_ssa': selected_ssa,
-        'selected_type': selected_type
+        'selected_type': selected_type,
+        'sort_by': sort_by,
+        'sort_order': sort_order
     }
 
 
@@ -1116,6 +1313,8 @@ def cpan_nodes():
     search_by = request.args.get('search_by', 'all').strip()
     selected_ssa = request.args.get('ssa', '').strip()
     selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
     
     try:
         page = int(request.args.get('page', 1))
@@ -1129,7 +1328,7 @@ def cpan_nodes():
     except ValueError:
         per_page = 25
         
-    res = search_cpan_nodes(query, search_by, selected_ssa, selected_type, page, per_page)
+    res = search_cpan_nodes(query, search_by, selected_ssa, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
     
     return render_template(
         'cpan_nodes.html',
@@ -1146,6 +1345,8 @@ def cpan_nodes():
         search_by=search_by,
         selected_ssa=selected_ssa,
         selected_type=selected_type,
+        sort_by=sort_by,
+        sort_order=sort_order,
         search_columns=VALID_CPAN_SEARCH_COLUMNS
     )
 
@@ -1157,6 +1358,8 @@ def api_search_cpan_nodes():
     search_by = request.args.get('search_by', 'all').strip()
     selected_ssa = request.args.get('ssa', '').strip()
     selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
     
     try:
         page = int(request.args.get('page', 1))
@@ -1170,7 +1373,7 @@ def api_search_cpan_nodes():
     except ValueError:
         per_page = 25
         
-    res = search_cpan_nodes(query, search_by, selected_ssa, selected_type, page, per_page)
+    res = search_cpan_nodes(query, search_by, selected_ssa, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
     return jsonify(res)
 
 
@@ -1320,46 +1523,88 @@ def export_cpan_nodes():
     search_by = request.args.get('search_by', 'all').strip()
     selected_ssa = request.args.get('ssa', '').strip()
     selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
     export_format = request.args.get('format', 'csv').strip().lower()
     
-    conn = get_db()
-    where_clauses = []
-    params = []
+    sort_col = VALID_CPAN_SORT_COLUMNS.get(sort_by, 'cpan_nodes.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
     
-    if search_by not in VALID_CPAN_SEARCH_COLUMNS:
-        search_by = "all"
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    items = parse_search_query(query)
+    
+    if len(items) > 1:
+        where_parts = []
+        params = []
+        if selected_ssa:
+            where_parts.append("LOWER(ssa) = LOWER(?)")
+            params.append(selected_ssa.strip())
+        if selected_type:
+            where_parts.append("LOWER(type) = LOWER(?)")
+            params.append(selected_type.strip())
+            
+        where_sql = ("WHERE " + " AND ".join(where_parts)) if where_parts else ""
         
-    if query:
-        terms = [t.strip() for t in query.strip().split() if t.strip()]
-        for t in terms:
-            t_like = f"%{t}%"
-            if search_by != "all":
+        if search_by != "all" and search_by in ALL_CPAN_SEARCHABLE_COLS:
+            text_expr = f"IFNULL({search_by}, '')"
+        else:
+            text_expr = " || ' ' || ".join([f"IFNULL({c}, '')" for c in ALL_CPAN_SEARCHABLE_COLS])
+            
+        sql = f"SELECT id, ({text_expr}) as search_text FROM cpan_nodes {where_sql} ORDER BY {sort_col} {sort_dir};"
+        cursor.execute(sql, params)
+        all_rows = cursor.fetchall()
+        
+        pattern = re.compile('|'.join([re.escape(it) for it in items]), re.IGNORECASE)
+        matched_ids = [r['id'] for r in all_rows if pattern.search(r['search_text'])]
+        
+        if matched_ids:
+            placeholders = ','.join(['?']*len(matched_ids))
+            query_sql = f"""
+                SELECT ne_ip AS 'NE IP', location AS 'Location', type AS 'Type', ssa AS 'SSA', phase AS 'Phase',
+                       ne_name AS 'NE Name', dcc_ip AS 'DCC IP'
+                FROM cpan_nodes WHERE id IN ({placeholders}) ORDER BY {sort_col} {sort_dir};
+            """
+            df = pd.read_sql_query(query_sql, conn, params=matched_ids)
+        else:
+            df = pd.DataFrame(columns=['NE IP', 'Location', 'Type', 'SSA', 'Phase', 'NE Name', 'DCC IP'])
+    else:
+        where_clauses = []
+        params = []
+        
+        if search_by not in VALID_CPAN_SEARCH_COLUMNS:
+            search_by = "all"
+            
+        if query:
+            q_like = f"%{query.strip()}%"
+            if search_by != "all" and search_by in ALL_CPAN_SEARCHABLE_COLS:
                 where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
-                params.append(t_like)
+                params.append(q_like)
             else:
                 or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_SEARCHABLE_COLS]
                 where_clauses.append("(" + " OR ".join(or_clauses) + ")")
-                params.extend([t_like] * len(ALL_CPAN_SEARCHABLE_COLS))
-
+                params.extend([q_like] * len(ALL_CPAN_SEARCHABLE_COLS))
+                
+        if selected_ssa:
+            where_clauses.append("LOWER(ssa) = LOWER(?)")
+            params.append(selected_ssa)
             
-    if selected_ssa:
-        where_clauses.append("LOWER(ssa) = LOWER(?)")
-        params.append(selected_ssa)
+        if selected_type:
+            where_clauses.append("LOWER(type) = LOWER(?)")
+            params.append(selected_type)
+            
+        where_sql = ""
+        if where_clauses:
+            where_sql = "WHERE " + " AND ".join(where_clauses)
+            
+        query_sql = f"""
+            SELECT ne_ip AS 'NE IP', location AS 'Location', type AS 'Type', ssa AS 'SSA', phase AS 'Phase',
+                   ne_name AS 'NE Name', dcc_ip AS 'DCC IP'
+            FROM cpan_nodes {where_sql} ORDER BY {sort_col} {sort_dir};
+        """
+        df = pd.read_sql_query(query_sql, conn, params=params)
         
-    if selected_type:
-        where_clauses.append("LOWER(type) = LOWER(?)")
-        params.append(selected_type)
-        
-    where_sql = ""
-    if where_clauses:
-        where_sql = "WHERE " + " AND ".join(where_clauses)
-        
-    query_sql = f"""
-        SELECT ne_ip AS 'NE IP', location AS 'Location', type AS 'Type', ssa AS 'SSA', phase AS 'Phase',
-               ne_name AS 'NE Name', dcc_ip AS 'DCC IP'
-        FROM cpan_nodes {where_sql} ORDER BY id ASC;
-    """
-    df = pd.read_sql_query(query_sql, conn, params=params)
     conn.close()
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

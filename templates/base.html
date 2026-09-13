@@ -73,16 +73,18 @@
         /* Terminal Console */
         .ping-terminal {
             background-color: #0f172a;
-            color: #38bdf8;
+            color: #ffffff !important;
             font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             line-height: 1.5;
             border-radius: 8px;
             padding: 1rem;
             min-height: 180px;
             max-height: 350px;
             overflow-y: auto;
-            border: 1px solid #1e293b;
+            border: 1px solid #334155;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         /* High Z-Index for Nested Ping Modal over QuickView Modal */
@@ -300,7 +302,7 @@
 
             const consoleElem = document.getElementById('pingTerminalConsole');
             consoleElem.textContent = `Ready to ping ${targetIp}.\nClick "Send Ping Requests" below to test ICMP latency and response.`;
-            consoleElem.className = 'ping-terminal mb-0';
+            consoleElem.className = 'ping-terminal mb-0 text-white';
 
             const modalElem = document.getElementById('pingIpModal');
             const bsModal = bootstrap.Modal.getOrCreateInstance(modalElem);
@@ -321,6 +323,7 @@
             btn.disabled = true;
             badge.className = 'badge bg-warning text-dark ms-2';
             badge.textContent = 'Pinging...';
+            consoleElem.className = 'ping-terminal mb-0 text-white';
             consoleElem.textContent = `[System] Executing ICMP Ping: ping -n 4 ${ip} ...\nPlease wait for packets to return...`;
 
             fetch('/api/ping', {
@@ -333,27 +336,28 @@
                 spinner.classList.add('d-none');
                 btn.disabled = false;
 
-                if (data.success) {
-                    consoleElem.textContent = data.output;
-                    if (data.is_reachable) {
-                        badge.className = 'badge bg-success ms-2';
-                        badge.textContent = 'Reachable (Success)';
-                        consoleElem.className = 'ping-terminal mb-0 text-success-emphasis border-success';
-                    } else {
-                        badge.className = 'badge bg-danger ms-2';
-                        badge.textContent = 'Unreachable / Packet Loss';
-                        consoleElem.className = 'ping-terminal mb-0 text-danger-emphasis border-danger';
-                    }
-                } else {
-                    consoleElem.textContent = `[Error] ${data.message || 'Failed to ping target IP.'}`;
+                const consoleText = data.output || data.message || 'Failed to ping target IP.';
+                consoleElem.textContent = consoleText;
+
+                if (data.success && data.is_reachable) {
+                    badge.className = 'badge bg-success ms-2';
+                    badge.textContent = 'Reachable (Success)';
+                    consoleElem.className = 'ping-terminal mb-0 text-white border-success';
+                } else if (data.success && !data.is_reachable) {
                     badge.className = 'badge bg-danger ms-2';
-                    badge.textContent = 'Error';
+                    badge.textContent = 'Unreachable / Packet Loss';
+                    consoleElem.className = 'ping-terminal mb-0 text-white border-danger';
+                } else {
+                    badge.className = 'badge bg-danger ms-2';
+                    badge.textContent = 'Error / Failed';
+                    consoleElem.className = 'ping-terminal mb-0 text-white border-danger';
                 }
             })
             .catch(err => {
                 spinner.classList.add('d-none');
                 btn.disabled = false;
                 consoleElem.textContent = `[Connection Error] Could not reach server ping service: ${err.message}`;
+                consoleElem.className = 'ping-terminal mb-0 text-white border-danger';
                 badge.className = 'badge bg-danger ms-2';
                 badge.textContent = 'Failed';
             });

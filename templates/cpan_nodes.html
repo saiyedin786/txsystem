@@ -123,17 +123,23 @@
                 <span class="input-group-text bg-light border-end-0">
                     <i id="cpan-search-spinner" class="fa-solid fa-magnifying-glass text-muted"></i>
                 </span>
-                <select id="cpan-search-by-select" name="search_by" class="form-select bg-light border-end-0 flex-grow-0" style="width: auto; max-width: 170px; font-size: 0.85rem; font-weight: 500;">
+                <select id="cpan-search-by-select" name="search_by" class="form-select bg-light border-end-0 flex-grow-0" style="width: auto; max-width: 150px; font-size: 0.85rem; font-weight: 500;">
                     {% for key, label in search_columns.items() %}
                         <option value="{{ key }}" {% if search_by == key %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
-                <input type="text" id="cpan-search-input" name="query" class="form-control bg-light" placeholder="Instant Live Search..." value="{{ query }}" autocomplete="off">
+                <input type="text" id="cpan-search-input" name="query" class="form-control bg-light" placeholder="Search or paste multiple items..." value="{{ query }}" autocomplete="off">
+                <button type="button" class="btn btn-outline-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#cpanBulkModal" title="Batch Multi-Item Paste & Search">
+                    <i class="fa-solid fa-list-check me-1"></i> Multi
+                </button>
+            </div>
+            <div id="cpan-multi-pill" class="mt-1 small d-none">
+                <span class="badge bg-primary-subtle text-primary border"><i class="fa-solid fa-bolt me-1"></i><span id="cpan-multi-count-label">0</span> items in multi-search</span>
             </div>
         </div>
 
         <!-- Filter by SSA -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="input-group">
                 <span class="input-group-text bg-light border-end-0 text-muted small">
                     <i class="fa-solid fa-map-pin me-1"></i>SSA
@@ -148,7 +154,7 @@
         </div>
 
         <!-- Filter by Type -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="input-group">
                 <span class="input-group-text bg-light border-end-0 text-muted small">
                     <i class="fa-solid fa-cubes me-1"></i>Type
@@ -162,6 +168,26 @@
             </div>
         </div>
 
+        <!-- Sort By & Order -->
+        <div class="col-md-2">
+            <div class="input-group">
+                <select id="cpan-sort-by-select" name="sort_by" class="form-select bg-light" title="Sort by Column">
+                    <option value="id" {% if sort_by == 'id' or not sort_by %}selected{% endif %}>Sort: Default (ID)</option>
+                    <option value="ne_ip" {% if sort_by == 'ne_ip' %}selected{% endif %}>Sort: NE IP</option>
+                    <option value="location" {% if sort_by == 'location' %}selected{% endif %}>Sort: Location</option>
+                    <option value="type" {% if sort_by == 'type' %}selected{% endif %}>Sort: Type</option>
+                    <option value="ssa" {% if sort_by == 'ssa' %}selected{% endif %}>Sort: SSA</option>
+                    <option value="phase" {% if sort_by == 'phase' %}selected{% endif %}>Sort: Phase</option>
+                    <option value="ne_name" {% if sort_by == 'ne_name' %}selected{% endif %}>Sort: NE Name</option>
+                    <option value="dcc_ip" {% if sort_by == 'dcc_ip' %}selected{% endif %}>Sort: DCC IP</option>
+                </select>
+                <button type="button" id="cpan-sort-order-btn" class="btn btn-outline-secondary" title="Toggle Ascending/Descending">
+                    <i id="cpan-sort-order-icon" class="fa-solid {% if sort_order == 'desc' %}fa-arrow-down-z-a{% else %}fa-arrow-up-a-z{% endif %}"></i>
+                </button>
+                <input type="hidden" id="cpan-sort-order-input" name="sort_order" value="{{ sort_order or 'asc' }}">
+            </div>
+        </div>
+
         <!-- Per Page & Action buttons -->
         <div class="col-md-2 d-flex gap-2 justify-content-end">
             <select id="cpan-per-page-select" name="per_page" class="form-select bg-light" style="width: auto;" title="Records per page">
@@ -171,11 +197,50 @@
                 <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
                 <option value="250" {% if per_page == 250 %}selected{% endif %}>250</option>
             </select>
-            <button type="button" id="cpan-clear-filters-btn" class="btn btn-outline-secondary" title="Clear Filters" style="display: {% if query or selected_ssa or selected_type or search_by != 'all' %}inline-block{% else %}none{% endif %};">
+            <button type="button" id="cpan-clear-filters-btn" class="btn btn-outline-secondary" title="Clear Filters" style="display: {% if query or selected_ssa or selected_type or search_by != 'all' or (sort_by and sort_by != 'id') %}inline-block{% else %}none{% endif %};">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
     </form>
+</div>
+
+<!-- CPAN Multi-Item Batch Search Modal -->
+<div class="modal fade" id="cpanBulkModal" tabindex="-1" aria-labelledby="cpanBulkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="cpanBulkModalLabel">
+                    <i class="fa-solid fa-layer-group me-2"></i>CPAN Nodes Multi-Item Search
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">
+                    Paste your list of CPAN NE IPs, locations, names, or types below (separated by commas, spaces, tabs, or newlines).
+                </p>
+                <div class="mb-3">
+                    <textarea id="cpan-bulk-textarea" class="form-control font-monospace p-3" rows="10" placeholder="Example:&#10;10.228.45.1, 10.228.45.2, Ahmedabad, Mehsana..."></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="cpan-bulk-detected-badge" class="badge bg-secondary-subtle text-dark border px-3 py-2" style="font-size: 0.82rem;">0 items detected</span>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="cpan-bulk-format-btn" class="btn btn-sm btn-outline-secondary">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Clean & Format List
+                        </button>
+                        <button type="button" id="cpan-bulk-clear-btn" class="btn btn-sm btn-outline-danger">
+                            <i class="fa-solid fa-eraser me-1"></i> Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-3">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="cpan-bulk-apply-btn" class="btn btn-primary fw-semibold px-4">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i> Search All Nodes
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- CPAN Nodes Data Table Card -->
@@ -194,13 +259,13 @@
             <thead class="table-light border-bottom">
                 <tr class="text-muted text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
                     <th class="ps-3" style="width: 50px;">#</th>
-                    <th>NE IP</th>
-                    <th>Location</th>
-                    <th>Type</th>
-                    <th>SSA</th>
-                    <th>Phase</th>
-                    <th>NE Name</th>
-                    <th>DCC IP</th>
+                    <th class="cpan-sortable-col cursor-pointer user-select-none" data-sort="ne_ip" title="Click to Sort by NE IP">NE IP <i class="fa-solid fa-sort cpan-sort-icon text-muted opacity-50 ms-1"></i></th>
+                    <th class="cpan-sortable-col cursor-pointer user-select-none" data-sort="location" title="Click to Sort by Location">Location <i class="fa-solid fa-sort cpan-sort-icon text-muted opacity-50 ms-1"></i></th>
+                    <th class="cpan-sortable-col cursor-pointer user-select-none" data-sort="type" title="Click to Sort by Hardware Type">Type <i class="fa-solid fa-sort cpan-sort-icon text-muted opacity-50 ms-1"></i></th>
+                    <th class="cpan-sortable-col cursor-pointer user-select-none" data-sort="ssa" title="Click to Sort by SSA">SSA <i class="fa-solid fa-sort cpan-sort-icon text-muted opacity-50 ms-1"></i></th>
+                    <th class="cpan-sortable-col cursor-pointer user-select-none" data-sort="phase" title="Click to Sort by Phase">Phase <i class="fa-solid fa-sort cpan-sort-icon text-muted opacity-50 ms-1"></i></th>
+                    <th class="cpan-sortable-col cursor-pointer user-select-none" data-sort="ne_name" title="Click to Sort by NE Name">NE Name <i class="fa-solid fa-sort cpan-sort-icon text-muted opacity-50 ms-1"></i></th>
+                    <th class="cpan-sortable-col cursor-pointer user-select-none" data-sort="dcc_ip" title="Click to Sort by DCC IP">DCC IP <i class="fa-solid fa-sort cpan-sort-icon text-muted opacity-50 ms-1"></i></th>
                     <th class="pe-3 text-center" style="width: 140px;">Actions</th>
                 </tr>
             </thead>
@@ -610,6 +675,10 @@ function triggerCpanAjaxSearch(targetPage) {
     var ssa = document.getElementById('cpan-ssa-select').value;
     var type = document.getElementById('cpan-type-select').value;
     var perPage = document.getElementById('cpan-per-page-select').value;
+    var sortByEl = document.getElementById('cpan-sort-by-select');
+    var sortOrderEl = document.getElementById('cpan-sort-order-input');
+    var sortBy = sortByEl ? sortByEl.value : 'id';
+    var sortOrder = sortOrderEl ? sortOrderEl.value : 'asc';
 
     var spinner = document.getElementById('cpan-search-spinner');
     if (spinner) {
@@ -622,7 +691,27 @@ function triggerCpanAjaxSearch(targetPage) {
         ssa: ssa,
         type: type,
         per_page: perPage,
-        page: cpanCurrentPage
+        page: cpanCurrentPage,
+        sort_by: sortBy,
+        sort_order: sortOrder
+    });
+
+    // Update Header Sort Icons
+    document.querySelectorAll('.cpan-sortable-col').forEach(function(th) {
+        var col = th.getAttribute('data-sort');
+        var icon = th.querySelector('.cpan-sort-icon');
+        if (!icon) return;
+        if (col === sortBy) {
+            th.classList.add('table-primary', 'fw-bold');
+            if (sortOrder === 'desc') {
+                icon.className = 'fa-solid fa-sort-down text-primary ms-1';
+            } else {
+                icon.className = 'fa-solid fa-sort-up text-primary ms-1';
+            }
+        } else {
+            th.classList.remove('table-primary', 'fw-bold');
+            icon.className = 'fa-solid fa-sort text-muted opacity-50 ms-1';
+        }
     });
 
     // Update Export URLs
@@ -634,7 +723,7 @@ function triggerCpanAjaxSearch(targetPage) {
     // Toggle Clear Filters Button
     var clearBtn = document.getElementById('cpan-clear-filters-btn');
     if (clearBtn) {
-        clearBtn.style.display = (query || ssa || type || searchBy !== 'all') ? 'inline-block' : 'none';
+        clearBtn.style.display = (query || ssa || type || searchBy !== 'all' || sortBy !== 'id') ? 'inline-block' : 'none';
     }
 
     fetch('/api/cpan-nodes/search?' + params.toString())
@@ -720,10 +809,108 @@ document.addEventListener('DOMContentLoaded', function() {
     bindActionButtons();
     renderCpanPagination({{ page }}, {{ total_pages }}, "{{ query }}", "{{ search_by }}", "{{ selected_ssa }}", "{{ selected_type }}", {{ per_page }});
 
-    // Debounced Live Typing Search
+    // CPAN Multi-Item Batch Search Logic
     var searchInput = document.getElementById('cpan-search-input');
+    var cpanBulkTextarea = document.getElementById('cpan-bulk-textarea');
+    var cpanBulkDetectedBadge = document.getElementById('cpan-bulk-detected-badge');
+    var cpanBulkFormatBtn = document.getElementById('cpan-bulk-format-btn');
+    var cpanBulkClearBtn = document.getElementById('cpan-bulk-clear-btn');
+    var cpanBulkApplyBtn = document.getElementById('cpan-bulk-apply-btn');
+    var cpanBulkModalEl = document.getElementById('cpanBulkModal');
+    var cpanMultiPill = document.getElementById('cpan-multi-pill');
+    var cpanMultiCountLabel = document.getElementById('cpan-multi-count-label');
+
+    function parseCpanMultiItems(rawText) {
+        if (!rawText) return [];
+        var str = rawText.trim();
+        if (!str) return [];
+        if (/[,;\r\n\t]/.test(str)) {
+            return str.split(/[,;\r\n\t]+/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+        } else {
+            var tokens = str.split(/\s+/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+            if (tokens.length > 1 && tokens.every(function(t) { return /^[A-Za-z0-9_\-\.\/:]+$/.test(t); })) {
+                return tokens;
+            }
+            return [str];
+        }
+    }
+
+    function updateCpanMultiPill() {
+        if (!searchInput || !cpanMultiPill || !cpanMultiCountLabel) return;
+        var items = parseCpanMultiItems(searchInput.value);
+        if (items.length > 1) {
+            cpanMultiPill.classList.remove('d-none');
+            cpanMultiCountLabel.textContent = items.length;
+        } else {
+            cpanMultiPill.classList.add('d-none');
+        }
+    }
+
+    function updateCpanBulkDetectedCount() {
+        if (!cpanBulkTextarea || !cpanBulkDetectedBadge) return;
+        var items = parseCpanMultiItems(cpanBulkTextarea.value);
+        cpanBulkDetectedBadge.textContent = items.length + ' item' + (items.length === 1 ? '' : 's') + ' detected';
+        if (items.length > 0) {
+            cpanBulkDetectedBadge.className = 'badge bg-primary text-white px-3 py-2';
+        } else {
+            cpanBulkDetectedBadge.className = 'badge bg-secondary-subtle text-dark border px-3 py-2';
+        }
+    }
+
+    if (cpanBulkTextarea) {
+        cpanBulkTextarea.addEventListener('input', updateCpanBulkDetectedCount);
+    }
+
+    if (cpanBulkFormatBtn && cpanBulkTextarea) {
+        cpanBulkFormatBtn.addEventListener('click', function () {
+            var items = parseCpanMultiItems(cpanBulkTextarea.value);
+            if (items.length > 0) {
+                cpanBulkTextarea.value = items.join(', ');
+                updateCpanBulkDetectedCount();
+            }
+        });
+    }
+
+    if (cpanBulkClearBtn && cpanBulkTextarea) {
+        cpanBulkClearBtn.addEventListener('click', function () {
+            cpanBulkTextarea.value = '';
+            updateCpanBulkDetectedCount();
+        });
+    }
+
+    if (cpanBulkApplyBtn && cpanBulkTextarea && searchInput) {
+        cpanBulkApplyBtn.addEventListener('click', function () {
+            var items = parseCpanMultiItems(cpanBulkTextarea.value);
+            if (items.length > 0) {
+                searchInput.value = items.join(', ');
+            } else {
+                searchInput.value = cpanBulkTextarea.value.trim();
+            }
+            updateCpanMultiPill();
+            var bsModal = bootstrap.Modal.getInstance(cpanBulkModalEl) || new bootstrap.Modal(cpanBulkModalEl);
+            bsModal.hide();
+            triggerCpanAjaxSearch(1);
+        });
+    }
+
+    if (cpanBulkModalEl && cpanBulkTextarea && searchInput) {
+        cpanBulkModalEl.addEventListener('show.bs.modal', function () {
+            if (!cpanBulkTextarea.value.trim() && searchInput.value.trim()) {
+                var items = parseCpanMultiItems(searchInput.value);
+                if (items.length > 1) {
+                    cpanBulkTextarea.value = items.join(',\n');
+                } else {
+                    cpanBulkTextarea.value = searchInput.value;
+                }
+            }
+            updateCpanBulkDetectedCount();
+        });
+    }
+
+    // Debounced Live Typing Search
     if (searchInput) {
         searchInput.addEventListener('input', function() {
+            updateCpanMultiPill();
             clearTimeout(cpanDebounceTimer);
             cpanDebounceTimer = setTimeout(function() {
                 triggerCpanAjaxSearch(1);
@@ -731,8 +918,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    updateCpanMultiPill();
+
     // Instant Dropdown Filter Events
-    ['cpan-search-by-select', 'cpan-ssa-select', 'cpan-type-select', 'cpan-per-page-select'].forEach(function(id) {
+    ['cpan-search-by-select', 'cpan-ssa-select', 'cpan-type-select', 'cpan-per-page-select', 'cpan-sort-by-select'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) {
             el.addEventListener('change', function() {
@@ -741,14 +930,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Toggle Sort Order Button
+    var sortOrderBtn = document.getElementById('cpan-sort-order-btn');
+    var sortOrderInput = document.getElementById('cpan-sort-order-input');
+    var sortOrderIcon = document.getElementById('cpan-sort-order-icon');
+    if (sortOrderBtn && sortOrderInput) {
+        sortOrderBtn.addEventListener('click', function() {
+            if (sortOrderInput.value === 'desc') {
+                sortOrderInput.value = 'asc';
+                if (sortOrderIcon) sortOrderIcon.className = 'fa-solid fa-arrow-up-a-z';
+            } else {
+                sortOrderInput.value = 'desc';
+                if (sortOrderIcon) sortOrderIcon.className = 'fa-solid fa-arrow-down-z-a';
+            }
+            triggerCpanAjaxSearch(1);
+        });
+    }
+
+    // Clickable Column Headers for Sorting
+    document.querySelectorAll('.cpan-sortable-col').forEach(function(header) {
+        header.addEventListener('click', function() {
+            var col = this.getAttribute('data-sort');
+            var sortBySelect = document.getElementById('cpan-sort-by-select');
+            if (!sortBySelect || !sortOrderInput) return;
+
+            if (sortBySelect.value === col) {
+                // Toggle direction
+                sortOrderInput.value = sortOrderInput.value === 'asc' ? 'desc' : 'asc';
+                if (sortOrderIcon) {
+                    sortOrderIcon.className = sortOrderInput.value === 'desc' ? 'fa-solid fa-arrow-down-z-a' : 'fa-solid fa-arrow-up-a-z';
+                }
+            } else {
+                // Set new sort column, default asc
+                sortBySelect.value = col;
+                sortOrderInput.value = 'asc';
+                if (sortOrderIcon) sortOrderIcon.className = 'fa-solid fa-arrow-up-a-z';
+            }
+            triggerCpanAjaxSearch(1);
+        });
+    });
+
     // Clear Filters Button Event
     var clearBtn = document.getElementById('cpan-clear-filters-btn');
     if (clearBtn) {
         clearBtn.addEventListener('click', function() {
             document.getElementById('cpan-search-input').value = '';
+            if (cpanBulkTextarea) cpanBulkTextarea.value = '';
             document.getElementById('cpan-search-by-select').value = 'all';
             document.getElementById('cpan-ssa-select').value = '';
             document.getElementById('cpan-type-select').value = '';
+            var sortBySelect = document.getElementById('cpan-sort-by-select');
+            if (sortBySelect) sortBySelect.value = 'id';
+            if (sortOrderInput) sortOrderInput.value = 'asc';
+            if (sortOrderIcon) sortOrderIcon.className = 'fa-solid fa-arrow-up-a-z';
+            updateCpanMultiPill();
             triggerCpanAjaxSearch(1);
         });
     }
