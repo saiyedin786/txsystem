@@ -730,6 +730,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // -------------------------------------------------------------
     // Live IP Status UP/DOWN Ping Handlers (CEF & Endpoint IPs)
     // -------------------------------------------------------------
+    window.liveStatusCache = window.liveStatusCache || {};
+
     window.pingSingleIpBadge = function(badgeElem) {
         if (!badgeElem) return;
         const rawIp = badgeElem.getAttribute('data-ip-raw');
@@ -747,6 +749,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             if (data.success && data.results && data.results[rawIp]) {
                 const resObj = data.results[rawIp];
+                window.liveStatusCache[rawIp] = resObj.status;
                 if (resObj.status === 'UP') {
                     badgeElem.className = 'badge bg-success text-white shadow-sm live-ip-status-badge py-1 px-2 fw-bold';
                     badgeElem.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i><span class="status-text">UP</span>`;
@@ -798,6 +801,11 @@ document.addEventListener('DOMContentLoaded', function () {
             let downCount = 0;
 
             if (data.success && data.results) {
+                Object.keys(data.results).forEach(ip => {
+                    if (data.results[ip] && data.results[ip].status) {
+                        window.liveStatusCache[ip] = data.results[ip].status;
+                    }
+                });
                 badges.forEach(b => {
                     const rawIp = b.getAttribute('data-ip-raw');
                     if (rawIp && data.results[rawIp]) {
@@ -968,55 +976,238 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // -------------------------------------------------------------
-    // Copy Rendered Table to Clipboard (TSV format)
+    // Copy Rendered Table to Clipboard (Rich HTML Table & TSV Format)
     // -------------------------------------------------------------
-    window.copyEntireTableData = function() {
-        const table = document.querySelector('.table-responsive table');
-        if (!table) return;
+    window.copyEntireTableData = function(mode = 'all_filtered') {
+        const copyBtn = document.getElementById('btn-copy-table');
+        let origBtnHtml = '';
+        if (copyBtn) {
+            origBtnHtml = copyBtn.innerHTML;
+            copyBtn.disabled = true;
+            copyBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Copying Table...`;
+        }
 
-        const rows = [];
-        
-        // Headers (only visible headers, excluding select box and actions)
-        const headers = [];
-        table.querySelectorAll('thead th').forEach(th => {
-            if (th.querySelector('#select-all-cb') || th.classList.contains('col-actions')) return;
-            if (window.getComputedStyle(th).display === 'none') return;
-            
-            let text = th.innerText.replace(/\s+/g, ' ').trim();
-            headers.push(text);
+        // Sync liveStatusCache from any visible badges on screen
+        window.liveStatusCache = window.liveStatusCache || {};
+        document.querySelectorAll('.live-ip-status-badge').forEach(b => {
+            const rawIp = b.getAttribute('data-ip-raw');
+            const statusText = b.querySelector('.status-text')?.innerText.trim();
+            if (rawIp && (statusText === 'UP' || statusText === 'DOWN')) {
+                window.liveStatusCache[rawIp] = statusText;
+            }
         });
-        rows.push(headers.join('\t'));
 
-        // Data Rows
-        table.querySelectorAll('tbody tr').forEach(tr => {
-            if (tr.querySelector('td[colspan]')) return; // empty state row
-            
-            const rowData = [];
-            tr.querySelectorAll('td').forEach(td => {
-                if (td.querySelector('.row-select-cb') || td.classList.contains('col-actions')) return;
-                if (window.getComputedStyle(td).display === 'none') return;
-                
-                let text = td.innerText.replace(/\s+/g, ' ').trim();
-                rowData.push(text);
+        // Highlight visible table on screen visually
+        const tableElem = document.querySelector('.table-responsive table');
+        if (tableElem) {
+            try {
+                const range = document.createRange();
+                range.selectNodeContents(tableElem);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                setTimeout(() => { sel.removeAllRanges(); }, 2200);
+            } catch(e) {}
+        }
+
+        function doCopy(htmlContent, tsvContent, countLabel) {
+            function showFeedback() {
+                if (copyBtn) {
+                    copyBtn.disabled = false;
+                    copyBtn.innerHTML = `<i class="fa-solid fa-check me-1 text-success"></i> Copied (${countLabel})!`;
+                    setTimeout(() => {
+                        copyBtn.innerHTML = origBtnHtml;
+                    }, 3000);
+                }
+            }
+
+            if (navigator.clipboard && window.ClipboardItem) {
+                try {
+                    const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
+                    const textBlob = new Blob([tsvContent], { type: 'text/plain' });
+                    const item = new ClipboardItem({
+                        'text/html': htmlBlob,
+                        'text/plain': textBlob
+                    });
+                    navigator.clipboard.write([item]).then(showFeedback).catch(err => {
+                        console.warn('ClipboardItem write failed, fallback to writeText:', err);
+                        navigator.clipboard.writeText(tsvContent).then(showFeedback);
+                    });
+                } catch(e) {
+                    navigator.clipboard.writeText(tsvContent).then(showFeedback);
+                }
+            } else {
+                navigator.clipboard.writeText(tsvContent).then(showFeedback);
+            }
+        }
+
+        if (mode === 'visible') {
+            if (!tableElem) return;
+            const tsvRows = [];
+            const htmlHeaders = [];
+            tableElem.querySelectorAll('thead th').forEach(th => {
+                if (th.querySelector('#select-all-cb') || th.classList.contains('col-actions')) return;
+                if (window.getComputedStyle(th).display === 'none') return;
+                let text = th.innerText.replace(/\s+/g, ' ').trim();
+                tsvRows.push(text);
+                htmlHeaders.push(`<th style="background-color: #0d6efd; color: #ffffff; padding: 8px 12px; border: 1px solid #cccccc; font-weight: bold; text-align: left;">${escapeHtml(text)}</th>`);
             });
-            if (rowData.length > 0) {
-                rows.push(rowData.join('\t'));
-            }
-        });
+            const headerTsv = tsvRows.join('\t');
+            const finalTsvRows = [headerTsv];
+            const htmlRows = [];
+            let rowIdx = 0;
 
-        const tsvData = rows.join('\n');
-        navigator.clipboard.writeText(tsvData).then(() => {
-            const copyBtn = document.getElementById('btn-copy-table');
-            if (copyBtn) {
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = `<i class="fa-solid fa-check me-1 text-success"></i> Copied!`;
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                }, 2000);
-            }
-        }).catch(err => {
-            console.error('Failed to copy table:', err);
-        });
+            tableElem.querySelectorAll('tbody tr').forEach(tr => {
+                if (tr.querySelector('td[colspan]')) return;
+                const rowData = [];
+                const htmlCells = [];
+                tr.querySelectorAll('td').forEach(td => {
+                    if (td.querySelector('.row-select-cb') || td.classList.contains('col-actions')) return;
+                    if (window.getComputedStyle(td).display === 'none') return;
+                    let text = td.innerText.replace(/\s+/g, ' ').trim();
+                    let cellHtml = escapeHtml(text);
+
+                    const badge = td.querySelector('.live-ip-status-badge');
+                    if (badge) {
+                        const ipCode = td.querySelector('code')?.innerText.trim() || '';
+                        const statusText = badge.querySelector('.status-text')?.innerText.trim();
+                        if (statusText === 'UP') {
+                            text = ipCode ? `${ipCode} [UP]` : text;
+                            cellHtml = `<code>${escapeHtml(ipCode)}</code> <span style="background-color: #198754; color: #ffffff; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 11px;">UP</span>`;
+                        } else if (statusText === 'DOWN') {
+                            text = ipCode ? `${ipCode} [DOWN]` : text;
+                            cellHtml = `<code>${escapeHtml(ipCode)}</code> <span style="background-color: #dc3545; color: #ffffff; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 11px;">DOWN</span>`;
+                        }
+                    }
+
+                    rowData.push(text);
+                    htmlCells.push(`<td style="padding: 6px 12px; border: 1px solid #cccccc; color: #212529;">${cellHtml}</td>`);
+                });
+                if (rowData.length > 0) {
+                    finalTsvRows.push(rowData.join('\t'));
+                    const bgStyle = (rowIdx % 2 === 1) ? 'background-color: #f8f9fa;' : 'background-color: #ffffff;';
+                    htmlRows.push(`<tr style="${bgStyle}">${htmlCells.join('')}</tr>`);
+                    rowIdx++;
+                }
+            });
+
+            const tsvData = finalTsvRows.join('\n');
+            const htmlData = `
+                <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 13px; text-align: left; width: 100%;">
+                    <thead><tr>${htmlHeaders.join('')}</tr></thead>
+                    <tbody>${htmlRows.join('')}</tbody>
+                </table>
+            `;
+            doCopy(htmlData, tsvData, `${rowIdx} visible sites`);
+        } else {
+            // mode === 'all_filtered'
+            const query = searchInput.value.trim();
+            const searchBy = searchBySelect.value;
+            const ssa = ssaSelect.value;
+            const sortBy = sortBySelect ? sortBySelect.value : 'id';
+            const sortOrder = sortOrderInput ? sortOrderInput.value : 'asc';
+
+            const params = new URLSearchParams({
+                q: query,
+                search_by: searchBy,
+                ssa: ssa,
+                per_page: 10000,
+                page: 1,
+                sort_by: sortBy,
+                sort_order: sortOrder
+            });
+
+            fetch(`/api/search?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                const records = data.records || [];
+                if (records.length === 0) {
+                    if (copyBtn) {
+                        copyBtn.disabled = false;
+                        copyBtn.innerHTML = origBtnHtml;
+                    }
+                    alert('No matching records to copy.');
+                    return;
+                }
+
+                // Identify active visible columns based on localStorage
+                const columnMap = [
+                    { colClass: 'col-site-id', label: 'Site ID', getValue: r => r.site_id },
+                    { colClass: 'col-site-name', label: 'Site Name', getValue: r => r.site_name },
+                    { colClass: 'col-cef-ip', label: 'OAM CEF IP Pool', getValue: r => r.oam_cef_ip_pool },
+                    { colClass: 'col-ssa', label: 'SSA', getValue: r => r.ssa },
+                    { colClass: 'col-location', label: 'Location', getValue: r => r.location || r.Location },
+                    { colClass: 'col-type', label: 'Type', getValue: r => r.cpan_maan_vsat || r['cpan/maan/vsat'] },
+                    { colClass: 'col-endpoint-ip', label: 'Endpoint IP', getValue: r => r.endpoint_ip || r.cpan_a_end_ip || r['tx-system-ip'] },
+                    { colClass: 'col-endpoint-node', label: 'Endpoint Node', getValue: r => r.endpoint_node_router || r.cpan_a_end_node || r['tx-system-location'] },
+                    { colClass: 'col-endpoint-port', label: 'Endpoint Port', getValue: r => r.endpoint_ports || r.cpan_a_end_ports || r['tx-system-port'] },
+                    { colClass: 'col-oam-vlan', label: 'OAM VLAN', getValue: r => r.oam_vlan },
+                    { colClass: 'col-mgmt-vlan', label: 'Mgmt/RAC VLAN', getValue: r => r.mgmt_rac_vlan },
+                    { colClass: 'col-s1c-vlan', label: 'S1-C VLAN', getValue: r => r.s1_c_vlan },
+                    { colClass: 'col-s1u-vlan', label: 'S1-U VLAN', getValue: r => r.s1_u_vlan }
+                ];
+
+                let hiddenCols = [];
+                try {
+                    const saved = localStorage.getItem('noc_table_column_vis');
+                    if (saved) hiddenCols = JSON.parse(saved);
+                } catch(e) { hiddenCols = []; }
+
+                const activeCols = columnMap.filter(c => !hiddenCols.includes(c.colClass));
+
+                const tsvRows = [];
+                const htmlHeaders = [];
+                activeCols.forEach(c => {
+                    htmlHeaders.push(`<th style="background-color: #0d6efd; color: #ffffff; padding: 8px 12px; border: 1px solid #cccccc; font-weight: bold; text-align: left;">${escapeHtml(c.label)}</th>`);
+                });
+                tsvRows.push(activeCols.map(c => c.label).join('\t'));
+
+                const htmlRows = [];
+                records.forEach((rec, idx) => {
+                    const rowValues = [];
+                    const htmlCells = [];
+                    activeCols.forEach(c => {
+                        const val = c.getValue(rec) || '-';
+                        let tsvVal = val;
+                        let htmlVal = escapeHtml(val);
+
+                        if ((c.colClass === 'col-cef-ip' || c.colClass === 'col-endpoint-ip') && val !== '-') {
+                            const status = window.liveStatusCache ? window.liveStatusCache[val] : null;
+                            if (status === 'UP') {
+                                tsvVal = `${val} [UP]`;
+                                htmlVal = `<code>${escapeHtml(val)}</code> <span style="background-color: #198754; color: #ffffff; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 11px;">UP</span>`;
+                            } else if (status === 'DOWN') {
+                                tsvVal = `${val} [DOWN]`;
+                                htmlVal = `<code>${escapeHtml(val)}</code> <span style="background-color: #dc3545; color: #ffffff; padding: 2px 6px; border-radius: 3px; font-weight: bold; font-size: 11px;">DOWN</span>`;
+                            }
+                        }
+
+                        rowValues.push(tsvVal);
+                        htmlCells.push(`<td style="padding: 6px 12px; border: 1px solid #cccccc; color: #212529;">${htmlVal}</td>`);
+                    });
+                    tsvRows.push(rowValues.join('\t'));
+                    const bgStyle = (idx % 2 === 1) ? 'background-color: #f8f9fa;' : 'background-color: #ffffff;';
+                    htmlRows.push(`<tr style="${bgStyle}">${htmlCells.join('')}</tr>`);
+                });
+
+                const tsvData = tsvRows.join('\n');
+                const htmlData = `
+                    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-family: Arial, sans-serif; font-size: 13px; text-align: left; width: 100%;">
+                        <thead><tr>${htmlHeaders.join('')}</tr></thead>
+                        <tbody>${htmlRows.join('')}</tbody>
+                    </table>
+                `;
+
+                doCopy(htmlData, tsvData, `${records.length} searched items`);
+            })
+            .catch(err => {
+                console.error('Failed to copy all search results:', err);
+                if (copyBtn) {
+                    copyBtn.disabled = false;
+                    copyBtn.innerHTML = origBtnHtml;
+                }
+            });
+        }
     };
 
     // -------------------------------------------------------------
@@ -1160,6 +1351,11 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('modal-total-count').textContent = data.total_records;
             document.getElementById('modal-active-query').innerHTML = data.query ? `Search: "<em>${escapeHtml(data.query)}</em>" (Target: ${data.search_by})` : 'No search query';
             document.getElementById('modal-active-ssa').innerHTML = data.selected_ssa ? `SSA: <strong>${escapeHtml(data.selected_ssa)}</strong>` : 'All SSAs';
+
+            const visLabel = document.getElementById('copy-visible-count-label');
+            if (visLabel) visLabel.textContent = Math.min(data.per_page, data.records ? data.records.length : 0);
+            const filtLabel = document.getElementById('copy-filtered-count-label');
+            if (filtLabel) filtLabel.textContent = data.filtered_count;
 
             // 3. Render Table Body Rows
             if (data.records && data.records.length > 0) {
