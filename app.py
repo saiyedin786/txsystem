@@ -228,6 +228,37 @@ def parse_search_query(query):
     return items
 
 
+def get_ssa_summary():
+    conn = get_db()
+    cursor = conn.cursor()
+    sql = """
+        SELECT 
+            UPPER(TRIM(ssa)) as ssa_name,
+            COUNT(*) as total_count,
+            SUM(CASE WHEN LOWER(cpan_maan_vsat) LIKE '%cpan%' THEN 1 ELSE 0 END) as cpan_count,
+            SUM(CASE WHEN LOWER(cpan_maan_vsat) LIKE '%maan%' THEN 1 ELSE 0 END) as maan_count,
+            SUM(CASE WHEN LOWER(cpan_maan_vsat) NOT LIKE '%cpan%' AND LOWER(cpan_maan_vsat) NOT LIKE '%maan%' THEN 1 ELSE 0 END) as other_count
+        FROM bts_sites 
+        WHERE ssa IS NOT NULL AND TRIM(ssa) != '' 
+        GROUP BY UPPER(TRIM(ssa))
+        ORDER BY total_count DESC, ssa_name ASC;
+    """
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    conn.close()
+    
+    summary = []
+    for r in rows:
+        summary.append({
+            'ssa_name': r['ssa_name'] or 'UNKNOWN',
+            'total_count': r['total_count'] or 0,
+            'cpan_count': r['cpan_count'] or 0,
+            'maan_count': r['maan_count'] or 0,
+            'other_count': r['other_count'] or 0
+        })
+    return summary
+
+
 def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25, sort_by="id", sort_order="asc"):
     conn = get_db()
     cursor = conn.cursor()
@@ -249,6 +280,8 @@ def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25, s
     
     cursor.execute("SELECT DISTINCT ssa FROM bts_sites WHERE ssa IS NOT NULL AND ssa != '' ORDER BY ssa ASC;")
     unique_ssas = [r['ssa'] for r in cursor.fetchall()]
+    
+    ssa_summary = get_ssa_summary()
     
     items = parse_search_query(query)
     
@@ -352,6 +385,7 @@ def search_db(query="", search_by="all", selected_ssa="", page=1, per_page=25, s
         'sort_by': sort_by,
         'sort_order': sort_order,
         'unique_ssas': unique_ssas,
+        'ssa_summary': ssa_summary,
         'page': page,
         'per_page': per_page,
         'total_pages': total_pages,

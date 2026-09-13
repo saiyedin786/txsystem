@@ -81,6 +81,81 @@
     </div>
 </div>
 
+<!-- SSA Wise Transmission Site Summary Card -->
+<div class="card card-custom mb-4 bg-white shadow-sm overflow-hidden" id="ssa-summary-card">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center cursor-pointer user-select-none" data-bs-toggle="collapse" data-bs-target="#ssaSummaryCollapse" aria-expanded="true" title="Click to Expand / Collapse Summary Table">
+        <div class="d-flex align-items-center gap-2">
+            <h5 class="mb-0 fw-bold text-secondary">
+                <i class="fa-solid fa-chart-pie text-primary me-2"></i>SSA Wise Transmission Site Summary
+            </h5>
+            <span class="badge bg-primary-subtle text-primary border px-2 py-1 small fw-semibold">
+                {{ ssa_summary|length }} SSAs Total
+            </span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small d-none d-sm-inline"><i class="fa-solid fa-hand-pointer me-1"></i>Click row to filter</span>
+            <button class="btn btn-sm btn-light border p-1 rounded-circle" type="button">
+                <i class="fa-solid fa-chevron-up transition-rotate" id="ssa-summary-chevron"></i>
+            </button>
+        </div>
+    </div>
+    <div class="collapse show" id="ssaSummaryCollapse">
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.8rem;">
+                    <thead class="table-light sticky-top text-secondary small text-uppercase" style="z-index: 2;">
+                        <tr>
+                            <th scope="col" class="ps-3" style="width: 5%;">#</th>
+                            <th scope="col" style="width: 25%;">SSA Name</th>
+                            <th scope="col" class="text-center" style="width: 18%;">Total Sites</th>
+                            <th scope="col" class="text-center" style="width: 18%;">CPAN Sites</th>
+                            <th scope="col" class="text-center" style="width: 18%;">MAAN Sites</th>
+                            <th scope="col" class="text-center px-3" style="width: 16%;">CPAN vs MAAN Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ssa-summary-tbody">
+                        {% set total_sites_all = ssa_summary|sum(attribute='total_count') %}
+                        {% set total_cpan_all = ssa_summary|sum(attribute='cpan_count') %}
+                        {% set total_maan_all = ssa_summary|sum(attribute='maan_count') %}
+                        {% for s in ssa_summary %}
+                            {% set cpan_pct = (s.cpan_count / s.total_count * 100)|round(1) if s.total_count > 0 else 0 %}
+                            {% set maan_pct = (s.maan_count / s.total_count * 100)|round(1) if s.total_count > 0 else 0 %}
+                            <tr class="cursor-pointer ssa-summary-row {% if selected_ssa and selected_ssa.upper() == s.ssa_name %}table-primary fw-bold{% endif %}" onclick="filterBySsaPill('{{ s.ssa_name }}')" title="Click to filter table by {{ s.ssa_name }} SSA">
+                                <td class="ps-3 text-muted fw-semibold">{{ loop.index }}</td>
+                                <td class="fw-bold text-dark">
+                                    <span class="badge bg-secondary-subtle text-dark border me-1 px-2 py-1"><i class="fa-solid fa-location-dot me-1 text-primary"></i>{{ s.ssa_name }}</span>
+                                </td>
+                                <td class="text-center fw-bold text-dark">{{ s.total_count }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success-subtle text-success border px-2 py-1 fw-bold"><i class="fa-solid fa-network-wired me-1"></i>{{ s.cpan_count }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning-subtle text-warning-emphasis border px-2 py-1 fw-bold"><i class="fa-solid fa-server me-1"></i>{{ s.maan_count }}</span>
+                                </td>
+                                <td class="text-center px-3">
+                                    <div class="progress shadow-sm" style="height: 14px;" title="CPAN: {{ s.cpan_count }} ({{ cpan_pct }}%) | MAAN: {{ s.maan_count }} ({{ maan_pct }}%)">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ cpan_pct }}%" aria-valuenow="{{ cpan_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ maan_pct }}%" aria-valuenow="{{ maan_pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold text-dark sticky-bottom border-top" style="z-index: 2;" id="ssa-summary-tfoot">
+                        <tr>
+                            <td class="ps-3 text-uppercase" colspan="2"><i class="fa-solid fa-calculator text-primary me-1"></i> Total (All SSAs)</td>
+                            <td class="text-center fs-6 text-dark" id="ssa-foot-total">{{ total_sites_all }}</td>
+                            <td class="text-center fs-6 text-success" id="ssa-foot-cpan">{{ total_cpan_all }}</td>
+                            <td class="text-center fs-6 text-warning-emphasis" id="ssa-foot-maan">{{ total_maan_all }}</td>
+                            <td class="text-center small text-muted">100% Network Coverage</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Search & Filter Card -->
 <div class="card card-custom p-3 mb-4 bg-white shadow-sm">
     <form id="search-form" method="GET" action="{{ url_for('index') }}" class="row g-2 align-items-center">
@@ -782,6 +857,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
+
+        // Highlight selected SSA row in SSA Wise Summary Table
+        document.querySelectorAll('.ssa-summary-row').forEach(row => {
+            const onclickAttr = row.getAttribute('onclick') || '';
+            if (ssaVal && onclickAttr.toUpperCase().includes(`'${ssaVal.toUpperCase()}'`)) {
+                row.className = 'cursor-pointer ssa-summary-row table-primary fw-bold';
+            } else {
+                row.className = 'cursor-pointer ssa-summary-row';
+            }
+        });
+
         performAjaxSearch(1);
     };
 
