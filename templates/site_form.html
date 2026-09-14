@@ -73,13 +73,16 @@
                         <div class="col-md-4">
                             <label for="reason" class="form-label fw-semibold">Reason / Remark</label>
                             {% set current_reason = form_data.get('reason', '') %}
+                            {% set reason_lower = current_reason.lower() %}
                             <select class="form-select" id="reason" name="reason">
                                 <option value="" {% if not current_reason %}selected{% endif %}>-- Select Reason --</option>
-                                <option value="Working OK" {% if current_reason == 'Working OK' %}selected{% endif %}>Working OK</option>
-                                <option value="Local Down" {% if current_reason == 'Local Down' %}selected{% endif %}>Local Down</option>
-                                <option value="Diverted" {% if current_reason == 'Diverted' %}selected{% endif %}>Diverted</option>
-                                <option value="Service Reset Done" {% if current_reason == 'Service Reset Done' %}selected{% endif %}>Service Reset Done</option>
-                                <option value="Port Reset Done" {% if current_reason == 'Port Reset Done' %}selected{% endif %}>Port Reset Done</option>
+                                <option value="Working OK" {% if reason_lower == 'working ok' %}selected{% endif %}>Working OK</option>
+                                <option value="Local Down" {% if reason_lower == 'local down' %}selected{% endif %}>Local Down</option>
+                                <option value="Diverted" {% if reason_lower == 'diverted' %}selected{% endif %}>Diverted</option>
+                                <option value="Service Reset Done" {% if reason_lower == 'service reset done' %}selected{% endif %}>Service Reset Done</option>
+                                <option value="Port Reset Done" {% if reason_lower == 'port reset done' %}selected{% endif %}>Port Reset Done</option>
+                                <option value="cpan node offline" {% if reason_lower == 'cpan node offline' %}selected{% endif %}>cpan node offline</option>
+                                <option value="maan node offline" {% if reason_lower == 'maan node offline' %}selected{% endif %}>maan node offline</option>
                             </select>
                         </div>
                     </div>

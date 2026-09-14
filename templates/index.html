@@ -355,6 +355,9 @@
             <button type="button" class="btn btn-sm btn-success fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#customReportModal">
                 <i class="fa-solid fa-file-export me-1"></i> Custom Report
             </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold shadow-sm" onclick="openActivityLogModal()" title="View Recent Audit Logs">
+                <i class="fa-solid fa-clock-rotate-left me-1"></i> Activity Log
+            </button>
         </div>
     </div>
 
@@ -365,6 +368,9 @@
             <span><strong><span id="selected-rows-count">0</span></strong> site(s) selected</span>
         </div>
         <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-warning py-1 px-3 fw-bold text-dark" onclick="openBulkReasonModal()">
+                <i class="fa-solid fa-pen-to-square me-1"></i> Update Selected Reasons
+            </button>
             <button type="button" class="btn btn-sm btn-primary py-1 px-3 fw-bold" onclick="copySelectedIps()">
                 <i class="fa-solid fa-copy me-1"></i> Copy Selected IPs
             </button>
@@ -494,13 +500,16 @@
                                 <td class="px-1 text-center col-s1u-vlan"><span class="badge bg-primary-subtle text-primary border px-1 py-1">{{ rec['s1_u_vlan'] or '-' }}</span></td>
                                 <td class="px-1 text-center col-reason">
                                     {% set r_val = rec['reason'] or '' %}
-                                    <select class="form-select form-select-sm site-reason-select shadow-none py-0 px-1 border small {% if r_val == 'Working OK' %}bg-success-subtle text-success-emphasis border-success fw-semibold{% elif r_val == 'Local Down' %}bg-danger-subtle text-danger-emphasis border-danger fw-semibold{% elif r_val == 'Diverted' %}bg-warning-subtle text-warning-emphasis border-warning fw-semibold{% elif r_val == 'Service Reset Done' %}bg-success-subtle text-success-emphasis border-success fw-semibold{% elif r_val == 'Port Reset Done' %}bg-info-subtle text-info-emphasis border-info fw-semibold{% endif %}" style="font-size: 0.72rem; height: 26px; min-width: 110px;" data-site-id="{{ rec['site_id'] }}" onchange="onReasonSelectChange(this)">
+                                    {% set r_lower = r_val.lower() %}
+                                    <select class="form-select form-select-sm site-reason-select shadow-none py-0 px-1 border small {% if r_lower == 'working ok' %}bg-success-subtle text-success-emphasis border-success fw-semibold{% elif r_lower == 'local down' %}bg-danger-subtle text-danger-emphasis border-danger fw-semibold{% elif r_lower == 'diverted' %}bg-warning-subtle text-warning-emphasis border-warning fw-semibold{% elif r_lower == 'service reset done' %}bg-success-subtle text-success-emphasis border-success fw-semibold{% elif r_lower == 'port reset done' %}bg-info-subtle text-info-emphasis border-info fw-semibold{% elif r_lower == 'cpan node offline' %}bg-danger-subtle text-danger-emphasis border-danger fw-semibold{% elif r_lower == 'maan node offline' %}bg-danger-subtle text-danger-emphasis border-danger fw-semibold{% endif %}" style="font-size: 0.72rem; height: 26px; min-width: 110px;" data-site-id="{{ rec['site_id'] }}" onchange="onReasonSelectChange(this)">
                                         <option value="" {% if not r_val %}selected{% endif %}>-- Select --</option>
-                                        <option value="Working OK" {% if r_val == 'Working OK' %}selected{% endif %}>Working OK</option>
-                                        <option value="Local Down" {% if r_val == 'Local Down' %}selected{% endif %}>Local Down</option>
-                                        <option value="Diverted" {% if r_val == 'Diverted' %}selected{% endif %}>Diverted</option>
-                                        <option value="Service Reset Done" {% if r_val == 'Service Reset Done' %}selected{% endif %}>Service Reset Done</option>
-                                        <option value="Port Reset Done" {% if r_val == 'Port Reset Done' %}selected{% endif %}>Port Reset Done</option>
+                                        <option value="Working OK" {% if r_lower == 'working ok' %}selected{% endif %}>Working OK</option>
+                                        <option value="Local Down" {% if r_lower == 'local down' %}selected{% endif %}>Local Down</option>
+                                        <option value="Diverted" {% if r_lower == 'diverted' %}selected{% endif %}>Diverted</option>
+                                        <option value="Service Reset Done" {% if r_lower == 'service reset done' %}selected{% endif %}>Service Reset Done</option>
+                                        <option value="Port Reset Done" {% if r_lower == 'port reset done' %}selected{% endif %}>Port Reset Done</option>
+                                        <option value="cpan node offline" {% if r_lower == 'cpan node offline' %}selected{% endif %}>cpan node offline</option>
+                                        <option value="maan node offline" {% if r_lower == 'maan node offline' %}selected{% endif %}>maan node offline</option>
                                     </select>
                                 </td>
                                 <td class="px-1 text-center col-actions">
@@ -676,6 +685,7 @@
                             {% set cols_list = [
                                 ('site_id', 'Site ID'),
                                 ('site_name', 'Site Name'),
+                                ('status', 'Status (UP/DOWN)'),
                                 ('enodeb_address', 'eNodeB Address'),
                                 ('ssa', 'SSA'),
                                 ('location', 'Location'),
@@ -728,6 +738,74 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Reason Update Modal -->
+<div class="modal fade" id="bulkReasonModal" tabindex="-1" aria-labelledby="bulkReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-warning text-dark py-3">
+                <h5 class="modal-title fw-bold" id="bulkReasonModalLabel">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Bulk Update Reason / Remarks
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">
+                    You are updating the <strong>Reason / Remark</strong> for <strong id="bulk-modal-count" class="text-primary">0</strong> selected site(s).
+                </p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Select or Type New Reason / Remark</label>
+                    <select id="bulk-reason-select" class="form-select mb-2" onchange="if(this.value !== 'custom') document.getElementById('bulk-reason-input').value = this.value">
+                        <option value="">-- Choose Standard Preset --</option>
+                        <option value="Working OK">Working OK</option>
+                        <option value="Local Down">Local Down</option>
+                        <option value="Diverted">Diverted</option>
+                        <option value="Service Reset Done">Service Reset Done</option>
+                        <option value="Port Reset Done">Port Reset Done</option>
+                        <option value="cpan node offline">cpan node offline</option>
+                        <option value="maan node offline">maan node offline</option>
+                        <option value="Fiber Cut under repair">Fiber Cut under repair</option>
+                        <option value="Power Failure / EB Outage">Power Failure / EB Outage</option>
+                        <option value="custom">-- Type Custom Reason Below --</option>
+                    </select>
+                    <input type="text" id="bulk-reason-input" class="form-control" placeholder="Or type custom remark here...">
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-3">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btn-submit-bulk-reason" class="btn btn-warning fw-bold text-dark px-4" onclick="submitBulkReasonUpdate()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Apply Bulk Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Activity Log Modal -->
+<div class="modal fade" id="activityLogModal" tabindex="-1" aria-labelledby="activityLogModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white py-3">
+                <h5 class="modal-title fw-bold" id="activityLogModalLabel">
+                    <i class="fa-solid fa-clock-rotate-left text-info me-2"></i>System Activity & Audit Log
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" style="max-height: 480px; overflow-y: auto;">
+                <div id="activity-log-content">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="small text-muted mt-2">Loading recent audit history...</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-4 justify-content-between">
+                <span class="text-muted small"><i class="fa-solid fa-shield-halved me-1 text-success"></i>System Audit Trail</span>
+                <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -919,15 +997,14 @@ document.addEventListener('DOMContentLoaded', function () {
         selectElem.style.height = '26px';
         selectElem.style.minWidth = '110px';
 
-        if (reason === 'Working OK') {
+        const rLower = (reason || '').toLowerCase();
+        if (rLower === 'working ok' || rLower === 'service reset done') {
             selectElem.classList.add('bg-success-subtle', 'text-success-emphasis', 'border-success', 'fw-semibold');
-        } else if (reason === 'Local Down') {
+        } else if (rLower === 'local down' || rLower === 'cpan node offline' || rLower === 'maan node offline') {
             selectElem.classList.add('bg-danger-subtle', 'text-danger-emphasis', 'border-danger', 'fw-semibold');
-        } else if (reason === 'Diverted') {
+        } else if (rLower === 'diverted') {
             selectElem.classList.add('bg-warning-subtle', 'text-warning-emphasis', 'border-warning', 'fw-semibold');
-        } else if (reason === 'Service Reset Done') {
-            selectElem.classList.add('bg-success-subtle', 'text-success-emphasis', 'border-success', 'fw-semibold');
-        } else if (reason === 'Port Reset Done') {
+        } else if (rLower === 'port reset done') {
             selectElem.classList.add('bg-info-subtle', 'text-info-emphasis', 'border-info', 'fw-semibold');
         }
 
@@ -1520,21 +1597,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     const s1cVlan = escapeHtml(rec.s1_c_vlan || '-');
                     const s1uVlan = escapeHtml(rec.s1_u_vlan || '-');
                     const rVal = rec.reason || '';
+                    const rLower = rVal.toLowerCase();
                     let rClass = '';
-                    if (rVal === 'Working OK') rClass = 'bg-success-subtle text-success-emphasis border-success fw-semibold';
-                    else if (rVal === 'Local Down') rClass = 'bg-danger-subtle text-danger-emphasis border-danger fw-semibold';
-                    else if (rVal === 'Diverted') rClass = 'bg-warning-subtle text-warning-emphasis border-warning fw-semibold';
-                    else if (rVal === 'Service Reset Done') rClass = 'bg-success-subtle text-success-emphasis border-success fw-semibold';
-                    else if (rVal === 'Port Reset Done') rClass = 'bg-info-subtle text-info-emphasis border-info fw-semibold';
+                    if (rLower === 'working ok' || rLower === 'service reset done') rClass = 'bg-success-subtle text-success-emphasis border-success fw-semibold';
+                    else if (rLower === 'local down' || rLower === 'cpan node offline' || rLower === 'maan node offline') rClass = 'bg-danger-subtle text-danger-emphasis border-danger fw-semibold';
+                    else if (rLower === 'diverted') rClass = 'bg-warning-subtle text-warning-emphasis border-warning fw-semibold';
+                    else if (rLower === 'port reset done') rClass = 'bg-info-subtle text-info-emphasis border-info fw-semibold';
 
                     const reasonSelect = `
                         <select class="form-select form-select-sm site-reason-select shadow-none py-0 px-1 border small ${rClass}" style="font-size: 0.72rem; height: 26px; min-width: 110px;" data-site-id="${escapeHtml(rec.site_id)}" onchange="onReasonSelectChange(this)">
                             <option value="" ${!rVal ? 'selected' : ''}>-- Select --</option>
-                            <option value="Working OK" ${rVal === 'Working OK' ? 'selected' : ''}>Working OK</option>
-                            <option value="Local Down" ${rVal === 'Local Down' ? 'selected' : ''}>Local Down</option>
-                            <option value="Diverted" ${rVal === 'Diverted' ? 'selected' : ''}>Diverted</option>
-                            <option value="Service Reset Done" ${rVal === 'Service Reset Done' ? 'selected' : ''}>Service Reset Done</option>
-                            <option value="Port Reset Done" ${rVal === 'Port Reset Done' ? 'selected' : ''}>Port Reset Done</option>
+                            <option value="Working OK" ${rLower === 'working ok' ? 'selected' : ''}>Working OK</option>
+                            <option value="Local Down" ${rLower === 'local down' ? 'selected' : ''}>Local Down</option>
+                            <option value="Diverted" ${rLower === 'diverted' ? 'selected' : ''}>Diverted</option>
+                            <option value="Service Reset Done" ${rLower === 'service reset done' ? 'selected' : ''}>Service Reset Done</option>
+                            <option value="Port Reset Done" ${rLower === 'port reset done' ? 'selected' : ''}>Port Reset Done</option>
+                            <option value="cpan node offline" ${rLower === 'cpan node offline' ? 'selected' : ''}>cpan node offline</option>
+                            <option value="maan node offline" ${rLower === 'maan node offline' ? 'selected' : ''}>maan node offline</option>
                         </select>
                     `;
 
@@ -1832,5 +1911,99 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+function openBulkReasonModal() {
+    const selected = getSelectedRowSiteIds();
+    if (selected.length === 0) {
+        alert("Please select at least one site using the row checkboxes.");
+        return;
+    }
+    document.getElementById('bulk-modal-count').innerText = selected.length;
+    document.getElementById('bulk-reason-input').value = '';
+    document.getElementById('bulk-reason-select').value = '';
+    const modal = new bootstrap.Modal(document.getElementById('bulkReasonModal'));
+    modal.show();
+}
+
+function submitBulkReasonUpdate() {
+    const selected = getSelectedRowSiteIds();
+    const reason = document.getElementById('bulk-reason-input').value.trim();
+    if (selected.length === 0) {
+        alert("No sites selected.");
+        return;
+    }
+    if (!reason) {
+        alert("Please enter or select a reason/remark.");
+        return;
+    }
+    
+    const btn = document.getElementById('btn-submit-bulk-reason');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Updating ${selected.length} sites...`;
+    
+    fetch('/api/sites/bulk-update-reason', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_ids: selected, reason: reason })
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Apply Bulk Update`;
+        if (data.success) {
+            const modalEl = document.getElementById('bulkReasonModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            performAjaxSearch(currentPage || 1);
+        } else {
+            alert(data.message || "Failed to update reasons.");
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Apply Bulk Update`;
+        alert("Error updating reasons: " + err.message);
+    });
+}
+
+function openActivityLogModal() {
+    const modalEl = document.getElementById('activityLogModal');
+    const content = document.getElementById('activity-log-content');
+    content.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><div class="small text-muted mt-2">Loading audit history...</div></div>`;
+    
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+    
+    fetch('/api/activity-logs?limit=30')
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success || !data.logs || data.logs.length === 0) {
+                content.innerHTML = `<div class="text-center text-muted py-4"><i class="fa-solid fa-folder-open fa-2x mb-2 d-block"></i>No recent activity logs recorded yet.</div>`;
+                return;
+            }
+            
+            let html = `<div class="list-group list-group-flush">`;
+            data.logs.forEach(log => {
+                html += `
+                    <div class="list-group-item px-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold text-dark"><i class="fa-solid fa-user-circle text-primary me-1"></i>${log.username || 'System'}</span>
+                            <span class="badge bg-light text-muted border font-monospace" style="font-size: 0.75rem;">${log.created_at || 'N/A'}</span>
+                        </div>
+                        <div class="small mb-1">
+                            <span class="badge bg-primary-subtle text-primary border">${log.action}</span>
+                            ${log.target_id ? `<span class="fw-semibold text-dark ms-1">Target: ${log.target_id}</span>` : ''}
+                        </div>
+                        <div class="small text-secondary font-monospace" style="white-space: pre-wrap;">${log.details || ''}</div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            content.innerHTML = html;
+        })
+        .catch(err => {
+            content.innerHTML = `<div class="alert alert-danger mb-0">Error loading logs: ${err.message}</div>`;
+        });
+}
 </script>
 {% endblock %}

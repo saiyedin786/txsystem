@@ -229,6 +229,37 @@ def init_db(force_reimport=False):
     cursor.execute("DELETE FROM users WHERE staff_no = 'STAFF001';")
     conn.commit()
 
+    # Activity Logs table for tracking system edits & audit trail
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS activity_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            username TEXT,
+            action TEXT NOT NULL,
+            target_type TEXT,
+            target_id TEXT,
+            details TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_activity_created ON activity_logs(created_at);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_activity_target ON activity_logs(target_id);')
+
+    # Uploaded Log Files table for Log Analyzer
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS uploaded_log_files (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT NOT NULL,
+            stored_filename TEXT UNIQUE NOT NULL,
+            file_type TEXT,
+            file_size INTEGER,
+            line_count INTEGER,
+            uploaded_by TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_log_files_created ON uploaded_log_files(created_at);')
+
     # Create cpan_nodes table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS cpan_nodes (

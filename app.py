@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import uuid
 import sqlite3
 import ipaddress
 import subprocess
@@ -10,14 +11,19 @@ from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 import pandas as pd
-from init_db import DB_PATH, EXCEL_PATH, NEW_EXCEL_PATH, init_db
+from init_db import DB_PATH, EXCEL_PATH, NEW_EXCEL_PATH, BASE_DIR, init_db
 
 app = Flask(__name__)
 app.secret_key = 'bts_database_secret_key_antigravity'
 
+UPLOAD_LOGS_DIR = os.path.join(BASE_DIR, 'data', 'uploaded_logs')
+os.makedirs(UPLOAD_LOGS_DIR, exist_ok=True)
+
 app.add_template_global(max, 'max')
 app.add_template_global(min, 'min')
+
 
 
 def get_db():
@@ -630,6 +636,22 @@ def api_get_site(site_id):
     return jsonify({'success': True, 'site': row_to_dict(row)})
 
 
+def log_activity(action, target_type="", target_id="", details=""):
+    try:
+        user_id = session.get('user_id')
+        username = session.get('username') or session.get('full_name') or 'System'
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO activity_logs (user_id, username, action, target_type, target_id, details)
+            VALUES (?, ?, ?, ?, ?, ?);
+        ''', (user_id, username, action, target_type, target_id, details))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error logging activity: {e}")
+
+
 @app.route('/api/site/<site_id>/update-reason', methods=['POST'])
 @login_required
 def api_update_site_reason(site_id):
@@ -646,7 +668,84 @@ def api_update_site_reason(site_id):
     if not updated:
         return jsonify({'success': False, 'message': f'Site ID "{site_id}" not found.'}), 404
         
+    log_activity('UPDATE_REASON', 'bts_sites', site_id, f"Updated reason/remark to: {reason}")
     return jsonify({'success': True, 'site_id': site_id, 'reason': reason, 'message': 'Reason updated successfully.'})
+
+
+@app.route('/api/sites/bulk-update-reason', methods=['POST'])
+@login_required
+def api_bulk_update_reason():
+    data = request.get_json(silent=True) or request.form
+    site_ids = data.get('site_ids', [])
+    reason = str(data.get('reason', '')).strip()
+    
+    if isinstance(site_ids, str):
+        site_ids = [s.strip() for s in site_ids.split(',') if s.strip()]
+        
+    if not isinstance(site_ids, list) or not site_ids:
+        return jsonify({'success': False, 'message': 'No site IDs provided.'}), 400
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    placeholders = ','.join(['?'] * len(site_ids))
+    sql = f"UPDATE bts_sites SET reason = ?, updated_at = CURRENT_TIMESTAMP WHERE site_id IN ({placeholders});"
+    cursor.execute(sql, [reason] + site_ids)
+    conn.commit()
+    updated_count = cursor.rowcount
+    conn.close()
+    
+    log_activity(
+        action='BULK_UPDATE_REASON',
+        target_type='bts_sites',
+        target_id=f"{updated_count} sites",
+        details=f"Updated reason to '{reason}' for {updated_count} sites: {', '.join(site_ids[:10])}{'...' if len(site_ids)>10 else ''}"
+    )
+    
+    return jsonify({
+        'success': True,
+        'updated_count': updated_count,
+        'reason': reason,
+        'message': f'Successfully updated reason for {updated_count} site(s).'
+    })
+
+
+
+@app.route('/api/activity-logs')
+@login_required
+def api_activity_logs():
+    limit = request.args.get('limit', 25, type=int)
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM activity_logs ORDER BY created_at DESC LIMIT ?;", (limit,))
+    logs = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return jsonify({'success': True, 'logs': logs})
+@app.route('/api/sites/summary')
+@login_required
+def api_sites_summary():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM bts_sites;")
+    total_sites = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM bts_sites WHERE LOWER(cpan_maan_vsat) LIKE '%cpan%';")
+    cpan_sites = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM bts_sites WHERE LOWER(cpan_maan_vsat) LIKE '%maan%';")
+    maan_sites = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM cpan_nodes;")
+    cpan_nodes_count = cursor.fetchone()[0]
+    conn.close()
+    
+    ssa_summary = get_ssa_summary()
+    return jsonify({
+        'success': True,
+        'total_sites': total_sites,
+        'cpan_sites': cpan_sites,
+        'maan_sites': maan_sites,
+        'cpan_nodes_count': cpan_nodes_count,
+        'ssa_counts': ssa_summary
+    })
+
 
 
 def check_ip_reachability(target_ip, returncode, output):
@@ -735,6 +834,380 @@ def api_ping():
             'output': err_msg,
             'message': err_msg
         }), 500
+
+
+# ==========================================
+# LOG ANALYZER & MULTI-FORMAT SEARCH SYSTEM
+# ==========================================
+
+def read_log_file_lines(file_path):
+    """
+    Reads lines from a log file (supports .txt, .log, .csv, .json, .xlsx).
+    Returns a list of string lines with 1-based line indexing.
+    """
+    if not os.path.exists(file_path):
+        return []
+
+    ext = os.path.splitext(file_path)[1].lower()
+    lines = []
+
+    try:
+        if ext in ('.xlsx', '.xls'):
+            df = pd.read_excel(file_path, dtype=str).fillna('')
+            lines = [", ".join(f"{col}: {val}" for col, val in row.items() if str(val).strip()) for _, row in df.iterrows()]
+        elif ext == '.json':
+            import json as json_mod
+            with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                content = f.read()
+                try:
+                    data = json_mod.loads(content)
+                    if isinstance(data, list):
+                        for item in data:
+                            lines.append(json_mod.dumps(item))
+                    elif isinstance(data, dict):
+                        for k, v in data.items():
+                            lines.append(f"{k}: {json_mod.dumps(v)}")
+                    else:
+                        lines = content.splitlines()
+                except Exception:
+                    lines = content.splitlines()
+        else:
+            with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+                lines = [line.rstrip('\r\n') for line in f]
+    except Exception as e:
+        print(f"Error reading log file {file_path}: {e}")
+        lines = [f"[File Read Error]: {str(e)}"]
+
+    return lines
+
+
+def extract_entities_from_matches(matches):
+    """
+    Extracts IP addresses and VLAN IDs from search matches.
+    """
+    ip_pattern = re.compile(r'\b(?:\d{1,3}\.){3}\d{1,3}(?:/\d{1,2})?\b')
+    vlan_pattern = re.compile(r'\b(?:VLAN|vlan|Vlan)[\s:=_-]*(\d{1,5})\b|\bVLAN\s*(\d{1,5})\b', re.IGNORECASE)
+
+    ips = set()
+    vlans = set()
+
+    for m in matches:
+        text = m.get('line_text', '')
+        for ip in ip_pattern.findall(text):
+            clean_ip = ip.split('/')[0]
+            parts = clean_ip.split('.')
+            if len(parts) == 4 and all(p.isdigit() and 0 <= int(p) <= 255 for p in parts):
+                ips.add(ip)
+
+        for match_groups in vlan_pattern.findall(text):
+            for v in match_groups:
+                if v:
+                    vlans.add(v)
+
+    return {
+        'ips': sorted(list(ips)),
+        'vlans': sorted(list(vlans), key=lambda x: int(x) if x.isdigit() else x)
+    }
+
+
+TIMESTAMP_REGEX_PATTERNS = [
+    re.compile(r'\b(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)\b'),
+    re.compile(r'\b(\d{2}[/-]\d{2}[/-]\d{4}[ T]\d{2}:\d{2}(?::\d{2})?)\b'),
+    re.compile(r'\b(\d{4}/\d{2}/\d{2}[ T]\d{2}:\d{2}(?::\d{2})?)\b'),
+    re.compile(r'\b([A-Z][a-z]{2}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\b')
+]
+
+def parse_date_str(date_str):
+    if not date_str:
+        return None
+    date_str = str(date_str).strip().replace('T', ' ')
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d', '%d/%m/%Y %H:%M:%S', '%d/%m/%Y'):
+        try:
+            return datetime.strptime(date_str, fmt)
+        except ValueError:
+            pass
+    return None
+
+def extract_line_timestamp(line_text):
+    if not line_text:
+        return None
+    for pattern in TIMESTAMP_REGEX_PATTERNS:
+        match = pattern.search(line_text)
+        if match:
+            ts_raw = match.group(1).replace('T', ' ')
+            dt = parse_date_str(ts_raw)
+            if dt:
+                return dt
+            try:
+                curr_year = datetime.now().year
+                return datetime.strptime(f"{curr_year} {ts_raw}", "%Y %b %d %H:%M:%S")
+            except Exception:
+                pass
+    return None
+
+
+
+@app.route('/log-analyzer')
+@login_required
+def log_analyzer():
+    return render_template('log_analyzer.html')
+
+
+@app.route('/api/logs/upload', methods=['POST'])
+@login_required
+def api_upload_log_file():
+    if 'file' not in request.files:
+        return jsonify({'success': False, 'message': 'No file submitted in request.'}), 400
+
+    uploaded_files = request.files.getlist('file')
+    if not uploaded_files or all(f.filename == '' for f in uploaded_files):
+        return jsonify({'success': False, 'message': 'No file selected.'}), 400
+
+    saved_files = []
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    for file in uploaded_files:
+        if not file or not file.filename:
+            continue
+
+        orig_filename = secure_filename(file.filename) or file.filename
+        ext = os.path.splitext(orig_filename)[1].lower()
+        if not ext:
+            ext = '.log'
+
+        stored_filename = f"{uuid.uuid4().hex}{ext}"
+        target_path = os.path.join(UPLOAD_LOGS_DIR, stored_filename)
+        file.save(target_path)
+
+        file_size = os.path.getsize(target_path)
+        lines = read_log_file_lines(target_path)
+        line_count = len(lines)
+        uploaded_by = session.get('username') or session.get('full_name') or 'User'
+
+        cursor.execute('''
+            INSERT INTO uploaded_log_files (filename, stored_filename, file_type, file_size, line_count, uploaded_by)
+            VALUES (?, ?, ?, ?, ?, ?);
+        ''', (orig_filename, stored_filename, ext.lstrip('.').upper(), file_size, line_count, uploaded_by))
+        
+        file_id = cursor.lastrowid
+        saved_files.append({
+            'id': file_id,
+            'filename': orig_filename,
+            'stored_filename': stored_filename,
+            'file_type': ext.lstrip('.').upper(),
+            'file_size': file_size,
+            'line_count': line_count,
+            'uploaded_by': uploaded_by,
+            'created_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+    conn.commit()
+    conn.close()
+
+    if saved_files:
+        log_activity('UPLOAD_LOG_FILE', 'uploaded_log_files', f"{len(saved_files)} file(s)", f"Uploaded: {', '.join(f['filename'] for f in saved_files)}")
+
+    return jsonify({'success': True, 'message': f'Successfully uploaded {len(saved_files)} log file(s).', 'files': saved_files})
+
+
+@app.route('/api/logs/files')
+@login_required
+def api_get_log_files():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM uploaded_log_files ORDER BY created_at DESC;")
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return jsonify({'success': True, 'files': rows})
+
+
+@app.route('/api/logs/delete/<int:file_id>', methods=['POST'])
+@login_required
+def api_delete_log_file(file_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM uploaded_log_files WHERE id = ?;", (file_id,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return jsonify({'success': False, 'message': 'Log file record not found.'}), 404
+
+    target_path = os.path.join(UPLOAD_LOGS_DIR, row['stored_filename'])
+    if os.path.exists(target_path):
+        try:
+            os.remove(target_path)
+        except Exception as e:
+            print(f"Warning: Could not remove file {target_path}: {e}")
+
+    cursor.execute("DELETE FROM uploaded_log_files WHERE id = ?;", (file_id,))
+    conn.commit()
+    conn.close()
+
+    log_activity('DELETE_LOG_FILE', 'uploaded_log_files', str(file_id), f"Deleted log file: {row['filename']}")
+
+    return jsonify({'success': True, 'message': f"Log file '{row['filename']}' deleted successfully."})
+
+
+@app.route('/api/logs/search')
+@login_required
+def api_search_log_files():
+    query = request.args.get('q', '').strip()
+    file_id = request.args.get('file_id', 'all').strip()
+    start_date_str = request.args.get('start_date', '').strip()
+    end_date_str = request.args.get('end_date', '').strip()
+    max_results = request.args.get('max_results', 500, type=int)
+
+    start_dt = parse_date_str(start_date_str)
+    end_dt = parse_date_str(end_date_str)
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    if file_id != 'all' and file_id:
+        f_ids = [int(i.strip()) for i in file_id.split(',') if i.strip().isdigit()]
+        if f_ids:
+            placeholders = ','.join(['?'] * len(f_ids))
+            cursor.execute(f"SELECT * FROM uploaded_log_files WHERE id IN ({placeholders});", f_ids)
+        else:
+            cursor.execute("SELECT * FROM uploaded_log_files ORDER BY created_at DESC;")
+    else:
+        cursor.execute("SELECT * FROM uploaded_log_files ORDER BY created_at DESC;")
+
+    file_records = cursor.fetchall()
+    conn.close()
+
+    if not file_records:
+        return jsonify({'success': True, 'query': query, 'total_matches': 0, 'matches': [], 'entities': {'ips': [], 'vlans': []}})
+
+    matches = []
+    
+    is_vlan_only = query.isdigit() and len(query) <= 5
+    if is_vlan_only:
+        q_pattern = re.compile(rf'\b(?:vlan[\s:=_-]*)?{re.escape(query)}\b', re.IGNORECASE)
+    else:
+        q_pattern = re.compile(re.escape(query) if query else r'.*', re.IGNORECASE)
+
+    for f_rec in file_records:
+        if len(matches) >= max_results:
+            break
+
+        f_path = os.path.join(UPLOAD_LOGS_DIR, f_rec['stored_filename'])
+        lines = read_log_file_lines(f_path)
+
+        for line_no, line_text in enumerate(lines, start=1):
+            if len(matches) >= max_results:
+                break
+
+            if start_dt or end_dt:
+                line_dt = extract_line_timestamp(line_text)
+                if line_dt:
+                    if start_dt and line_dt < start_dt:
+                        continue
+                    if end_dt and line_dt > end_dt:
+                        continue
+
+            if not query or q_pattern.search(line_text):
+                matches.append({
+                    'file_id': f_rec['id'],
+                    'filename': f_rec['filename'],
+                    'line_no': line_no,
+                    'line_text': line_text
+                })
+
+    entities = extract_entities_from_matches(matches)
+
+    return jsonify({
+        'success': True,
+        'query': query,
+        'file_id': file_id,
+        'start_date': start_date_str,
+        'end_date': end_date_str,
+        'total_matches': len(matches),
+        'matches': matches,
+        'entities': entities
+    })
+
+
+@app.route('/api/logs/export-search')
+@login_required
+def api_export_log_search():
+    query = request.args.get('q', '').strip()
+    file_id = request.args.get('file_id', 'all').strip()
+    start_date_str = request.args.get('start_date', '').strip()
+    end_date_str = request.args.get('end_date', '').strip()
+    export_format = request.args.get('format', 'txt').strip().lower()
+
+    start_dt = parse_date_str(start_date_str)
+    end_dt = parse_date_str(end_date_str)
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    if file_id != 'all' and file_id:
+        f_ids = [int(i.strip()) for i in file_id.split(',') if i.strip().isdigit()]
+        if f_ids:
+            placeholders = ','.join(['?'] * len(f_ids))
+            cursor.execute(f"SELECT * FROM uploaded_log_files WHERE id IN ({placeholders});", f_ids)
+        else:
+            cursor.execute("SELECT * FROM uploaded_log_files ORDER BY created_at DESC;")
+    else:
+        cursor.execute("SELECT * FROM uploaded_log_files ORDER BY created_at DESC;")
+
+    file_records = cursor.fetchall()
+    conn.close()
+
+    matches = []
+    q_pattern = re.compile(re.escape(query) if query else r'.*', re.IGNORECASE)
+
+    for f_rec in file_records:
+        f_path = os.path.join(UPLOAD_LOGS_DIR, f_rec['stored_filename'])
+        lines = read_log_file_lines(f_path)
+
+        for line_no, line_text in enumerate(lines, start=1):
+            if start_dt or end_dt:
+                line_dt = extract_line_timestamp(line_text)
+                if line_dt:
+                    if start_dt and line_dt < start_dt:
+                        continue
+                    if end_dt and line_dt > end_dt:
+                        continue
+
+            if not query or q_pattern.search(line_text):
+                matches.append({
+                    'filename': f_rec['filename'],
+                    'line_no': line_no,
+                    'line_text': line_text
+                })
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    if export_format == 'csv':
+        df = pd.DataFrame(matches)
+        output = BytesIO()
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=f"log_search_results_{timestamp}.csv",
+            mimetype='text/csv'
+        )
+    else:
+        output = BytesIO()
+        content = "\n".join(f"[{m['filename']}:L{m['line_no']}] {m['line_text']}" for m in matches)
+        output.write(content.encode('utf-8'))
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=f"log_search_results_{timestamp}.txt",
+            mimetype='text/plain'
+        )
+
 
 
 @app.route('/api/ping-cef-batch', methods=['POST'])
@@ -1058,6 +1531,7 @@ def delete_site(site_id):
 ALL_REPORT_COLUMNS = {
     'site_id': 'Site Id',
     'site_name': 'Site Name',
+    'status': 'Status (UP/DOWN)',
     'enodeb_address': 'eNodeB Address',
     'ssa': 'SSA',
     'location': 'Location',
@@ -1097,6 +1571,139 @@ ALL_REPORT_COLUMNS = {
     'vlan': 'VLAN',
     'reason': 'Reason / Remark'
 }
+
+
+def compute_ping_statuses_for_dataframe(df):
+    """
+    Given a pandas DataFrame containing site or node records, pings target IPs concurrently
+    and populates a 'Status (UP/DOWN)' column.
+    """
+    if df is None or df.empty:
+        if df is not None:
+            df['Status (UP/DOWN)'] = []
+        return df
+
+    ip_candidates = []
+    for _, row in df.iterrows():
+        raw_ip = (row.get('_temp_target_ip') or
+                  row.get('Endpoint IP') or row.get('endpoint_ip') or
+                  row.get('NE IP') or row.get('ne_ip') or
+                  row.get('CPAN A End IP') or row.get('cpan_a_end_ip') or
+                  row.get('tx-system-ip') or row.get('tx_system_ip') or
+                  row.get('eNodeB Address') or row.get('enodeb_address') or
+                  row.get('Mgmt IP') or row.get('mgmt_ip') or '')
+        clean_ip = str(raw_ip).split('/')[0].strip() if raw_ip else ''
+        ip_candidates.append(clean_ip)
+
+    unique_ips = list(set([ip for ip in ip_candidates if ip and ip.lower() not in ('nan', 'none', '-', '')]))
+    ping_map = {}
+
+    def ping_single(ip_str):
+        try:
+            ip_obj = str(ipaddress.ip_address(ip_str))
+        except ValueError:
+            return (ip_str, 'N/A')
+
+        cmd = ['ping', '-n', '1', '-w', '800', ip_obj] if os.name == 'nt' else ['ping', '-c', '1', '-W', '1', ip_obj]
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=1.5)
+            output = proc.stdout or proc.stderr or ''
+            is_up = check_ip_reachability(ip_obj, proc.returncode, output)
+            return (ip_str, 'UP' if is_up else 'DOWN')
+        except Exception:
+            return (ip_str, 'DOWN')
+
+    if unique_ips:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(50, max(1, len(unique_ips)))) as executor:
+            futures = [executor.submit(ping_single, ip) for ip in unique_ips]
+            for future in concurrent.futures.as_completed(futures):
+                ip, status = future.result()
+                ping_map[ip] = status
+
+    statuses = []
+    for ip in ip_candidates:
+        if not ip or ip.lower() in ('nan', 'none', '-', ''):
+            statuses.append('N/A')
+        else:
+            statuses.append(ping_map.get(ip, 'DOWN'))
+
+    df['Status (UP/DOWN)'] = statuses
+    return df
+
+
+def format_openpyxl_report(file_stream_or_wb):
+    """
+    Applies styling for headers, gridlines, and UP/DOWN status column in Excel export.
+    """
+    import openpyxl
+    from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+
+    if isinstance(file_stream_or_wb, (str, BytesIO)):
+        file_stream_or_wb.seek(0)
+        wb = openpyxl.load_workbook(file_stream_or_wb)
+    else:
+        wb = file_stream_or_wb
+
+    header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    header_font = Font(name="Segoe UI", size=10, bold=True, color="FFFFFF")
+
+    up_fill = PatternFill(start_color="D4EDDA", end_color="D4EDDA", fill_type="solid")
+    up_font = Font(name="Segoe UI", size=10, bold=True, color="155724")
+
+    down_fill = PatternFill(start_color="F8D7DA", end_color="F8D7DA", fill_type="solid")
+    down_font = Font(name="Segoe UI", size=10, bold=True, color="721C24")
+
+    na_font = Font(name="Segoe UI", size=10, color="6C757D")
+
+    thin_border = Border(
+        left=Side(style='thin', color='E2E8F0'),
+        right=Side(style='thin', color='E2E8F0'),
+        top=Side(style='thin', color='E2E8F0'),
+        bottom=Side(style='thin', color='E2E8F0')
+    )
+
+    for sheet in wb.worksheets:
+        sheet.views.sheetView[0].showGridLines = True
+
+        status_col_idx = None
+        for col_idx in range(1, sheet.max_column + 1):
+            cell = sheet.cell(row=1, column=col_idx)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+            val = str(cell.value or '')
+            if 'Status' in val or 'UP/DOWN' in val:
+                status_col_idx = col_idx
+
+        for row in range(2, sheet.max_row + 1):
+            for col in range(1, sheet.max_column + 1):
+                cell = sheet.cell(row=row, column=col)
+                cell.border = thin_border
+                cell.font = Font(name="Segoe UI", size=9.5)
+
+                if col == status_col_idx:
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    s_val = str(cell.value or '').strip().upper()
+                    if s_val == 'UP':
+                        cell.fill = up_fill
+                        cell.font = up_font
+                    elif s_val == 'DOWN':
+                        cell.fill = down_fill
+                        cell.font = down_font
+                    else:
+                        cell.font = na_font
+
+        # Auto-adjust column widths
+        for col in sheet.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = openpyxl.utils.get_column_letter(col[0].column)
+            sheet.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
+    out = BytesIO()
+    wb.save(out)
+    out.seek(0)
+    return out
 
 
 @app.route('/export')
@@ -1143,14 +1750,22 @@ def export_excel():
     df = pd.read_sql_query(export_sql, conn)
     conn.close()
     
-    target_excel = NEW_EXCEL_PATH if os.path.exists(NEW_EXCEL_PATH) else EXCEL_PATH
-    try:
-        df.to_excel(target_excel, index=False, sheet_name='Sheet1')
-    except Exception as e:
-        print(f"Could not update excel file directly: {e}")
-        
+    if not df.empty:
+        df = compute_ping_statuses_for_dataframe(df)
+        if 'Status (UP/DOWN)' in df.columns and 'Site Name' in df.columns:
+            cols = list(df.columns)
+            cols.remove('Status (UP/DOWN)')
+            idx = cols.index('Site Name') + 1
+            cols.insert(idx, 'Status (UP/DOWN)')
+            df = df[cols]
+            
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Sheet1')
+    output = format_openpyxl_report(output)
+    
     return send_file(
-        target_excel,
+        output,
         as_attachment=True,
         download_name='btsdatabase_updated.xlsx',
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -1186,7 +1801,14 @@ def export_custom_report():
         if not selected_cols:
             selected_cols = list(ALL_REPORT_COLUMNS.keys())
             
-    select_parts = [f"{col} AS '{ALL_REPORT_COLUMNS[col]}'" for col in selected_cols]
+    db_cols = [c for c in selected_cols if c != 'status']
+    select_parts = [f"{col} AS '{ALL_REPORT_COLUMNS[col]}'" for col in db_cols]
+    
+    if 'status' in selected_cols:
+        for ip_c in ['endpoint_ip', 'cpan_a_end_ip', 'tx_system_ip', 'enodeb_address']:
+            if ip_c not in db_cols:
+                select_parts.append(f"{ip_c} AS '_temp_{ip_c}'")
+                
     select_sql = ", ".join(select_parts)
     
     sort_col = VALID_SORT_COLUMNS.get(sort_by, 'bts_sites.id')
@@ -1223,7 +1845,7 @@ def export_custom_report():
             query_sql = f"SELECT {select_sql} FROM bts_sites WHERE id IN ({placeholders}) ORDER BY {sort_col} {sort_dir};"
             df = pd.read_sql_query(query_sql, conn, params=matched_ids)
         else:
-            df = pd.DataFrame(columns=[ALL_REPORT_COLUMNS[c] for c in selected_cols])
+            df = pd.DataFrame(columns=[ALL_REPORT_COLUMNS[c] for c in selected_cols if c in ALL_REPORT_COLUMNS])
     else:
         where_clauses = []
         params = []
@@ -1254,6 +1876,27 @@ def export_custom_report():
         df = pd.read_sql_query(query_sql, conn, params=params)
     conn.close()
     
+    if 'status' in selected_cols and not df.empty:
+        ip_series = []
+        for _, row in df.iterrows():
+            ep = (row.get('Endpoint IP') or row.get('_temp_endpoint_ip') or
+                  row.get('CPAN A End IP') or row.get('_temp_cpan_a_end_ip') or
+                  row.get('tx-system-ip') or row.get('_temp_tx_system_ip') or
+                  row.get('eNodeB Address') or row.get('_temp_enodeb_address') or '')
+            ip_series.append(ep)
+        df['_temp_target_ip'] = ip_series
+        df = compute_ping_statuses_for_dataframe(df)
+        
+    # Drop temp columns
+    for c in list(df.columns):
+        if str(c).startswith('_temp_'):
+            df.drop(columns=[c], inplace=True)
+            
+    # Order columns as requested in selected_cols
+    desired_headers = [ALL_REPORT_COLUMNS[c] for c in selected_cols if ALL_REPORT_COLUMNS[c] in df.columns]
+    if desired_headers:
+        df = df[desired_headers]
+        
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     if export_format == 'csv':
@@ -1273,7 +1916,7 @@ def export_custom_report():
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name='Custom Report')
-        output.seek(0)
+        output = format_openpyxl_report(output)
         return send_file(
             output,
             as_attachment=True,
@@ -1737,6 +2380,15 @@ def export_cpan_nodes():
         
     conn.close()
     
+    if not df.empty:
+        df = compute_ping_statuses_for_dataframe(df)
+        if 'Status (UP/DOWN)' in df.columns and 'NE IP' in df.columns:
+            cols = list(df.columns)
+            cols.remove('Status (UP/DOWN)')
+            idx = cols.index('NE IP') + 1
+            cols.insert(idx, 'Status (UP/DOWN)')
+            df = df[cols]
+            
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     if export_format in ('excel', 'xlsx'):
@@ -1744,7 +2396,7 @@ def export_cpan_nodes():
         output = BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False, sheet_name='CPAN Nodes')
-        output.seek(0)
+        output = format_openpyxl_report(output)
         return send_file(
             output,
             as_attachment=True,
@@ -1763,12 +2415,11 @@ def export_cpan_nodes():
             download_name=filename,
             mimetype='text/csv'
         )
-
-
-
 if __name__ == '__main__':
     init_db()
     print("Starting CPAN NOC on http://127.0.0.1:5000 ...")
     app.run(host='127.0.0.1', port=5000, debug=True)
+
+
 
 

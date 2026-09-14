@@ -1,0 +1,642 @@
+{% extends 'base.html' %}
+
+{% block title %}Log File Analyzer & Search - CPAN NOC{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1 text-primary">
+                <i class="fa-solid fa-file-lines me-2"></i>Network Log File Analyzer
+            </h2>
+            <p class="text-muted mb-0 small">
+                Upload raw network log files (.txt, .log, .csv, .json, .xlsx) and search by IP Address, VLAN ID, Site ID, Date Range, or text pattern.
+            </p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary me-2" onclick="loadLogFiles()">
+                <i class="fa-solid fa-rotate me-1"></i> Refresh Files
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#uploadCollapse">
+                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Log Files
+            </button>
+        </div>
+    </div>
+
+    <!-- Upload Collapse Card -->
+    <div class="collapse mb-4" id="uploadCollapse">
+        <div class="card border-0 shadow-sm rounded-3">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="card-title mb-0 fw-semibold">
+                    <i class="fa-solid fa-upload me-2"></i>Upload Network Log Files
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <form id="logUploadForm" enctype="multipart/form-data">
+                    <div class="border border-2 border-dashed rounded-3 p-4 text-center bg-light" id="dropZone">
+                        <i class="fa-solid fa-file-circle-plus fa-3x text-primary mb-3"></i>
+                        <h5>Drag and drop log files here or click to browse</h5>
+                        <p class="text-muted small mb-3">Supports: .txt, .log, .csv, .json, .xlsx files (Max file size: 50MB per file)</p>
+                        <input type="file" id="logFileInput" name="file" multiple class="d-none" onchange="handleFileSelect(event)">
+                        <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('logFileInput').click()">
+                            <i class="fa-solid fa-folder-open me-1"></i> Browse Files
+                        </button>
+                    </div>
+                    <div id="selectedFilesList" class="mt-3 d-none">
+                        <h6>Selected Files:</h6>
+                        <ul class="list-group list-group-sm mb-3" id="filesQueue"></ul>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Upload Selected Files
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Uploaded Files & Search Workspace -->
+    <div class="row g-4 mb-4">
+        
+        <!-- Left Column: Uploaded Files Manager -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0 fw-bold">
+                        <i class="fa-solid fa-hard-drive me-2"></i>Uploaded Log Files (<span id="fileCountBadge">0</span>)
+                    </h6>
+                    <button class="btn btn-sm btn-outline-light py-0 px-2" onclick="toggleSelectAllFiles()" title="Select/Deselect All Files">
+                        <i class="fa-solid fa-check-double me-1"></i> Toggle All
+                    </button>
+                </div>
+                <div class="card-body p-0 table-responsive style-scrollbar" style="max-height: 560px;">
+                    <table class="table table-hover align-middle mb-0 text-nowrap">
+                        <thead class="bg-light sticky-top">
+                            <tr>
+                                <th class="ps-3" style="width: 30px;">
+                                    <input type="checkbox" id="selectAllLogFilesCheckbox" class="form-check-input" onchange="handleSelectAllCheckbox(this)">
+                                </th>
+                                <th>File Name</th>
+                                <th>Lines</th>
+                                <th class="text-end pe-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logFilesTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Loading log files...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-light py-2 px-3 d-flex justify-content-between align-items-center small text-muted">
+                    <span>Selected: <strong id="selectedFilesCountText">All Files</strong></span>
+                    <button class="btn btn-xs btn-outline-primary" onclick="executeLogSearch()">
+                        <i class="fa-solid fa-filter me-1"></i> Analyze Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Search & Log Line Content Analysis -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold mb-1"><i class="fa-solid fa-magnifying-glass me-1"></i>Search Keyword / IP / VLAN</label>
+                            <div class="input-group">
+                                <input type="text" id="logSearchQuery" class="form-control" placeholder="IP e.g. 10.231.14.2, VLAN 1024, DOWN..." onkeyup="if(event.key==='Enter') executeLogSearch()">
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold mb-1"><i class="fa-regular fa-calendar me-1"></i>Start Date & Time</label>
+                                    <input type="datetime-local" id="logStartDate" class="form-control form-control-sm" onchange="executeLogSearch()">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold mb-1"><i class="fa-regular fa-calendar-check me-1"></i>End Date & Time</label>
+                                    <input type="datetime-local" id="logEndDate" class="form-control form-control-sm" onchange="executeLogSearch()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2 mt-2 align-items-center">
+                        <div class="col-md-7 d-flex align-items-center gap-2 flex-wrap text-muted small">
+                            <span class="fw-semibold">Date Presets:</span>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setDatePreset('today')">Today</button>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setDatePreset('yesterday')">Yesterday</button>
+                            <button class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="setDatePreset('7days')">Last 7 Days</button>
+                            <button class="btn btn-xs btn-outline-danger py-0 px-2 rounded-pill" onclick="clearDateRange()">Clear Dates</button>
+                        </div>
+                        <div class="col-md-5 d-flex gap-2 justify-content-end">
+                            <button class="btn btn-primary btn-sm px-4" onclick="executeLogSearch()">
+                                <i class="fa-solid fa-filter me-1"></i> Analyze Logs
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearLogSearch()" title="Clear Search & Filters">
+                                <i class="fa-solid fa-xmark me-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Query Helper Pills -->
+                <div class="card-body bg-light border-bottom py-2 px-3">
+                    <div class="d-flex align-items-center gap-2 flex-wrap text-muted small">
+                        <span class="fw-semibold">Quick Filters:</span>
+                        <button class="btn btn-xs btn-outline-primary py-0 px-2 rounded-pill" onclick="setSearchFilter('10.')">IP 10.x.x.x</button>
+                        <button class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill" onclick="setSearchFilter('VLAN')">VLAN</button>
+                        <button class="btn btn-xs btn-outline-warning py-0 px-2 rounded-pill" onclick="setSearchFilter('DOWN')">DOWN / Error</button>
+                        <button class="btn btn-xs btn-outline-info py-0 px-2 rounded-pill" onclick="setSearchFilter('UP')">UP / Reachable</button>
+                    </div>
+                </div>
+
+                <!-- Extracted Entities Bar (Detected IPs & VLANs) -->
+                <div id="entitiesContainer" class="card-body bg-white border-bottom py-2 px-3 d-none">
+                    <div class="d-flex flex-wrap align-items-center gap-2 small">
+                        <span class="fw-bold text-dark me-1"><i class="fa-solid fa-tags me-1 text-primary"></i>Detected Entities:</span>
+                        <div id="detectedIpChips" class="d-inline-flex flex-wrap gap-1"></div>
+                        <div id="detectedVlanChips" class="d-inline-flex flex-wrap gap-1"></div>
+                    </div>
+                </div>
+
+                <!-- Results Summary Header -->
+                <div class="card-body bg-dark text-white py-2 px-3 d-flex justify-content-between align-items-center">
+                    <div class="small">
+                        <i class="fa-solid fa-list-check me-1 text-info"></i>
+                        Matches Found: <span id="matchesCount" class="fw-bold text-warning">0</span> lines
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-light py-0 px-2" onclick="exportSearchResults('txt')">
+                            <i class="fa-solid fa-file-lines me-1"></i> Export TXT
+                        </button>
+                        <button class="btn btn-sm btn-outline-success py-0 px-2" onclick="exportSearchResults('csv')">
+                            <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Log Output Console Viewer -->
+                <div class="card-body p-0 bg-dark text-light">
+                    <div id="logConsoleOutput" class="style-scrollbar font-monospace p-3 text-break" style="max-height: 520px; min-height: 380px; overflow-y: auto; background-color: #0f172a; font-size: 0.85rem;">
+                        <div class="text-center text-muted py-5">
+                            <i class="fa-solid fa-terminal fa-3x mb-3 opacity-50"></i>
+                            <p class="mb-0">Upload log files and configure filters (IP, VLAN, Date Range) to analyze log content.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Styling for Terminal Output & Custom Scrollbars -->
+<style>
+    .style-scrollbar::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .style-scrollbar::-webkit-scrollbar-track {
+        background: #1e293b;
+    }
+    .style-scrollbar::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 4px;
+    }
+    .style-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+    .log-line-entry {
+        display: flex;
+        gap: 12px;
+        padding: 4px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        align-items: flex-start;
+    }
+    .log-line-entry:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+    .log-line-no {
+        color: #64748b;
+        user-select: none;
+        min-width: 45px;
+        text-align: right;
+    }
+    .log-file-tag {
+        background-color: #334155;
+        color: #94a3b8;
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        user-select: none;
+        white-space: nowrap;
+    }
+    .log-match-highlight {
+        background-color: #f59e0b;
+        color: #000000;
+        font-weight: bold;
+        padding: 0 4px;
+        border-radius: 2px;
+    }
+    .btn-xs {
+        font-size: 0.75rem;
+    }
+</style>
+
+<!-- Log Analyzer Frontend JavaScript Logic -->
+<script>
+    let uploadedFilesList = [];
+    let selectedFileIds = new Set();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadLogFiles();
+
+        const dropZone = document.getElementById('dropZone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('bg-secondary', 'bg-opacity-25'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('bg-secondary', 'bg-opacity-25'), false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        document.getElementById('logUploadForm').addEventListener('submit', handleUploadSubmit);
+    });
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+            document.getElementById('logFileInput').files = files;
+            displaySelectedFiles(files);
+        }
+    }
+
+    function handleFileSelect(e) {
+        const files = e.target.files;
+        if (files.length > 0) {
+            displaySelectedFiles(files);
+        }
+    }
+
+    function displaySelectedFiles(files) {
+        const container = document.getElementById('selectedFilesList');
+        const list = document.getElementById('filesQueue');
+        list.innerHTML = '';
+
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            const sizeMb = (f.size / (1024 * 1024)).toFixed(2);
+            list.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-file me-2 text-primary"></i>${f.name}</span>
+                    <span class="badge bg-secondary">${sizeMb} MB</span>
+                </li>
+            `;
+        }
+        container.classList.remove('d-none');
+    }
+
+    function handleUploadSubmit(e) {
+        e.preventDefault();
+        const fileInput = document.getElementById('logFileInput');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Please select at least one file to upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('file', fileInput.files[i]);
+        }
+
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const origText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Uploading...';
+
+        fetch('/api/logs/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origText;
+            if (data.success) {
+                alert(data.message);
+                document.getElementById('logUploadForm').reset();
+                document.getElementById('selectedFilesList').classList.add('d-none');
+                const collapseElem = document.getElementById('uploadCollapse');
+                const bsCollapse = bootstrap.Collapse.getInstance(collapseElem);
+                if (bsCollapse) bsCollapse.hide();
+                loadLogFiles();
+            } else {
+                alert('Upload Error: ' + (data.message || 'Failed to upload files.'));
+            }
+        })
+        .catch(err => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origText;
+            alert('Server error while uploading: ' + err);
+        });
+    }
+
+    function loadLogFiles() {
+        fetch('/api/logs/files')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    uploadedFilesList = data.files || [];
+                    selectedFileIds.clear();
+                    renderLogFilesTable(uploadedFilesList);
+                    updateSelectedCountText();
+                }
+            })
+            .catch(err => console.error('Error fetching log files:', err));
+    }
+
+    function renderLogFilesTable(files) {
+        const tbody = document.getElementById('logFilesTableBody');
+        document.getElementById('fileCountBadge').innerText = files.length;
+
+        if (files.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-folder-open me-2"></i>No log files uploaded yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let html = '';
+        files.forEach(f => {
+            const isChecked = selectedFileIds.has(f.id) ? 'checked' : '';
+            html += `
+                <tr>
+                    <td class="ps-3">
+                        <input type="checkbox" class="form-check-input log-file-checkbox" value="${f.id}" ${isChecked} onchange="handleSingleFileCheckbox(this, ${f.id})">
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-truncate" style="max-width: 140px;" title="${f.filename}">
+                            <i class="fa-solid fa-file-lines me-1 text-primary"></i>${f.filename}
+                        </div>
+                        <div class="small text-muted">${f.created_at || ''}</div>
+                    </td>
+                    <td><span class="badge bg-secondary">${(f.line_count || 0).toLocaleString()}</span></td>
+                    <td class="text-end pe-3">
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteLogFile(${f.id}, '${f.filename}')" title="Delete file">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function handleSingleFileCheckbox(cb, fileId) {
+        if (cb.checked) {
+            selectedFileIds.add(fileId);
+        } else {
+            selectedFileIds.delete(fileId);
+        }
+        updateSelectedCountText();
+    }
+
+    function handleSelectAllCheckbox(cb) {
+        if (cb.checked) {
+            uploadedFilesList.forEach(f => selectedFileIds.add(f.id));
+        } else {
+            selectedFileIds.clear();
+        }
+        document.querySelectorAll('.log-file-checkbox').forEach(chk => chk.checked = cb.checked);
+        updateSelectedCountText();
+    }
+
+    function toggleSelectAllFiles() {
+        const masterCb = document.getElementById('selectAllLogFilesCheckbox');
+        masterCb.checked = !masterCb.checked;
+        handleSelectAllCheckbox(masterCb);
+    }
+
+    function updateSelectedCountText() {
+        const textElem = document.getElementById('selectedFilesCountText');
+        if (selectedFileIds.size === 0 || selectedFileIds.size === uploadedFilesList.length) {
+            textElem.innerText = 'All Files';
+        } else {
+            textElem.innerText = `${selectedFileIds.size} of ${uploadedFilesList.length} files`;
+        }
+    }
+
+    function deleteLogFile(fileId, filename) {
+        if (!confirm(`Are you sure you want to delete '${filename}'?`)) return;
+
+        fetch(`/api/logs/delete/${fileId}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    selectedFileIds.delete(fileId);
+                    loadLogFiles();
+                    executeLogSearch();
+                } else {
+                    alert('Error deleting file: ' + data.message);
+                }
+            })
+            .catch(err => alert('Error deleting log file: ' + err));
+    }
+
+    function setDatePreset(type) {
+        const startInput = document.getElementById('logStartDate');
+        const endInput = document.getElementById('logEndDate');
+
+        const now = new Date();
+        const formatDateStr = (d) => {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        };
+
+        if (type === 'today') {
+            const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+            startInput.value = formatDateStr(startToday);
+            endInput.value = formatDateStr(now);
+        } else if (type === 'yesterday') {
+            const startYest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0);
+            const endYest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59);
+            startInput.value = formatDateStr(startYest);
+            endInput.value = formatDateStr(endYest);
+        } else if (type === '7days') {
+            const start7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            startInput.value = formatDateStr(start7);
+            endInput.value = formatDateStr(now);
+        }
+        executeLogSearch();
+    }
+
+    function clearDateRange() {
+        document.getElementById('logStartDate').value = '';
+        document.getElementById('logEndDate').value = '';
+        executeLogSearch();
+    }
+
+    function setSearchFilter(queryStr) {
+        document.getElementById('logSearchQuery').value = queryStr;
+        executeLogSearch();
+    }
+
+    function clearLogSearch() {
+        document.getElementById('logSearchQuery').value = '';
+        document.getElementById('logStartDate').value = '';
+        document.getElementById('logEndDate').value = '';
+        selectedFileIds.clear();
+        document.getElementById('selectAllLogFilesCheckbox').checked = false;
+        document.querySelectorAll('.log-file-checkbox').forEach(chk => chk.checked = false);
+        updateSelectedCountText();
+        executeLogSearch();
+    }
+
+    function getSelectedFileIdsParam() {
+        if (selectedFileIds.size === 0 || selectedFileIds.size === uploadedFilesList.length) {
+            return 'all';
+        }
+        return Array.from(selectedFileIds).join(',');
+    }
+
+    function executeLogSearch() {
+        const q = document.getElementById('logSearchQuery').value.trim();
+        const fileIdParam = getSelectedFileIdsParam();
+        const startDate = document.getElementById('logStartDate').value;
+        const endDate = document.getElementById('logEndDate').value;
+        const consoleElem = document.getElementById('logConsoleOutput');
+
+        consoleElem.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <div class="spinner-border text-primary me-2" role="status"></div>
+                Analyzing logs...
+            </div>
+        `;
+
+        const url = `/api/logs/search?q=${encodeURIComponent(q)}&file_id=${encodeURIComponent(fileIdParam)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    renderSearchResults(data.matches, q);
+                    renderDetectedEntities(data.entities);
+                } else {
+                    consoleElem.innerHTML = `<div class="text-danger p-3">Error performing search: ${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                consoleElem.innerHTML = `<div class="text-danger p-3">Server error during search: ${err}</div>`;
+            });
+    }
+
+    function renderSearchResults(matches, query) {
+        const consoleElem = document.getElementById('logConsoleOutput');
+        document.getElementById('matchesCount').innerText = matches.length;
+
+        if (!matches || matches.length === 0) {
+            consoleElem.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fa-solid fa-circle-exclamation fa-2x mb-3 text-warning"></i>
+                    <p class="mb-0">No matching log entries found for the specified query and date range filters.</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        const regex = query ? new RegExp(`(${escapeRegExp(query)})`, 'gi') : null;
+
+        matches.forEach(m => {
+            let lineTxt = escapeHtml(m.line_text);
+            if (regex) {
+                lineTxt = lineTxt.replace(regex, '<span class="log-match-highlight">$1</span>');
+            }
+
+            html += `
+                <div class="log-line-entry">
+                    <span class="log-line-no">${m.line_no}</span>
+                    <span class="log-file-tag" title="${m.filename}">${escapeHtml(m.filename)}</span>
+                    <div class="flex-grow-1 text-light">${lineTxt}</div>
+                </div>
+            `;
+        });
+
+        consoleElem.innerHTML = html;
+    }
+
+    function renderDetectedEntities(entities) {
+        const container = document.getElementById('entitiesContainer');
+        const ipContainer = document.getElementById('detectedIpChips');
+        const vlanContainer = document.getElementById('detectedVlanChips');
+
+        ipContainer.innerHTML = '';
+        vlanContainer.innerHTML = '';
+
+        const ips = (entities && entities.ips) || [];
+        const vlans = (entities && entities.vlans) || [];
+
+        if (ips.length === 0 && vlans.length === 0) {
+            container.classList.add('d-none');
+            return;
+        }
+
+        container.classList.remove('d-none');
+
+        ips.forEach(ip => {
+            ipContainer.innerHTML += `
+                <button class="btn btn-xs btn-outline-info py-0 px-2 rounded-pill" onclick="setSearchFilter('${ip}')">
+                    <i class="fa-solid fa-network-wired me-1"></i>${ip}
+                </button>
+            `;
+        });
+
+        vlans.forEach(v => {
+            vlanContainer.innerHTML += `
+                <button class="btn btn-xs btn-outline-success py-0 px-2 rounded-pill" onclick="setSearchFilter('${v}')">
+                    <i class="fa-solid fa-diagram-project me-1"></i>VLAN ${v}
+                </button>
+            `;
+        });
+    }
+
+    function exportSearchResults(format) {
+        const q = document.getElementById('logSearchQuery').value.trim();
+        const fileIdParam = getSelectedFileIdsParam();
+        const startDate = document.getElementById('logStartDate').value;
+        const endDate = document.getElementById('logEndDate').value;
+        window.location.href = `/api/logs/export-search?q=${encodeURIComponent(q)}&file_id=${encodeURIComponent(fileIdParam)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&format=${format}`;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function escapeRegExp(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+</script>
+{% endblock %}

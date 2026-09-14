@@ -88,16 +88,21 @@
                             <div class="text-muted small text-uppercase mb-1">Reason / Remark</div>
                             <div class="fw-bold">
                                 {% set r_val = site['reason'] or '' %}
-                                {% if r_val == 'Working OK' %}
+                                {% set r_lower = r_val.lower() %}
+                                {% if r_lower == 'working ok' %}
                                     <span class="badge bg-success text-white px-3 py-2 fs-6"><i class="fa-solid fa-circle-check me-1"></i>Working OK</span>
-                                {% elif r_val == 'Local Down' %}
+                                {% elif r_lower == 'local down' %}
                                     <span class="badge bg-danger text-white px-3 py-2 fs-6"><i class="fa-solid fa-triangle-exclamation me-1"></i>Local Down</span>
-                                {% elif r_val == 'Diverted' %}
+                                {% elif r_lower == 'diverted' %}
                                     <span class="badge bg-warning text-dark px-3 py-2 fs-6"><i class="fa-solid fa-route me-1"></i>Diverted</span>
-                                {% elif r_val == 'Service Reset Done' %}
+                                {% elif r_lower == 'service reset done' %}
                                     <span class="badge bg-success text-white px-3 py-2 fs-6"><i class="fa-solid fa-circle-check me-1"></i>Service Reset Done</span>
-                                {% elif r_val == 'Port Reset Done' %}
+                                {% elif r_lower == 'port reset done' %}
                                     <span class="badge bg-info text-dark px-3 py-2 fs-6"><i class="fa-solid fa-plug-circle-bolt me-1"></i>Port Reset Done</span>
+                                {% elif r_lower == 'cpan node offline' %}
+                                    <span class="badge bg-danger text-white px-3 py-2 fs-6"><i class="fa-solid fa-network-wired me-1"></i>cpan node offline</span>
+                                {% elif r_lower == 'maan node offline' %}
+                                    <span class="badge bg-danger text-white px-3 py-2 fs-6"><i class="fa-solid fa-network-wired me-1"></i>maan node offline</span>
                                 {% elif r_val %}
                                     <span class="badge bg-secondary text-white px-3 py-2 fs-6">{{ r_val }}</span>
                                 {% else %}

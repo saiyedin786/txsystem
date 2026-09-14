@@ -1,0 +1,603 @@
+# COMBINED NETWORK DEVICE LOG FILE
+# 600 network device log records
+# Contains BTS, OLT, CPAN, ROUTER, SWITCH and FIREWALL logs
+2026-09-14 00:00:17 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00001 | RRU communication link failed
+2026-09-14 00:08:06 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00002 | RRU communication link failed
+2026-09-14 00:16:35 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00003 | High PRB utilization detected
+2026-09-14 00:18:10 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00004 | High PRB utilization detected
+2026-09-14 00:28:21 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00005 | Baseband processing module initialized
+2026-09-14 00:31:00 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00006 | RRU link established successfully
+2026-09-14 00:40:24 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00007 | Cell sector A status changed to ACTIVE
+2026-09-14 00:44:46 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00008 | RRU link established successfully
+2026-09-14 00:48:05 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00009 | S1 interface connection established
+2026-09-14 00:55:50 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00010 | Radio unit temperature approaching threshold
+2026-09-14 01:03:36 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00011 | Radio unit temperature approaching threshold
+2026-09-14 01:09:53 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00012 | Radio unit temperature approaching threshold
+2026-09-14 01:14:33 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00013 | Baseband processing module initialized
+2026-09-14 01:22:40 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00014 | High PRB utilization detected
+2026-09-14 01:24:25 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00015 | RRU communication link failed
+2026-09-14 01:34:40 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00016 | S1 interface connection lost
+2026-09-14 01:40:42 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00017 | High PRB utilization detected
+2026-09-14 01:46:02 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00018 | S1 interface connection established
+2026-09-14 01:48:58 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00019 | Radio unit temperature approaching threshold
+2026-09-14 01:55:21 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00020 | RRU communication link failed
+2026-09-14 02:00:46 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00021 | RRU communication link failed
+2026-09-14 02:10:49 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00022 | Cell sector A status changed to ACTIVE
+2026-09-14 02:13:37 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00023 | High PRB utilization detected
+2026-09-14 02:18:57 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00024 | Baseband processing module initialized
+2026-09-14 02:27:34 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00025 | Cell sector A status changed to ACTIVE
+2026-09-14 02:32:31 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00026 | Baseband processing module initialized
+2026-09-14 02:40:30 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00027 | S1 interface connection established
+2026-09-14 02:46:28 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00028 | S1 interface connection lost
+2026-09-14 02:48:00 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00029 | S1 interface connection lost
+2026-09-14 02:55:01 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00030 | High PRB utilization detected
+2026-09-14 03:02:27 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00031 | RRU communication link failed
+2026-09-14 03:06:06 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00032 | RRU link established successfully
+2026-09-14 03:16:22 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00033 | RRU link established successfully
+2026-09-14 03:18:27 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00034 | RRU communication link failed
+2026-09-14 03:24:34 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00035 | RRU communication link failed
+2026-09-14 03:30:20 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00036 | S1 interface connection lost
+2026-09-14 03:36:48 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00037 | High PRB utilization detected
+2026-09-14 03:45:22 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00038 | S1 interface connection established
+2026-09-14 03:51:04 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00039 | S1 interface connection established
+2026-09-14 03:56:42 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00040 | RRU link established successfully
+2026-09-14 04:00:48 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00041 | RRU communication link failed
+2026-09-14 04:10:19 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00042 | Radio unit temperature approaching threshold
+2026-09-14 04:15:23 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00043 | High PRB utilization detected
+2026-09-14 04:22:07 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00044 | S1 interface connection established
+2026-09-14 04:28:24 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00045 | Cell sector A status changed to ACTIVE
+2026-09-14 04:31:29 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00046 | Cell sector A status changed to ACTIVE
+2026-09-14 04:38:28 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00047 | S1 interface connection lost
+2026-09-14 04:44:27 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00048 | S1 interface connection established
+2026-09-14 04:52:20 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00049 | S1 interface connection established
+2026-09-14 04:56:32 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00050 | High PRB utilization detected
+2026-09-14 05:01:57 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00051 | High PRB utilization detected
+2026-09-14 05:06:17 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00052 | Baseband processing module initialized
+2026-09-14 05:13:56 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00053 | Radio unit temperature approaching threshold
+2026-09-14 05:21:02 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00054 | RRU link established successfully
+2026-09-14 05:25:32 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00055 | Cell sector A status changed to ACTIVE
+2026-09-14 05:31:17 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00056 | Baseband processing module initialized
+2026-09-14 05:36:38 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00057 | RRU link established successfully
+2026-09-14 05:44:35 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00058 | S1 interface connection established
+2026-09-14 05:52:08 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00059 | S1 interface connection lost
+2026-09-14 05:57:49 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00060 | Radio unit temperature approaching threshold
+2026-09-14 06:04:55 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00061 | High PRB utilization detected
+2026-09-14 06:09:58 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00062 | S1 interface connection established
+2026-09-14 06:16:40 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00063 | S1 interface connection lost
+2026-09-14 06:20:44 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00064 | RRU link established successfully
+2026-09-14 06:24:23 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00065 | High PRB utilization detected
+2026-09-14 06:33:20 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00066 | Baseband processing module initialized
+2026-09-14 06:39:21 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00067 | S1 interface connection established
+2026-09-14 06:45:51 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00068 | RRU communication link failed
+2026-09-14 06:51:32 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00069 | S1 interface connection established
+2026-09-14 06:58:24 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00070 | RRU link established successfully
+2026-09-14 07:02:07 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00071 | High PRB utilization detected
+2026-09-14 07:06:24 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00072 | RRU communication link failed
+2026-09-14 07:14:06 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00073 | High PRB utilization detected
+2026-09-14 07:19:41 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00074 | Radio unit temperature approaching threshold
+2026-09-14 07:27:36 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00075 | High PRB utilization detected
+2026-09-14 07:31:44 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00076 | Radio unit temperature approaching threshold
+2026-09-14 07:38:03 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00077 | RRU link established successfully
+2026-09-14 07:42:27 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00078 | S1 interface connection lost
+2026-09-14 07:49:30 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00079 | Cell sector A status changed to ACTIVE
+2026-09-14 07:57:34 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00080 | High PRB utilization detected
+2026-09-14 08:02:57 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00081 | Cell sector A status changed to ACTIVE
+2026-09-14 08:09:32 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00082 | Radio unit temperature approaching threshold
+2026-09-14 08:16:57 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00083 | High PRB utilization detected
+2026-09-14 08:21:14 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00084 | RRU link established successfully
+2026-09-14 08:26:18 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00085 | RRU communication link failed
+2026-09-14 08:32:27 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00086 | Cell sector A status changed to ACTIVE
+2026-09-14 08:39:43 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00087 | Baseband processing module initialized
+2026-09-14 08:42:17 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00088 | S1 interface connection established
+2026-09-14 08:52:53 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00089 | Radio unit temperature approaching threshold
+2026-09-14 08:57:55 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00090 | Baseband processing module initialized
+2026-09-14 09:02:33 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00091 | RRU link established successfully
+2026-09-14 09:09:39 | WARNING | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-003        | IP=10.20.1.13    | EVENT_ID=EVT-00092 | Radio unit temperature approaching threshold
+2026-09-14 09:13:33 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00093 | RRU communication link failed
+2026-09-14 09:21:51 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00094 | RRU link established successfully
+2026-09-14 09:24:36 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00095 | RRU communication link failed
+2026-09-14 09:34:22 | ERROR   | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00096 | S1 interface connection lost
+2026-09-14 09:37:12 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00097 | Baseband processing module initialized
+2026-09-14 09:42:15 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00098 | RRU link established successfully
+2026-09-14 09:51:59 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-001        | IP=10.20.1.11    | EVENT_ID=EVT-00099 | Cell sector A status changed to ACTIVE
+2026-09-14 09:57:41 | INFO    | DEVICE_TYPE=BTS      | DEVICE=BTS-AHM-002        | IP=10.20.1.12    | EVENT_ID=EVT-00100 | Cell sector A status changed to ACTIVE
+2026-09-14 00:00:59 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00001 | Optical signal loss detected on PON interface
+2026-09-14 00:08:59 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00002 | PON utilization exceeded 70 percent
+2026-09-14 00:12:18 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00003 | Optical RX power approaching threshold
+2026-09-14 00:19:32 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00004 | Optical RX power approaching threshold
+2026-09-14 00:25:29 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00005 | Optical signal loss detected on PON interface
+2026-09-14 00:31:32 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00006 | Optical signal loss detected on PON interface
+2026-09-14 00:39:35 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00007 | Optical signal loss detected on PON interface
+2026-09-14 00:42:57 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00008 | ONU registration completed successfully
+2026-09-14 00:50:08 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00009 | PON interface 0/1/1 changed state to UP
+2026-09-14 00:55:07 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00010 | Optical RX power approaching threshold
+2026-09-14 01:04:39 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00011 | ONU registration timeout
+2026-09-14 01:10:22 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00012 | Optical RX power approaching threshold
+2026-09-14 01:13:24 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00013 | PON interface 0/1/1 changed state to UP
+2026-09-14 01:22:53 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00014 | Optical RX power approaching threshold
+2026-09-14 01:24:49 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00015 | Configuration backup completed
+2026-09-14 01:33:11 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00016 | ONU optical power within normal range
+2026-09-14 01:39:08 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00017 | ONU optical power within normal range
+2026-09-14 01:42:21 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00018 | PON interface 0/1/1 changed state to UP
+2026-09-14 01:49:14 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00019 | Optical signal loss detected on PON interface
+2026-09-14 01:55:42 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00020 | ONU registration completed successfully
+2026-09-14 02:00:09 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00021 | ONU registration timeout
+2026-09-14 02:06:08 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00022 | ONU registration completed successfully
+2026-09-14 02:14:28 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00023 | Configuration backup completed
+2026-09-14 02:19:50 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00024 | Optical RX power approaching threshold
+2026-09-14 02:25:05 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00025 | ONU registration completed successfully
+2026-09-14 02:32:20 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00026 | Optical signal loss detected on PON interface
+2026-09-14 02:38:50 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00027 | ONU registration completed successfully
+2026-09-14 02:42:35 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00028 | PON interface 0/1/1 changed state to UP
+2026-09-14 02:49:18 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00029 | ONU optical power within normal range
+2026-09-14 02:58:50 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00030 | PON utilization exceeded 70 percent
+2026-09-14 03:03:35 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00031 | Optical RX power approaching threshold
+2026-09-14 03:07:54 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00032 | ONU registration completed successfully
+2026-09-14 03:16:18 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00033 | Optical RX power approaching threshold
+2026-09-14 03:18:51 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00034 | ONU registration completed successfully
+2026-09-14 03:26:05 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00035 | ONU optical power within normal range
+2026-09-14 03:34:20 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00036 | PON interface 0/1/1 changed state to UP
+2026-09-14 03:40:47 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00037 | Configuration backup completed
+2026-09-14 03:45:40 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00038 | PON interface 0/1/1 changed state to UP
+2026-09-14 03:49:13 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00039 | Optical RX power approaching threshold
+2026-09-14 03:57:49 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00040 | PON utilization exceeded 70 percent
+2026-09-14 04:04:34 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00041 | Optical signal loss detected on PON interface
+2026-09-14 04:06:16 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00042 | ONU registration completed successfully
+2026-09-14 04:13:49 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00043 | Optical RX power approaching threshold
+2026-09-14 04:19:06 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00044 | PON interface 0/1/1 changed state to UP
+2026-09-14 04:26:07 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00045 | Optical RX power approaching threshold
+2026-09-14 04:30:58 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00046 | Optical RX power approaching threshold
+2026-09-14 04:37:16 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00047 | PON interface 0/1/1 changed state to UP
+2026-09-14 04:46:16 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00048 | PON interface 0/1/1 changed state to UP
+2026-09-14 04:52:07 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00049 | PON utilization exceeded 70 percent
+2026-09-14 04:56:28 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00050 | ONU registration completed successfully
+2026-09-14 05:00:53 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00051 | PON interface 0/1/1 changed state to UP
+2026-09-14 05:09:53 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00052 | Optical RX power approaching threshold
+2026-09-14 05:13:52 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00053 | Optical signal loss detected on PON interface
+2026-09-14 05:18:26 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00054 | Configuration backup completed
+2026-09-14 05:24:51 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00055 | ONU optical power within normal range
+2026-09-14 05:30:11 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00056 | PON utilization exceeded 70 percent
+2026-09-14 05:39:10 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00057 | PON utilization exceeded 70 percent
+2026-09-14 05:42:55 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00058 | PON interface 0/1/1 changed state to UP
+2026-09-14 05:52:25 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00059 | ONU registration completed successfully
+2026-09-14 05:58:45 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00060 | PON utilization exceeded 70 percent
+2026-09-14 06:02:38 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00061 | Optical RX power approaching threshold
+2026-09-14 06:06:42 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00062 | PON utilization exceeded 70 percent
+2026-09-14 06:14:56 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00063 | Optical signal loss detected on PON interface
+2026-09-14 06:19:31 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00064 | Optical signal loss detected on PON interface
+2026-09-14 06:24:55 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00065 | ONU optical power within normal range
+2026-09-14 06:30:35 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00066 | PON interface 0/1/1 changed state to UP
+2026-09-14 06:39:37 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00067 | Optical signal loss detected on PON interface
+2026-09-14 06:46:45 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00068 | Optical RX power approaching threshold
+2026-09-14 06:48:53 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00069 | PON interface 0/1/1 changed state to UP
+2026-09-14 06:57:02 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00070 | PON utilization exceeded 70 percent
+2026-09-14 07:00:13 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00071 | ONU registration completed successfully
+2026-09-14 07:07:54 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00072 | PON interface 0/1/1 changed state to UP
+2026-09-14 07:12:53 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00073 | ONU registration timeout
+2026-09-14 07:22:24 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00074 | ONU optical power within normal range
+2026-09-14 07:27:27 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00075 | PON interface 0/1/1 changed state to UP
+2026-09-14 07:30:02 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00076 | ONU optical power within normal range
+2026-09-14 07:37:50 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00077 | PON utilization exceeded 70 percent
+2026-09-14 07:44:32 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00078 | PON utilization exceeded 70 percent
+2026-09-14 07:50:26 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00079 | PON interface 0/1/1 changed state to UP
+2026-09-14 07:54:56 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00080 | ONU optical power within normal range
+2026-09-14 08:04:48 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00081 | PON interface 0/1/1 changed state to UP
+2026-09-14 08:09:58 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00082 | Configuration backup completed
+2026-09-14 08:16:30 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00083 | Optical RX power approaching threshold
+2026-09-14 08:20:51 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00084 | Optical RX power approaching threshold
+2026-09-14 08:26:53 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00085 | Optical RX power approaching threshold
+2026-09-14 08:31:10 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00086 | Optical RX power approaching threshold
+2026-09-14 08:36:37 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00087 | ONU registration timeout
+2026-09-14 08:44:48 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00088 | ONU optical power within normal range
+2026-09-14 08:48:42 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00089 | PON interface 0/1/1 changed state to UP
+2026-09-14 08:55:36 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00090 | ONU optical power within normal range
+2026-09-14 09:04:43 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00091 | PON interface 0/1/1 changed state to UP
+2026-09-14 09:09:59 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00092 | Configuration backup completed
+2026-09-14 09:16:31 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00093 | Optical RX power approaching threshold
+2026-09-14 09:22:40 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00094 | PON utilization exceeded 70 percent
+2026-09-14 09:26:43 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-002        | IP=10.20.2.12    | EVENT_ID=EVT-00095 | ONU optical power within normal range
+2026-09-14 09:31:06 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-003        | IP=10.20.2.13    | EVENT_ID=EVT-00096 | ONU registration completed successfully
+2026-09-14 09:40:45 | WARNING | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00097 | Optical RX power approaching threshold
+2026-09-14 09:42:08 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00098 | ONU optical power within normal range
+2026-09-14 09:51:47 | INFO    | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00099 | Configuration backup completed
+2026-09-14 09:58:41 | ERROR   | DEVICE_TYPE=OLT      | DEVICE=OLT-AHM-001        | IP=10.20.2.11    | EVENT_ID=EVT-00100 | ONU registration timeout
+2026-09-14 00:04:42 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00001 | Service module restart required
+2026-09-14 00:07:17 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00002 | Service module restart required
+2026-09-14 00:13:04 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00003 | Service module restart required
+2026-09-14 00:21:20 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00004 | Transport link failure detected
+2026-09-14 00:27:44 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00005 | Memory utilization exceeded 80 percent
+2026-09-14 00:33:29 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00006 | Transport link established
+2026-09-14 00:36:45 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00007 | Memory utilization exceeded 80 percent
+2026-09-14 00:44:49 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00008 | Service module restart required
+2026-09-14 00:52:44 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00009 | Management session established
+2026-09-14 00:54:11 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00010 | Service module restart required
+2026-09-14 01:01:52 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00011 | Service module restart required
+2026-09-14 01:09:40 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00012 | Memory utilization exceeded 80 percent
+2026-09-14 01:13:17 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00013 | CPU utilization exceeded 75 percent
+2026-09-14 01:18:22 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00014 | CPAN service module initialized
+2026-09-14 01:24:35 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00015 | CPAN service module initialized
+2026-09-14 01:34:31 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00016 | Transport link failure detected
+2026-09-14 01:39:45 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00017 | Transport link established
+2026-09-14 01:43:11 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00018 | Management session established
+2026-09-14 01:50:44 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00019 | Service module restart required
+2026-09-14 01:54:25 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00020 | Memory utilization exceeded 80 percent
+2026-09-14 02:04:24 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00021 | Management session established
+2026-09-14 02:08:05 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00022 | Transport link established
+2026-09-14 02:14:11 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00023 | Transport link established
+2026-09-14 02:18:27 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00024 | Service module restart required
+2026-09-14 02:27:28 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00025 | CPAN service module initialized
+2026-09-14 02:33:03 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00026 | CPU utilization exceeded 75 percent
+2026-09-14 02:40:25 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00027 | Memory utilization exceeded 80 percent
+2026-09-14 02:44:22 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00028 | Memory utilization exceeded 80 percent
+2026-09-14 02:52:11 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00029 | CPAN service module initialized
+2026-09-14 02:57:25 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00030 | Memory utilization exceeded 80 percent
+2026-09-14 03:00:52 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00031 | CPU utilization exceeded 75 percent
+2026-09-14 03:08:44 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00032 | Synchronization completed successfully
+2026-09-14 03:14:38 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00033 | Memory utilization exceeded 80 percent
+2026-09-14 03:19:34 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00034 | Service module restart required
+2026-09-14 03:25:13 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00035 | Management session established
+2026-09-14 03:33:35 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00036 | CPU utilization exceeded 75 percent
+2026-09-14 03:37:12 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00037 | Service module restart required
+2026-09-14 03:44:30 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00038 | Service module restart required
+2026-09-14 03:51:51 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00039 | Transport link failure detected
+2026-09-14 03:56:05 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00040 | Transport link failure detected
+2026-09-14 04:03:06 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00041 | Memory utilization exceeded 80 percent
+2026-09-14 04:09:36 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00042 | Synchronization completed successfully
+2026-09-14 04:13:49 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00043 | Synchronization completed successfully
+2026-09-14 04:21:50 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00044 | Service module restart required
+2026-09-14 04:28:17 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00045 | Management session established
+2026-09-14 04:32:11 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00046 | Management session established
+2026-09-14 04:39:51 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00047 | Transport link established
+2026-09-14 04:46:24 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00048 | Transport link established
+2026-09-14 04:50:29 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00049 | Synchronization completed successfully
+2026-09-14 04:55:22 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00050 | Synchronization completed successfully
+2026-09-14 05:01:51 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00051 | Transport link failure detected
+2026-09-14 05:07:10 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00052 | CPU utilization exceeded 75 percent
+2026-09-14 05:16:14 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00053 | Management session established
+2026-09-14 05:20:12 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00054 | CPAN service module initialized
+2026-09-14 05:26:59 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00055 | Service module restart required
+2026-09-14 05:30:11 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00056 | Memory utilization exceeded 80 percent
+2026-09-14 05:40:42 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00057 | Memory utilization exceeded 80 percent
+2026-09-14 05:42:06 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00058 | CPAN service module initialized
+2026-09-14 05:50:13 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00059 | Synchronization completed successfully
+2026-09-14 05:57:27 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00060 | Transport link established
+2026-09-14 06:04:33 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00061 | Management session established
+2026-09-14 06:06:26 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00062 | Management session established
+2026-09-14 06:14:10 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00063 | Synchronization completed successfully
+2026-09-14 06:22:23 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00064 | Transport link failure detected
+2026-09-14 06:24:39 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00065 | CPU utilization exceeded 75 percent
+2026-09-14 06:33:27 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00066 | Synchronization completed successfully
+2026-09-14 06:40:09 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00067 | Management session established
+2026-09-14 06:44:47 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00068 | Service module restart required
+2026-09-14 06:52:09 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00069 | Management session established
+2026-09-14 06:55:33 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00070 | Management session established
+2026-09-14 07:03:57 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00071 | Transport link established
+2026-09-14 07:06:19 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00072 | Synchronization completed successfully
+2026-09-14 07:12:31 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00073 | Transport link failure detected
+2026-09-14 07:19:35 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00074 | Management session established
+2026-09-14 07:28:27 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00075 | Transport link established
+2026-09-14 07:32:16 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00076 | CPU utilization exceeded 75 percent
+2026-09-14 07:38:15 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00077 | Management session established
+2026-09-14 07:43:00 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00078 | Transport link established
+2026-09-14 07:51:32 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00079 | Service module restart required
+2026-09-14 07:54:11 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00080 | Memory utilization exceeded 80 percent
+2026-09-14 08:04:04 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00081 | CPU utilization exceeded 75 percent
+2026-09-14 08:06:48 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00082 | CPAN service module initialized
+2026-09-14 08:13:16 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00083 | Synchronization completed successfully
+2026-09-14 08:21:51 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00084 | Service module restart required
+2026-09-14 08:26:07 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00085 | Service module restart required
+2026-09-14 08:33:22 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00086 | Transport link established
+2026-09-14 08:37:22 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00087 | CPU utilization exceeded 75 percent
+2026-09-14 08:44:36 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00088 | Transport link established
+2026-09-14 08:48:00 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00089 | Memory utilization exceeded 80 percent
+2026-09-14 08:56:53 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00090 | Service module restart required
+2026-09-14 09:03:09 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00091 | Management session established
+2026-09-14 09:07:41 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00092 | Memory utilization exceeded 80 percent
+2026-09-14 09:13:46 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00093 | Synchronization completed successfully
+2026-09-14 09:22:15 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00094 | Transport link failure detected
+2026-09-14 09:26:24 | WARNING | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00095 | CPU utilization exceeded 75 percent
+2026-09-14 09:34:23 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00096 | Transport link failure detected
+2026-09-14 09:36:45 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-001       | IP=10.20.3.11    | EVENT_ID=EVT-00097 | Service module restart required
+2026-09-14 09:43:43 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00098 | Management session established
+2026-09-14 09:49:38 | ERROR   | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-002       | IP=10.20.3.12    | EVENT_ID=EVT-00099 | Service module restart required
+2026-09-14 09:58:20 | INFO    | DEVICE_TYPE=CPAN     | DEVICE=CPAN-AHM-003       | IP=10.20.3.13    | EVENT_ID=EVT-00100 | CPAN service module initialized
+2026-09-14 00:03:21 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00001 | BGP neighbor session established
+2026-09-14 00:07:01 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00002 | Route update received from peer
+2026-09-14 00:14:11 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00003 | Route update received from peer
+2026-09-14 00:19:15 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00004 | Route update received from peer
+2026-09-14 00:26:50 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00005 | Packet loss detected on uplink
+2026-09-14 00:30:24 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00006 | WAN interface utilization exceeded 80 percent
+2026-09-14 00:38:50 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00007 | OSPF adjacency reached FULL state
+2026-09-14 00:43:47 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00008 | WAN interface utilization exceeded 80 percent
+2026-09-14 00:48:58 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00009 | Route update received from peer
+2026-09-14 00:57:17 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00010 | Packet loss detected on uplink
+2026-09-14 01:04:02 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00011 | NTP synchronization completed
+2026-09-14 01:07:29 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00012 | NTP synchronization completed
+2026-09-14 01:12:33 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00013 | BGP neighbor session established
+2026-09-14 01:22:53 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00014 | Route update received from peer
+2026-09-14 01:25:14 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00015 | OSPF adjacency reached FULL state
+2026-09-14 01:30:32 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00016 | Packet loss detected on uplink
+2026-09-14 01:38:40 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00017 | High packet discard rate detected
+2026-09-14 01:45:51 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00018 | NTP synchronization completed
+2026-09-14 01:49:02 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00019 | WAN interface utilization exceeded 80 percent
+2026-09-14 01:56:55 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00020 | WAN interface utilization exceeded 80 percent
+2026-09-14 02:01:34 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00021 | High packet discard rate detected
+2026-09-14 02:07:15 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00022 | OSPF adjacency reached FULL state
+2026-09-14 02:14:40 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00023 | High packet discard rate detected
+2026-09-14 02:18:39 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00024 | BGP neighbor session established
+2026-09-14 02:24:23 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00025 | BGP neighbor session reset
+2026-09-14 02:32:41 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00026 | Route update received from peer
+2026-09-14 02:37:52 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00027 | BGP neighbor session reset
+2026-09-14 02:43:28 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00028 | NTP synchronization completed
+2026-09-14 02:52:21 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00029 | Packet loss detected on uplink
+2026-09-14 02:58:44 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00030 | Packet loss detected on uplink
+2026-09-14 03:02:32 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00031 | Route update received from peer
+2026-09-14 03:09:31 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00032 | Route update received from peer
+2026-09-14 03:13:40 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00033 | BGP neighbor session established
+2026-09-14 03:20:25 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00034 | NTP synchronization completed
+2026-09-14 03:25:21 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00035 | NTP synchronization completed
+2026-09-14 03:31:10 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00036 | WAN interface utilization exceeded 80 percent
+2026-09-14 03:37:27 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00037 | BGP neighbor session reset
+2026-09-14 03:45:47 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00038 | BGP neighbor session established
+2026-09-14 03:48:47 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00039 | Route update received from peer
+2026-09-14 03:55:03 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00040 | High packet discard rate detected
+2026-09-14 04:02:13 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00041 | BGP neighbor session reset
+2026-09-14 04:10:58 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00042 | WAN interface utilization exceeded 80 percent
+2026-09-14 04:15:44 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00043 | BGP neighbor session reset
+2026-09-14 04:19:20 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00044 | High packet discard rate detected
+2026-09-14 04:28:46 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00045 | Route update received from peer
+2026-09-14 04:33:40 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00046 | Packet loss detected on uplink
+2026-09-14 04:36:01 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00047 | BGP neighbor session established
+2026-09-14 04:46:59 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00048 | BGP neighbor session reset
+2026-09-14 04:48:10 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00049 | Route update received from peer
+2026-09-14 04:56:41 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00050 | WAN interface utilization exceeded 80 percent
+2026-09-14 05:01:12 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00051 | Packet loss detected on uplink
+2026-09-14 05:06:02 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00052 | NTP synchronization completed
+2026-09-14 05:15:21 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00053 | Route update received from peer
+2026-09-14 05:21:47 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00054 | NTP synchronization completed
+2026-09-14 05:24:27 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00055 | Packet loss detected on uplink
+2026-09-14 05:30:42 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00056 | OSPF adjacency reached FULL state
+2026-09-14 05:37:58 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00057 | NTP synchronization completed
+2026-09-14 05:46:08 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00058 | NTP synchronization completed
+2026-09-14 05:49:10 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00059 | WAN interface utilization exceeded 80 percent
+2026-09-14 05:58:19 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00060 | NTP synchronization completed
+2026-09-14 06:01:00 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00061 | High packet discard rate detected
+2026-09-14 06:08:56 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00062 | NTP synchronization completed
+2026-09-14 06:16:58 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00063 | BGP neighbor session established
+2026-09-14 06:18:44 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00064 | OSPF adjacency reached FULL state
+2026-09-14 06:28:41 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00065 | NTP synchronization completed
+2026-09-14 06:32:54 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00066 | Packet loss detected on uplink
+2026-09-14 06:40:13 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00067 | Packet loss detected on uplink
+2026-09-14 06:42:04 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00068 | OSPF adjacency reached FULL state
+2026-09-14 06:48:57 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00069 | BGP neighbor session reset
+2026-09-14 06:55:33 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00070 | NTP synchronization completed
+2026-09-14 07:02:46 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00071 | Route update received from peer
+2026-09-14 07:10:10 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00072 | WAN interface utilization exceeded 80 percent
+2026-09-14 07:12:59 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00073 | BGP neighbor session established
+2026-09-14 07:18:17 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00074 | WAN interface utilization exceeded 80 percent
+2026-09-14 07:27:42 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00075 | High packet discard rate detected
+2026-09-14 07:30:08 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00076 | Route update received from peer
+2026-09-14 07:40:58 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00077 | High packet discard rate detected
+2026-09-14 07:45:40 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00078 | Route update received from peer
+2026-09-14 07:49:49 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00079 | Packet loss detected on uplink
+2026-09-14 07:56:04 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00080 | Packet loss detected on uplink
+2026-09-14 08:01:28 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00081 | NTP synchronization completed
+2026-09-14 08:09:19 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00082 | WAN interface utilization exceeded 80 percent
+2026-09-14 08:16:37 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00083 | OSPF adjacency reached FULL state
+2026-09-14 08:21:43 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00084 | Route update received from peer
+2026-09-14 08:27:56 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00085 | Route update received from peer
+2026-09-14 08:33:46 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00086 | WAN interface utilization exceeded 80 percent
+2026-09-14 08:37:51 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00087 | OSPF adjacency reached FULL state
+2026-09-14 08:42:39 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00088 | High packet discard rate detected
+2026-09-14 08:49:20 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00089 | WAN interface utilization exceeded 80 percent
+2026-09-14 08:54:15 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00090 | BGP neighbor session reset
+2026-09-14 09:02:27 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00091 | WAN interface utilization exceeded 80 percent
+2026-09-14 09:07:18 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00092 | NTP synchronization completed
+2026-09-14 09:15:04 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00093 | NTP synchronization completed
+2026-09-14 09:19:32 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00094 | Route update received from peer
+2026-09-14 09:26:11 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-02    | IP=10.20.0.2     | EVENT_ID=EVT-00095 | OSPF adjacency reached FULL state
+2026-09-14 09:33:22 | ERROR   | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00096 | BGP neighbor session reset
+2026-09-14 09:39:48 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00097 | BGP neighbor session established
+2026-09-14 09:44:32 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00098 | NTP synchronization completed
+2026-09-14 09:51:27 | WARNING | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00099 | WAN interface utilization exceeded 80 percent
+2026-09-14 09:56:19 | INFO    | DEVICE_TYPE=ROUTER   | DEVICE=RTR-AHM-CORE-01    | IP=10.20.0.1     | EVENT_ID=EVT-00100 | NTP synchronization completed
+2026-09-14 00:03:14 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00001 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 00:08:18 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00002 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 00:16:04 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00003 | STP topology change detected
+2026-09-14 00:19:01 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00004 | MAC address learned on interface
+2026-09-14 00:25:11 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00005 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 00:30:15 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00006 | STP topology change detected
+2026-09-14 00:40:32 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00007 | STP topology stable
+2026-09-14 00:45:55 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00008 | MAC address learned on interface
+2026-09-14 00:48:54 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00009 | SNMP polling completed successfully
+2026-09-14 00:57:38 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00010 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 01:04:11 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00011 | SNMP polling completed successfully
+2026-09-14 01:08:50 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00012 | STP topology change detected
+2026-09-14 01:12:25 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00013 | Broadcast traffic exceeded threshold
+2026-09-14 01:22:31 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00014 | Interface error rate increased
+2026-09-14 01:25:51 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00015 | SNMP polling completed successfully
+2026-09-14 01:34:30 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00016 | MAC address learned on interface
+2026-09-14 01:37:23 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00017 | SNMP polling completed successfully
+2026-09-14 01:44:31 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00018 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 01:52:52 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00019 | STP topology change detected
+2026-09-14 01:55:13 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00020 | MAC address learned on interface
+2026-09-14 02:04:35 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00021 | Broadcast traffic exceeded threshold
+2026-09-14 02:06:41 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00022 | SNMP polling completed successfully
+2026-09-14 02:12:14 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00023 | STP topology stable
+2026-09-14 02:20:26 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00024 | STP topology stable
+2026-09-14 02:28:06 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00025 | Interface error rate increased
+2026-09-14 02:34:16 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00026 | MAC address learned on interface
+2026-09-14 02:36:20 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00027 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 02:46:54 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00028 | Interface error rate increased
+2026-09-14 02:51:49 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00029 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 02:55:47 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00030 | MAC address learned on interface
+2026-09-14 03:03:43 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00031 | Broadcast traffic exceeded threshold
+2026-09-14 03:07:57 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00032 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 03:15:11 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00033 | SNMP polling completed successfully
+2026-09-14 03:20:42 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00034 | Interface error rate increased
+2026-09-14 03:28:10 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00035 | STP topology stable
+2026-09-14 03:34:30 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00036 | Interface error rate increased
+2026-09-14 03:38:18 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00037 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 03:42:34 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00038 | Broadcast traffic exceeded threshold
+2026-09-14 03:48:16 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00039 | SNMP polling completed successfully
+2026-09-14 03:54:34 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00040 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 04:01:18 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00041 | Broadcast traffic exceeded threshold
+2026-09-14 04:10:26 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00042 | STP topology stable
+2026-09-14 04:16:12 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00043 | STP topology change detected
+2026-09-14 04:21:15 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00044 | STP topology stable
+2026-09-14 04:26:26 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00045 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 04:32:18 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00046 | SNMP polling completed successfully
+2026-09-14 04:39:08 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00047 | Broadcast traffic exceeded threshold
+2026-09-14 04:44:20 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00048 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 04:48:40 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00049 | Broadcast traffic exceeded threshold
+2026-09-14 04:56:12 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00050 | SNMP polling completed successfully
+2026-09-14 05:03:18 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00051 | Broadcast traffic exceeded threshold
+2026-09-14 05:09:48 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00052 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 05:14:48 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00053 | STP topology change detected
+2026-09-14 05:18:37 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00054 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 05:28:08 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00055 | STP topology change detected
+2026-09-14 05:30:17 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00056 | MAC address learned on interface
+2026-09-14 05:36:11 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00057 | Broadcast traffic exceeded threshold
+2026-09-14 05:43:43 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00058 | MAC address learned on interface
+2026-09-14 05:49:22 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00059 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 05:54:59 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00060 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 06:03:44 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00061 | SNMP polling completed successfully
+2026-09-14 06:06:13 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00062 | STP topology stable
+2026-09-14 06:12:41 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00063 | STP topology stable
+2026-09-14 06:18:15 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00064 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 06:28:46 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00065 | STP topology change detected
+2026-09-14 06:33:22 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00066 | Broadcast traffic exceeded threshold
+2026-09-14 06:36:08 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00067 | SNMP polling completed successfully
+2026-09-14 06:46:07 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00068 | MAC address learned on interface
+2026-09-14 06:52:04 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00069 | MAC address learned on interface
+2026-09-14 06:56:09 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00070 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 07:03:03 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00071 | SNMP polling completed successfully
+2026-09-14 07:06:40 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00072 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 07:15:49 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00073 | SNMP polling completed successfully
+2026-09-14 07:22:48 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00074 | Interface error rate increased
+2026-09-14 07:28:03 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00075 | STP topology change detected
+2026-09-14 07:34:57 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00076 | STP topology change detected
+2026-09-14 07:38:05 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00077 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 07:45:47 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00078 | MAC address learned on interface
+2026-09-14 07:52:58 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00079 | Broadcast traffic exceeded threshold
+2026-09-14 07:58:12 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00080 | Broadcast traffic exceeded threshold
+2026-09-14 08:02:08 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00081 | MAC address learned on interface
+2026-09-14 08:06:48 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00082 | MAC address learned on interface
+2026-09-14 08:15:33 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00083 | Broadcast traffic exceeded threshold
+2026-09-14 08:20:46 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00084 | MAC address learned on interface
+2026-09-14 08:28:21 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00085 | STP topology stable
+2026-09-14 08:33:26 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00086 | STP topology change detected
+2026-09-14 08:40:18 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00087 | Broadcast traffic exceeded threshold
+2026-09-14 08:46:30 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00088 | STP topology change detected
+2026-09-14 08:50:42 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00089 | MAC address learned on interface
+2026-09-14 08:56:20 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00090 | SNMP polling completed successfully
+2026-09-14 09:00:59 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00091 | Broadcast traffic exceeded threshold
+2026-09-14 09:10:59 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00092 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 09:15:48 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00093 | STP topology change detected
+2026-09-14 09:20:03 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00094 | STP topology change detected
+2026-09-14 09:24:19 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00095 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 09:34:08 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-ACC-01      | IP=10.20.0.21    | EVENT_ID=EVT-00096 | STP topology stable
+2026-09-14 09:38:40 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00097 | MAC address learned on interface
+2026-09-14 09:43:58 | WARNING | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00098 | Broadcast traffic exceeded threshold
+2026-09-14 09:50:33 | ERROR   | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00099 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 09:57:19 | INFO    | DEVICE_TYPE=SWITCH   | DEVICE=SW-AHM-CORE-01     | IP=10.20.0.11    | EVENT_ID=EVT-00100 | MAC address learned on interface
+2026-09-14 00:02:54 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00001 | Configuration backup completed
+2026-09-14 00:09:17 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00002 | VPN tunnel established
+2026-09-14 00:12:14 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00003 | Security policy updated successfully
+2026-09-14 00:19:08 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00004 | VPN tunnel established
+2026-09-14 00:26:27 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00005 | High session count detected
+2026-09-14 00:30:00 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00006 | Configuration backup completed
+2026-09-14 00:38:42 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00007 | Multiple authentication failures detected
+2026-09-14 00:44:37 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00008 | VPN tunnel disconnected
+2026-09-14 00:52:29 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00009 | VPN tunnel established
+2026-09-14 00:54:50 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00010 | High session count detected
+2026-09-14 01:00:12 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00011 | VPN tunnel disconnected
+2026-09-14 01:07:21 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00012 | VPN tunnel disconnected
+2026-09-14 01:13:49 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00013 | Configuration backup completed
+2026-09-14 01:22:21 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00014 | Management login successful
+2026-09-14 01:27:28 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00015 | Multiple authentication failures detected
+2026-09-14 01:32:55 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00016 | Management login successful
+2026-09-14 01:36:47 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00017 | Security policy updated successfully
+2026-09-14 01:43:51 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00018 | Security policy updated successfully
+2026-09-14 01:49:41 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00019 | VPN tunnel established
+2026-09-14 01:55:13 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00020 | Authentication failure for management user
+2026-09-14 02:01:06 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00021 | Security policy updated successfully
+2026-09-14 02:06:38 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00022 | Configuration backup completed
+2026-09-14 02:12:25 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00023 | Management login successful
+2026-09-14 02:21:11 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00024 | VPN tunnel established
+2026-09-14 02:27:40 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00025 | Management login successful
+2026-09-14 02:30:42 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00026 | VPN tunnel disconnected
+2026-09-14 02:38:21 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00027 | Security policy updated successfully
+2026-09-14 02:42:40 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00028 | Authentication failure for management user
+2026-09-14 02:50:02 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00029 | Multiple authentication failures detected
+2026-09-14 02:57:46 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00030 | Multiple authentication failures detected
+2026-09-14 03:02:15 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00031 | High session count detected
+2026-09-14 03:10:23 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00032 | Security policy updated successfully
+2026-09-14 03:15:45 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00033 | Configuration backup completed
+2026-09-14 03:21:00 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00034 | Authentication failure for management user
+2026-09-14 03:28:59 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00035 | VPN tunnel disconnected
+2026-09-14 03:33:37 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00036 | Authentication failure for management user
+2026-09-14 03:40:23 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00037 | Multiple authentication failures detected
+2026-09-14 03:46:18 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00038 | Multiple authentication failures detected
+2026-09-14 03:52:17 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00039 | Management login successful
+2026-09-14 03:58:10 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00040 | Configuration backup completed
+2026-09-14 04:02:52 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00041 | Authentication failure for management user
+2026-09-14 04:08:54 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00042 | High session count detected
+2026-09-14 04:14:49 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00043 | High session count detected
+2026-09-14 04:22:55 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00044 | High session count detected
+2026-09-14 04:26:00 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00045 | High session count detected
+2026-09-14 04:30:35 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00046 | Configuration backup completed
+2026-09-14 04:39:47 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00047 | Security policy updated successfully
+2026-09-14 04:46:26 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00048 | High session count detected
+2026-09-14 04:49:41 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00049 | Management login successful
+2026-09-14 04:56:30 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00050 | Multiple authentication failures detected
+2026-09-14 05:00:55 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00051 | Authentication failure for management user
+2026-09-14 05:10:20 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00052 | VPN tunnel established
+2026-09-14 05:16:28 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00053 | Multiple authentication failures detected
+2026-09-14 05:19:21 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00054 | High session count detected
+2026-09-14 05:28:47 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00055 | VPN tunnel disconnected
+2026-09-14 05:31:16 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00056 | VPN tunnel established
+2026-09-14 05:38:32 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00057 | High session count detected
+2026-09-14 05:46:44 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00058 | Management login successful
+2026-09-14 05:50:05 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00059 | Authentication failure for management user
+2026-09-14 05:54:19 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00060 | Security policy updated successfully
+2026-09-14 06:04:25 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00061 | Authentication failure for management user
+2026-09-14 06:06:41 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00062 | Authentication failure for management user
+2026-09-14 06:15:04 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00063 | Management login successful
+2026-09-14 06:22:18 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00064 | VPN tunnel disconnected
+2026-09-14 06:24:35 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00065 | VPN tunnel disconnected
+2026-09-14 06:33:31 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00066 | Management login successful
+2026-09-14 06:39:53 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00067 | VPN tunnel disconnected
+2026-09-14 06:45:04 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00068 | Authentication failure for management user
+2026-09-14 06:50:14 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00069 | Authentication failure for management user
+2026-09-14 06:58:29 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00070 | High session count detected
+2026-09-14 07:00:29 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00071 | Authentication failure for management user
+2026-09-14 07:10:07 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00072 | VPN tunnel disconnected
+2026-09-14 07:12:37 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00073 | Security policy updated successfully
+2026-09-14 07:18:01 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00074 | High session count detected
+2026-09-14 07:25:12 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00075 | Configuration backup completed
+2026-09-14 07:34:58 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00076 | Management login successful
+2026-09-14 07:39:40 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00077 | Authentication failure for management user
+2026-09-14 07:44:55 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00078 | VPN tunnel established
+2026-09-14 07:50:28 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00079 | VPN tunnel established
+2026-09-14 07:54:14 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00080 | Multiple authentication failures detected
+2026-09-14 08:01:47 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00081 | High session count detected
+2026-09-14 08:06:12 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00082 | VPN tunnel established
+2026-09-14 08:14:31 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00083 | VPN tunnel established
+2026-09-14 08:19:42 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00084 | VPN tunnel disconnected
+2026-09-14 08:27:39 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00085 | Management login successful
+2026-09-14 08:30:18 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00086 | Management login successful
+2026-09-14 08:40:14 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00087 | VPN tunnel established
+2026-09-14 08:43:40 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00088 | VPN tunnel disconnected
+2026-09-14 08:51:44 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00089 | Configuration backup completed
+2026-09-14 08:57:18 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00090 | VPN tunnel disconnected
+2026-09-14 09:04:21 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00091 | Authentication failure for management user
+2026-09-14 09:07:29 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00092 | VPN tunnel disconnected
+2026-09-14 09:14:21 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00093 | VPN tunnel disconnected
+2026-09-14 09:20:42 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00094 | High session count detected
+2026-09-14 09:27:50 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00095 | Management login successful
+2026-09-14 09:30:54 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00096 | Security policy updated successfully
+2026-09-14 09:37:34 | INFO    | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00097 | Configuration backup completed
+2026-09-14 09:45:21 | ERROR   | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-01          | IP=10.20.0.254   | EVENT_ID=EVT-00098 | Authentication failure for management user
+2026-09-14 09:50:16 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00099 | High session count detected
+2026-09-14 09:55:57 | WARNING | DEVICE_TYPE=FIREWALL | DEVICE=FW-AHM-02          | IP=10.20.0.253   | EVENT_ID=EVT-00100 | Multiple authentication failures detected

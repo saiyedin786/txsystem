@@ -1,0 +1,363 @@
+# NETWORK DEVICE LOG FILE
+# Generated sample logs for testing / parsing applications
+# Format: TIMESTAMP | SEVERITY | DEVICE_TYPE | DEVICE | IP | EVENT_ID | MESSAGE
+2026-09-14 00:02:07 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00001 | Authentication failure for management user
+2026-09-14 00:04:08 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00002 | BGP neighbor session reset
+2026-09-14 00:10:05 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00003 | OSPF neighbor adjacency established
+2026-09-14 00:12:32 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00004 | S1 interface packet loss detected
+2026-09-14 00:17:14 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00005 | NTP synchronization delay detected
+2026-09-14 00:21:51 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00006 | Optical signal loss detected on PON interface
+2026-09-14 00:26:27 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00007 | Optical signal level within acceptable range
+2026-09-14 00:28:13 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00008 | SNMP polling completed successfully
+2026-09-14 00:32:24 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00009 | DHCP lease assigned successfully
+2026-09-14 00:38:16 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00010 | Authentication failure for management user
+2026-09-14 00:40:59 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00011 | Configuration backup completed successfully
+2026-09-14 00:46:39 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00012 | NTP synchronization delay detected
+2026-09-14 00:48:45 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00013 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 00:53:05 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00014 | SNMP polling completed successfully
+2026-09-14 00:57:40 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00015 | CPU utilization returned to normal
+2026-09-14 01:01:22 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00016 | BGP neighbor session reset
+2026-09-14 01:06:41 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00017 | Temperature approaching warning threshold
+2026-09-14 01:10:46 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00018 | CPU utilization returned to normal
+2026-09-14 01:13:59 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00019 | BGP neighbor session reset
+2026-09-14 01:16:14 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00020 | OSPF adjacency reached FULL state
+2026-09-14 01:20:13 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00021 | Memory utilization is within normal threshold
+2026-09-14 01:26:31 | ERROR   | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00022 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 01:29:08 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00023 | Authentication failure for management user
+2026-09-14 01:33:47 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00024 | NTP synchronization delay detected
+2026-09-14 01:36:08 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00025 | Configuration backup completed successfully
+2026-09-14 01:40:55 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00026 | NTP synchronization completed
+2026-09-14 01:46:27 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00027 | System health check completed
+2026-09-14 01:49:33 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00028 | High packet discard rate detected
+2026-09-14 01:52:43 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00029 | BGP neighbor session reset
+2026-09-14 01:57:49 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00030 | SNMP polling completed successfully
+2026-09-14 02:01:27 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00031 | ONU optical power within normal range
+2026-09-14 02:06:48 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00032 | Optical RX power approaching threshold
+2026-09-14 02:10:19 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00033 | NTP synchronization completed
+2026-09-14 02:12:34 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00034 | Temperature approaching warning threshold
+2026-09-14 02:16:07 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00035 | BGP neighbor session established
+2026-09-14 02:20:03 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00036 | NTP synchronization delay detected
+2026-09-14 02:24:46 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00037 | Configuration backup completed successfully
+2026-09-14 02:30:49 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00038 | NTP synchronization completed
+2026-09-14 02:34:10 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00039 | Optical RX power approaching threshold
+2026-09-14 02:38:27 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00040 | High packet discard rate detected
+2026-09-14 02:42:12 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00041 | System health check completed
+2026-09-14 02:46:41 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00042 | Memory utilization exceeded 80 percent
+2026-09-14 02:50:28 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00043 | Subscriber session established
+2026-09-14 02:53:01 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00044 | PON interface 0/1/1 changed state to UP
+2026-09-14 02:58:40 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00045 | Cell sector A status changed to ACTIVE
+2026-09-14 03:01:04 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00046 | Optical signal level within acceptable range
+2026-09-14 03:04:34 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00047 | Authentication failure for management user
+2026-09-14 03:10:36 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00048 | Subscriber session established
+2026-09-14 03:13:51 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00049 | ACL policy updated successfully
+2026-09-14 03:17:27 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00050 | Memory utilization exceeded 80 percent
+2026-09-14 03:20:43 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00051 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 03:25:51 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00052 | S1 interface packet loss detected
+2026-09-14 03:29:08 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00053 | CPU utilization returned to normal
+2026-09-14 03:32:55 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00054 | Memory utilization exceeded 80 percent
+2026-09-14 03:38:06 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00055 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 03:40:05 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00056 | CPU utilization returned to normal
+2026-09-14 03:45:13 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00057 | BGP route update received from peer
+2026-09-14 03:49:16 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00058 | BGP neighbor session established
+2026-09-14 03:53:44 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00059 | NTP synchronization completed
+2026-09-14 03:56:18 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00060 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 04:02:03 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00061 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 04:04:37 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00062 | Optical RX power approaching threshold
+2026-09-14 04:10:10 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00063 | RRU link established successfully
+2026-09-14 04:12:38 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00064 | BGP neighbor session reset
+2026-09-14 04:17:07 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00065 | NTP synchronization delay detected
+2026-09-14 04:22:05 | ERROR   | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00066 | BGP neighbor session reset
+2026-09-14 04:26:20 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00067 | Memory utilization is within normal threshold
+2026-09-14 04:30:45 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00068 | Subscriber session established
+2026-09-14 04:33:25 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00069 | BGP neighbor session reset
+2026-09-14 04:37:20 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00070 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 04:42:06 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00071 | High packet discard rate detected
+2026-09-14 04:45:08 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00072 | Configuration backup completed successfully
+2026-09-14 04:48:23 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00073 | CPU utilization returned to normal
+2026-09-14 04:53:53 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00074 | Temperature approaching warning threshold
+2026-09-14 04:58:33 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00075 | BGP neighbor session reset
+2026-09-14 05:01:59 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00076 | NTP synchronization completed
+2026-09-14 05:04:47 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00077 | Optical signal level within acceptable range
+2026-09-14 05:08:45 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00078 | Memory utilization is within normal threshold
+2026-09-14 05:14:40 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00079 | Optical RX power approaching threshold
+2026-09-14 05:17:16 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00080 | Configuration backup completed successfully
+2026-09-14 05:21:02 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00081 | OSPF adjacency reached FULL state
+2026-09-14 05:26:16 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00082 | Authentication failure for management user
+2026-09-14 05:30:27 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00083 | RRU link established successfully
+2026-09-14 05:34:02 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00084 | NTP synchronization delay detected
+2026-09-14 05:38:09 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00085 | WAN interface utilization exceeded 80 percent
+2026-09-14 05:40:57 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00086 | Memory utilization is within normal threshold
+2026-09-14 05:46:15 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00087 | DHCP lease assigned successfully
+2026-09-14 05:49:39 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00088 | Subscriber session established
+2026-09-14 05:52:56 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00089 | WAN interface utilization exceeded 80 percent
+2026-09-14 05:57:51 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00090 | PON interface 0/1/1 changed state to UP
+2026-09-14 06:01:55 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00091 | Interface error rate increased
+2026-09-14 06:05:22 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00092 | Subscriber session established
+2026-09-14 06:08:01 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00093 | System health check completed
+2026-09-14 06:12:49 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00094 | DHCP lease assigned successfully
+2026-09-14 06:18:32 | ERROR   | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00095 | BGP neighbor session reset
+2026-09-14 06:22:21 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00096 | SNMP polling completed successfully
+2026-09-14 06:25:11 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00097 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 06:28:38 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00098 | DHCP lease assigned successfully
+2026-09-14 06:33:27 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00099 | System health check completed
+2026-09-14 06:36:16 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00100 | Packet loss detected on uplink
+2026-09-14 06:42:59 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00101 | DHCP lease assigned successfully
+2026-09-14 06:46:58 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00102 | Temperature approaching warning threshold
+2026-09-14 06:49:42 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00103 | Authentication failure for management user
+2026-09-14 06:54:19 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00104 | OSPF adjacency reached FULL state
+2026-09-14 06:57:35 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00105 | Memory utilization is within normal threshold
+2026-09-14 07:01:43 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00106 | Temperature approaching warning threshold
+2026-09-14 07:05:35 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00107 | BGP neighbor session established
+2026-09-14 07:09:50 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00108 | Memory utilization exceeded 80 percent
+2026-09-14 07:13:28 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00109 | Optical RX power approaching threshold
+2026-09-14 07:18:10 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00110 | BGP neighbor session established
+2026-09-14 07:22:39 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00111 | Configuration backup completed successfully
+2026-09-14 07:24:43 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00112 | Subscriber session established
+2026-09-14 07:28:09 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00113 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 07:33:39 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00114 | Memory utilization exceeded 80 percent
+2026-09-14 07:38:36 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00115 | Packet loss detected on uplink
+2026-09-14 07:41:25 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00116 | NTP synchronization completed
+2026-09-14 07:44:57 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00117 | Optical signal loss detected on PON interface
+2026-09-14 07:48:51 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00118 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 07:54:15 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00119 | Radio unit temperature within normal range
+2026-09-14 07:58:33 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00120 | Optical signal loss detected on PON interface
+2026-09-14 08:01:39 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00121 | High packet discard rate detected
+2026-09-14 08:04:47 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00122 | Memory utilization exceeded 80 percent
+2026-09-14 08:09:48 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00123 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 08:14:31 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00124 | Optical signal level within acceptable range
+2026-09-14 08:18:18 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00125 | Optical signal level within acceptable range
+2026-09-14 08:22:05 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00126 | ONU registration completed successfully
+2026-09-14 08:26:13 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00127 | CPU utilization exceeded 75 percent
+2026-09-14 08:30:29 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00128 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 08:33:24 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00129 | Optical signal loss detected on PON interface
+2026-09-14 08:37:00 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00130 | BGP neighbor session established
+2026-09-14 08:41:54 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00131 | High packet discard rate detected
+2026-09-14 08:46:51 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00132 | PON interface utilization exceeded 70 percent
+2026-09-14 08:49:01 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00133 | OSPF adjacency reached FULL state
+2026-09-14 08:53:46 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00134 | Memory utilization exceeded 80 percent
+2026-09-14 08:58:34 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00135 | System health check completed
+2026-09-14 09:02:01 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00136 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 09:05:11 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00137 | Optical signal level within acceptable range
+2026-09-14 09:08:29 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00138 | OSPF adjacency reached FULL state
+2026-09-14 09:13:17 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00139 | Optical signal level within acceptable range
+2026-09-14 09:17:01 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00140 | DHCP lease assigned successfully
+2026-09-14 09:20:49 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00141 | RRU link established successfully
+2026-09-14 09:24:53 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00142 | RRU link established successfully
+2026-09-14 09:29:42 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00143 | NTP synchronization delay detected
+2026-09-14 09:33:44 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00144 | Optical signal loss detected on PON interface
+2026-09-14 09:37:10 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00145 | Optical signal loss detected on PON interface
+2026-09-14 09:41:06 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00146 | BGP neighbor session established
+2026-09-14 09:45:25 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00147 | Configuration backup completed successfully
+2026-09-14 09:50:15 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00148 | Packet loss detected on uplink
+2026-09-14 09:54:38 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00149 | NTP synchronization delay detected
+2026-09-14 09:57:34 | ERROR   | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00150 | BGP neighbor session reset
+2026-09-14 10:02:41 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00151 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 10:05:52 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00152 | SNMP polling completed successfully
+2026-09-14 10:09:23 | ERROR   | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00153 | Packet loss detected on uplink
+2026-09-14 10:12:27 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00154 | Authentication failure for management user
+2026-09-14 10:18:17 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00155 | Memory utilization exceeded 80 percent
+2026-09-14 10:21:52 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00156 | OSPF adjacency reached FULL state
+2026-09-14 10:24:53 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00157 | Optical signal level within acceptable range
+2026-09-14 10:28:48 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00158 | NTP synchronization delay detected
+2026-09-14 10:34:42 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00159 | WAN interface utilization exceeded 80 percent
+2026-09-14 10:36:31 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00160 | DHCP lease assigned successfully
+2026-09-14 10:41:17 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00161 | High packet discard rate detected
+2026-09-14 10:44:33 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00162 | PON interface utilization exceeded 70 percent
+2026-09-14 10:49:35 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00163 | Packet loss detected on uplink
+2026-09-14 10:54:31 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00164 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 10:56:18 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00165 | System health check completed
+2026-09-14 11:01:42 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00166 | Interface error rate increased
+2026-09-14 11:06:33 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00167 | CPU utilization exceeded 75 percent
+2026-09-14 11:10:35 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00168 | DHCP lease assigned successfully
+2026-09-14 11:14:29 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00169 | BGP neighbor session established
+2026-09-14 11:17:14 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00170 | Cell sector A status changed to ACTIVE
+2026-09-14 11:22:34 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00171 | PON interface utilization exceeded 70 percent
+2026-09-14 11:25:46 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00172 | SNMP polling completed successfully
+2026-09-14 11:28:18 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00173 | PON interface 0/1/1 changed state to UP
+2026-09-14 11:34:34 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00174 | PON interface 0/1/1 changed state to UP
+2026-09-14 11:38:18 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00175 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 11:41:06 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00176 | NTP synchronization delay detected
+2026-09-14 11:45:28 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00177 | CPU utilization returned to normal
+2026-09-14 11:48:16 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00178 | SNMP polling completed successfully
+2026-09-14 11:52:25 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00179 | Configuration backup completed successfully
+2026-09-14 11:58:40 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00180 | S1 interface packet loss detected
+2026-09-14 12:01:05 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00181 | SNMP polling completed successfully
+2026-09-14 12:05:38 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00182 | Optical signal loss detected on PON interface
+2026-09-14 12:10:24 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00183 | Memory utilization exceeded 80 percent
+2026-09-14 12:13:55 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00184 | BGP neighbor session established
+2026-09-14 12:16:39 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00185 | Optical signal loss detected on PON interface
+2026-09-14 12:20:16 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00186 | CPU utilization returned to normal
+2026-09-14 12:26:04 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00187 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 12:30:38 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00188 | BGP neighbor session established
+2026-09-14 12:32:14 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00189 | Packet loss detected on uplink
+2026-09-14 12:37:44 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00190 | Configuration backup completed successfully
+2026-09-14 12:42:14 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00191 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 12:46:42 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00192 | ONU registration completed successfully
+2026-09-14 12:50:09 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00193 | NTP synchronization completed
+2026-09-14 12:52:03 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00194 | BGP neighbor session established
+2026-09-14 12:58:58 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00195 | Memory utilization exceeded 80 percent
+2026-09-14 13:00:29 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00196 | Packet loss detected on uplink
+2026-09-14 13:05:17 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00197 | Memory utilization exceeded 80 percent
+2026-09-14 13:08:38 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00198 | CPU utilization exceeded 75 percent
+2026-09-14 13:14:16 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00199 | Configuration backup completed successfully
+2026-09-14 13:18:53 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00200 | Optical signal loss detected on PON interface
+2026-09-14 13:21:36 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00201 | Optical signal loss detected on PON interface
+2026-09-14 13:25:33 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00202 | Optical signal level within acceptable range
+2026-09-14 13:28:37 | ERROR   | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00203 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 13:32:30 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00204 | CPU utilization exceeded 75 percent
+2026-09-14 13:37:20 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00205 | CPU utilization returned to normal
+2026-09-14 13:42:31 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00206 | BGP neighbor session reset
+2026-09-14 13:45:52 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00207 | S1 interface connection established
+2026-09-14 13:49:07 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00208 | Optical RX power approaching threshold
+2026-09-14 13:52:42 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00209 | CPU utilization exceeded 75 percent
+2026-09-14 13:56:12 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00210 | Temperature approaching warning threshold
+2026-09-14 14:01:40 | ERROR   | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00211 | Optical signal loss detected on PON interface
+2026-09-14 14:04:13 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00212 | High packet discard rate detected
+2026-09-14 14:08:59 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00213 | Memory utilization exceeded 80 percent
+2026-09-14 14:14:31 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00214 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 14:18:51 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00215 | PON interface 0/1/1 changed state to UP
+2026-09-14 14:22:26 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00216 | Subscriber session established
+2026-09-14 14:24:29 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00217 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 14:29:59 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00218 | Optical RX power approaching threshold
+2026-09-14 14:34:17 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00219 | Interface error rate increased
+2026-09-14 14:36:29 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00220 | ONU registration completed successfully
+2026-09-14 14:40:17 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00221 | OSPF adjacency reached FULL state
+2026-09-14 14:46:17 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00222 | BGP neighbor session established
+2026-09-14 14:50:37 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00223 | NTP synchronization completed
+2026-09-14 14:53:34 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00224 | DHCP lease assigned successfully
+2026-09-14 14:57:35 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00225 | Memory utilization exceeded 80 percent
+2026-09-14 15:00:44 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00226 | NTP synchronization delay detected
+2026-09-14 15:05:02 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00227 | Authentication failure for management user
+2026-09-14 15:09:45 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00228 | System health check completed
+2026-09-14 15:14:09 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00229 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 15:16:32 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00230 | SNMP polling completed successfully
+2026-09-14 15:21:06 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00231 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 15:26:09 | ERROR   | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00232 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 15:28:30 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00233 | OSPF adjacency reached FULL state
+2026-09-14 15:34:44 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00234 | WAN interface utilization exceeded 80 percent
+2026-09-14 15:38:54 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00235 | OSPF adjacency reached FULL state
+2026-09-14 15:41:55 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00236 | S1 interface connection established
+2026-09-14 15:44:47 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00237 | CPU utilization exceeded 75 percent
+2026-09-14 15:50:45 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00238 | S1 interface connection established
+2026-09-14 15:52:02 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00239 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 15:57:22 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00240 | CPU utilization exceeded 75 percent
+2026-09-14 16:00:15 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00241 | NTP synchronization delay detected
+2026-09-14 16:04:10 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00242 | Configuration backup completed successfully
+2026-09-14 16:09:39 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00243 | Interface error rate increased
+2026-09-14 16:12:14 | ERROR   | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00244 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 16:17:29 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00245 | BGP neighbor session reset
+2026-09-14 16:20:57 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00246 | BGP neighbor session established
+2026-09-14 16:26:34 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00247 | Configuration backup completed successfully
+2026-09-14 16:29:37 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00248 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 16:33:44 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00249 | Memory utilization exceeded 80 percent
+2026-09-14 16:37:12 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00250 | ACL policy updated successfully
+2026-09-14 16:42:22 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00251 | Packet loss detected on uplink
+2026-09-14 16:45:01 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00252 | BGP route update received from peer
+2026-09-14 16:50:47 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00253 | BGP neighbor session established
+2026-09-14 16:52:38 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00254 | Subscriber session established
+2026-09-14 16:58:12 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00255 | BGP neighbor session reset
+2026-09-14 17:02:49 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00256 | PON interface 0/1/1 changed state to UP
+2026-09-14 17:05:50 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00257 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 17:10:23 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00258 | Configuration backup completed successfully
+2026-09-14 17:13:47 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00259 | CPU utilization returned to normal
+2026-09-14 17:18:56 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00260 | Optical RX power approaching threshold
+2026-09-14 17:22:58 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00261 | CPU utilization returned to normal
+2026-09-14 17:25:58 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00262 | BGP neighbor session established
+2026-09-14 17:30:55 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00263 | SNMP polling completed successfully
+2026-09-14 17:33:04 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00264 | Optical signal loss detected on PON interface
+2026-09-14 17:36:55 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00265 | High packet discard rate detected
+2026-09-14 17:41:00 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00266 | High packet discard rate detected
+2026-09-14 17:44:29 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00267 | BGP neighbor session reset
+2026-09-14 17:50:43 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00268 | NTP synchronization delay detected
+2026-09-14 17:53:52 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00269 | SNMP polling completed successfully
+2026-09-14 17:58:14 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00270 | Interface GigabitEthernet0/1 changed state to UP
+2026-09-14 18:02:56 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00271 | Temperature approaching warning threshold
+2026-09-14 18:04:41 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00272 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 18:10:19 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00273 | BGP route update received from peer
+2026-09-14 18:13:31 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00274 | SNMP polling completed successfully
+2026-09-14 18:18:08 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00275 | Memory utilization exceeded 80 percent
+2026-09-14 18:22:44 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00276 | NTP synchronization delay detected
+2026-09-14 18:24:56 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00277 | ACL policy updated successfully
+2026-09-14 18:30:26 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00278 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 18:34:23 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00279 | Memory utilization exceeded 80 percent
+2026-09-14 18:36:54 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00280 | SNMP polling completed successfully
+2026-09-14 18:42:23 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00281 | Interface GigabitEthernet0/2 changed state to UP
+2026-09-14 18:45:17 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00282 | SNMP polling completed successfully
+2026-09-14 18:49:05 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00283 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 18:52:03 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00284 | Subscriber session established
+2026-09-14 18:56:50 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00285 | Configuration backup completed successfully
+2026-09-14 19:02:13 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00286 | Subscriber session established
+2026-09-14 19:04:50 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00287 | Optical signal level within acceptable range
+2026-09-14 19:08:08 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00288 | CPU utilization returned to normal
+2026-09-14 19:12:42 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00289 | RRU link established successfully
+2026-09-14 19:18:20 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00290 | CPU utilization returned to normal
+2026-09-14 19:20:47 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00291 | BGP route update received from peer
+2026-09-14 19:25:28 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00292 | Optical RX power approaching threshold
+2026-09-14 19:30:06 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00293 | Optical RX power approaching threshold
+2026-09-14 19:32:39 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00294 | Authentication failure for management user
+2026-09-14 19:38:33 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00295 | Memory utilization exceeded 80 percent
+2026-09-14 19:42:01 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00296 | Interface error rate increased
+2026-09-14 19:45:43 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00297 | Interface error rate increased
+2026-09-14 19:49:04 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00298 | OSPF adjacency reached FULL state
+2026-09-14 19:52:08 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00299 | Temperature approaching warning threshold
+2026-09-14 19:58:37 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00300 | System health check completed
+2026-09-14 20:02:33 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00301 | Memory utilization exceeded 80 percent
+2026-09-14 20:06:38 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00302 | SNMP polling completed successfully
+2026-09-14 20:08:54 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00303 | CPU utilization exceeded 75 percent
+2026-09-14 20:12:26 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00304 | Memory utilization exceeded 80 percent
+2026-09-14 20:17:26 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00305 | OSPF adjacency reached FULL state
+2026-09-14 20:22:16 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00306 | NTP synchronization completed
+2026-09-14 20:26:59 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00307 | Configuration backup completed successfully
+2026-09-14 20:28:53 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00308 | Configuration backup completed successfully
+2026-09-14 20:34:47 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00309 | NTP synchronization completed
+2026-09-14 20:38:03 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00310 | BGP neighbor session reset
+2026-09-14 20:40:26 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00311 | BGP neighbor session reset
+2026-09-14 20:45:55 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00312 | BGP neighbor session established
+2026-09-14 20:49:06 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00313 | NTP synchronization completed
+2026-09-14 20:52:54 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00314 | DHCP lease assigned successfully
+2026-09-14 20:57:07 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00315 | NTP synchronization delay detected
+2026-09-14 21:00:51 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00316 | High packet discard rate detected
+2026-09-14 21:06:39 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00317 | Temperature approaching warning threshold
+2026-09-14 21:10:17 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00318 | CPU utilization returned to normal
+2026-09-14 21:13:58 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00319 | DHCP lease assigned successfully
+2026-09-14 21:16:11 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00320 | NTP synchronization delay detected
+2026-09-14 21:20:09 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00321 | Configuration backup completed successfully
+2026-09-14 21:24:24 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00322 | Memory utilization exceeded 80 percent
+2026-09-14 21:29:19 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00323 | Optical signal loss detected on PON interface
+2026-09-14 21:34:38 | ERROR   | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00324 | S1 interface packet loss detected
+2026-09-14 21:36:43 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00325 | Optical signal level within acceptable range
+2026-09-14 21:41:31 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00326 | CPU utilization exceeded 75 percent
+2026-09-14 21:45:13 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00327 | DHCP lease assigned successfully
+2026-09-14 21:49:43 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00328 | Optical RX power approaching threshold
+2026-09-14 21:54:19 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00329 | Subscriber session established
+2026-09-14 21:58:03 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00330 | Memory utilization is within normal threshold
+2026-09-14 22:00:49 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00331 | Optical signal loss detected on PON interface
+2026-09-14 22:05:18 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00332 | SNMP polling completed successfully
+2026-09-14 22:08:31 | INFO    | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00333 | OSPF neighbor adjacency established
+2026-09-14 22:14:35 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00334 | Configuration backup completed successfully
+2026-09-14 22:17:55 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00335 | Cell sector A status changed to ACTIVE
+2026-09-14 22:21:36 | WARNING | DEVICE_TYPE=Router | DEVICE=RTR-AHM-CORE-01   | IP=10.20.0.1     | EVENT_ID=EVT-00336 | NTP synchronization delay detected
+2026-09-14 22:26:26 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00337 | SNMP polling completed successfully
+2026-09-14 22:29:01 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00338 | CPU utilization returned to normal
+2026-09-14 22:34:29 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00339 | Configuration backup completed successfully
+2026-09-14 22:37:54 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00340 | Subscriber session established
+2026-09-14 22:41:33 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00341 | System health check completed
+2026-09-14 22:46:21 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00342 | OSPF adjacency reached FULL state
+2026-09-14 22:48:32 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00343 | Optical RX power approaching threshold
+2026-09-14 22:53:22 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00344 | ONU optical power within normal range
+2026-09-14 22:56:11 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00345 | Optical signal loss detected on PON interface
+2026-09-14 23:02:04 | ERROR   | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00346 | Optical signal loss detected on PON interface
+2026-09-14 23:06:31 | ERROR   | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00347 | Optical signal loss detected on PON interface
+2026-09-14 23:10:48 | ERROR   | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00348 | BGP neighbor session reset
+2026-09-14 23:14:41 | ERROR   | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00349 | Interface GigabitEthernet0/3 went DOWN
+2026-09-14 23:17:09 | INFO    | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00350 | Configuration backup completed successfully
+2026-09-14 23:21:28 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-001      | IP=10.20.3.11    | EVENT_ID=EVT-00351 | Optical signal level within acceptable range
+2026-09-14 23:26:03 | WARNING | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00352 | Optical RX power approaching threshold
+2026-09-14 23:28:19 | WARNING | DEVICE_TYPE=Switch | DEVICE=SW-AHM-CORE-01    | IP=10.20.0.2     | EVENT_ID=EVT-00353 | Memory utilization exceeded 80 percent
+2026-09-14 23:32:03 | INFO    | DEVICE_TYPE=CPAN   | DEVICE=CPAN-AHM-002      | IP=10.20.3.12    | EVENT_ID=EVT-00354 | BGP neighbor session established
+2026-09-14 23:36:41 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-002       | IP=10.20.1.12    | EVENT_ID=EVT-00355 | Temperature approaching warning threshold
+2026-09-14 23:41:29 | WARNING | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00356 | Memory utilization exceeded 80 percent
+2026-09-14 23:46:41 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-002       | IP=10.20.2.12    | EVENT_ID=EVT-00357 | OSPF adjacency reached FULL state
+2026-09-14 23:50:09 | INFO    | DEVICE_TYPE=BTS    | DEVICE=BTS-AHM-001       | IP=10.20.1.11    | EVENT_ID=EVT-00358 | S1 interface connection established
+2026-09-14 23:54:05 | WARNING | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00359 | PON interface utilization exceeded 70 percent
+2026-09-14 23:57:33 | INFO    | DEVICE_TYPE=OLT    | DEVICE=OLT-AHM-001       | IP=10.20.2.11    | EVENT_ID=EVT-00360 | DHCP lease assigned successfully
