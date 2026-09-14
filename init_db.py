@@ -173,6 +173,7 @@ def init_db(force_reimport=False):
             tx_system_location TEXT,
             tx_system_port TEXT,
             vlan TEXT,
+            reason TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -190,7 +191,7 @@ def init_db(force_reimport=False):
         'cpan_a_end_ports', 'cpan_z_end_node', 'cpan_z_end_ip', 'cpan_service',
         'service_vlans', 'maan_l3_interface', 'maan_vpn', 'mask', 'route_distinguisher',
         'as_num', 'ems', 'oam_cef_ip_pool', 'oam_hw_gw', 'oam_hw_ip',
-        'tx_system_ip', 'tx_system_location', 'tx_system_port', 'vlan'
+        'tx_system_ip', 'tx_system_location', 'tx_system_port', 'vlan', 'reason'
     ]
     
     for c in expected_cols:

@@ -70,6 +70,18 @@
                                 <option value="" {% if not current_type %}selected{% endif %}>-- None / Other --</option>
                             </select>
                         </div>
+                        <div class="col-md-4">
+                            <label for="reason" class="form-label fw-semibold">Reason / Remark</label>
+                            {% set current_reason = form_data.get('reason', '') %}
+                            <select class="form-select" id="reason" name="reason">
+                                <option value="" {% if not current_reason %}selected{% endif %}>-- Select Reason --</option>
+                                <option value="Working OK" {% if current_reason == 'Working OK' %}selected{% endif %}>Working OK</option>
+                                <option value="Local Down" {% if current_reason == 'Local Down' %}selected{% endif %}>Local Down</option>
+                                <option value="Diverted" {% if current_reason == 'Diverted' %}selected{% endif %}>Diverted</option>
+                                <option value="Service Reset Done" {% if current_reason == 'Service Reset Done' %}selected{% endif %}>Service Reset Done</option>
+                                <option value="Port Reset Done" {% if current_reason == 'Port Reset Done' %}selected{% endif %}>Port Reset Done</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Section 2: VLANs -->

@@ -170,11 +170,11 @@ VALID_SEARCH_COLUMNS = {
     'cpan_a_end_ip': 'CPAN A End IP',
     'cpan_z_end_node': 'CPAN Z End Node',
     'cpan_z_end_ip': 'CPAN Z End IP',
-    'oam_vlan': 'OAM VLAN',
     'tx_system_ip': 'TX System IP',
     'tx_system_location': 'TX System Location',
     'tx_system_port': 'TX System Port',
-    'vlan': 'VLAN'
+    'vlan': 'VLAN',
+    'reason': 'Reason / Remark'
 }
 
 
@@ -185,7 +185,7 @@ ALL_SEARCHABLE_COLS = [
     'l3_gateway_maan', 'endpoint_ports', 'cpan_a_end_node', 'cpan_a_end_ip',
     'cpan_a_end_ports', 'cpan_z_end_node', 'cpan_z_end_ip', 'cpan_service',
     'service_vlans', 'maan_l3_interface', 'maan_vpn', 'oam_cef_ip_pool',
-    'oam_hw_gw', 'oam_hw_ip', 'tx_system_ip', 'tx_system_location', 'tx_system_port', 'vlan'
+    'oam_hw_gw', 'oam_hw_ip', 'tx_system_ip', 'tx_system_location', 'tx_system_port', 'vlan', 'reason'
 ]
 
 
@@ -206,6 +206,7 @@ VALID_SORT_COLUMNS = {
     's1_c_vlan': 's1_c_vlan',
     's1_u_vlan': 's1_u_vlan',
     'mgmt_ip': 'mgmt_ip',
+    'reason': 'reason',
     'created_at': 'created_at',
     'updated_at': 'updated_at'
 }
@@ -629,6 +630,25 @@ def api_get_site(site_id):
     return jsonify({'success': True, 'site': row_to_dict(row)})
 
 
+@app.route('/api/site/<site_id>/update-reason', methods=['POST'])
+@login_required
+def api_update_site_reason(site_id):
+    data = request.get_json(silent=True) or request.form
+    reason = str(data.get('reason', '')).strip()
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE bts_sites SET reason = ?, updated_at = CURRENT_TIMESTAMP WHERE LOWER(site_id) = LOWER(?);", (reason, site_id))
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    
+    if not updated:
+        return jsonify({'success': False, 'message': f'Site ID "{site_id}" not found.'}), 404
+        
+    return jsonify({'success': True, 'site_id': site_id, 'reason': reason, 'message': 'Reason updated successfully.'})
+
+
 @app.route('/api/ping', methods=['POST'])
 @login_required
 def api_ping():
@@ -783,6 +803,7 @@ def create_site():
         oam_cef_ip_pool = request.form.get('oam_cef_ip_pool', '').strip()
         oam_hw_gw = request.form.get('oam_hw_gw', '').strip()
         oam_hw_ip = request.form.get('oam_hw_ip', '').strip()
+        reason = request.form.get('reason', '').strip()
         
         tx_ip = endpoint_ip or cpan_a_end_ip or request.form.get('tx-system-ip', '').strip()
         tx_loc = endpoint_node_router or cpan_a_end_node or request.form.get('tx-system-location', '').strip()
@@ -818,7 +839,7 @@ def create_site():
                 cpan_a_end_ports, cpan_z_end_node, cpan_z_end_ip, cpan_service,
                 service_vlans, maan_l3_interface, maan_vpn, mask, route_distinguisher,
                 as_num, ems, oam_cef_ip_pool, oam_hw_gw, oam_hw_ip,
-                tx_system_ip, tx_system_location, tx_system_port, vlan
+                tx_system_ip, tx_system_location, tx_system_port, vlan, reason
             ) VALUES (
                 ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?,
@@ -827,7 +848,7 @@ def create_site():
                 ?, ?, ?, ?,
                 ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?,
-                ?, ?, ?, ?
+                ?, ?, ?, ?, ?
             );
         ''', (
             enodeb_address, site_id, site_name, ssa, location, cpan_maan,
@@ -837,7 +858,7 @@ def create_site():
             cpan_a_end_ports, cpan_z_end_node, cpan_z_end_ip, cpan_service,
             service_vlans, maan_l3_interface, maan_vpn, mask, route_distinguisher,
             as_num, ems, oam_cef_ip_pool, oam_hw_gw, oam_hw_ip,
-            tx_ip, tx_loc, tx_port, vlan
+            tx_ip, tx_loc, tx_port, vlan, reason
         ))
         
         conn.commit()
@@ -917,6 +938,7 @@ def edit_site(site_id):
         oam_cef_ip_pool = request.form.get('oam_cef_ip_pool', '').strip()
         oam_hw_gw = request.form.get('oam_hw_gw', '').strip()
         oam_hw_ip = request.form.get('oam_hw_ip', '').strip()
+        reason = request.form.get('reason', '').strip()
         
         tx_ip = endpoint_ip or cpan_a_end_ip or request.form.get('tx-system-ip', '').strip()
         tx_loc = endpoint_node_router or cpan_a_end_node or request.form.get('tx-system-location', '').strip()
@@ -970,6 +992,7 @@ def edit_site(site_id):
                 tx_system_location = ?,
                 tx_system_port = ?,
                 vlan = ?,
+                reason = ?,
                 updated_at = CURRENT_TIMESTAMP
             WHERE LOWER(site_id) = LOWER(?);
         ''', (
@@ -980,7 +1003,7 @@ def edit_site(site_id):
             cpan_a_end_ports, cpan_z_end_node, cpan_z_end_ip, cpan_service,
             service_vlans, maan_l3_interface, maan_vpn, mask, route_distinguisher,
             as_num, ems, oam_cef_ip_pool, oam_hw_gw, oam_hw_ip,
-            tx_ip, tx_loc, tx_port, vlan, site_id
+            tx_ip, tx_loc, tx_port, vlan, reason, site_id
         ))
         
         conn.commit()
@@ -1050,7 +1073,8 @@ ALL_REPORT_COLUMNS = {
     'tx_system_ip': 'tx-system-ip',
     'tx_system_location': 'tx-system-location',
     'tx_system_port': 'tx-system-port',
-    'vlan': 'VLAN'
+    'vlan': 'VLAN',
+    'reason': 'Reason / Remark'
 }
 
 
@@ -1408,7 +1432,7 @@ def cpan_nodes():
         
     try:
         per_page = int(request.args.get('per_page', 25))
-        if per_page not in (10, 25, 50, 100, 250, 500):
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 20000):
             per_page = 25
     except ValueError:
         per_page = 25
@@ -1453,7 +1477,7 @@ def api_search_cpan_nodes():
         
     try:
         per_page = int(request.args.get('per_page', 25))
-        if per_page not in (10, 25, 50, 100, 250, 500):
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 20000):
             per_page = 25
     except ValueError:
         per_page = 25

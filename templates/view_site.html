@@ -83,6 +83,29 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-12">
+                        <div class="p-3 bg-light rounded border">
+                            <div class="text-muted small text-uppercase mb-1">Reason / Remark</div>
+                            <div class="fw-bold">
+                                {% set r_val = site['reason'] or '' %}
+                                {% if r_val == 'Working OK' %}
+                                    <span class="badge bg-success text-white px-3 py-2 fs-6"><i class="fa-solid fa-circle-check me-1"></i>Working OK</span>
+                                {% elif r_val == 'Local Down' %}
+                                    <span class="badge bg-danger text-white px-3 py-2 fs-6"><i class="fa-solid fa-triangle-exclamation me-1"></i>Local Down</span>
+                                {% elif r_val == 'Diverted' %}
+                                    <span class="badge bg-warning text-dark px-3 py-2 fs-6"><i class="fa-solid fa-route me-1"></i>Diverted</span>
+                                {% elif r_val == 'Service Reset Done' %}
+                                    <span class="badge bg-success text-white px-3 py-2 fs-6"><i class="fa-solid fa-circle-check me-1"></i>Service Reset Done</span>
+                                {% elif r_val == 'Port Reset Done' %}
+                                    <span class="badge bg-info text-dark px-3 py-2 fs-6"><i class="fa-solid fa-plug-circle-bolt me-1"></i>Port Reset Done</span>
+                                {% elif r_val %}
+                                    <span class="badge bg-secondary text-white px-3 py-2 fs-6">{{ r_val }}</span>
+                                {% else %}
+                                    <span class="text-muted fw-normal">No reason / remark assigned</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Section 2: VLAN Configuration -->

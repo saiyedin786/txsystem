@@ -231,6 +231,8 @@
                 <option value="25" {% if per_page == 25 %}selected{% endif %}>25 per page</option>
                 <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
                 <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
+                <option value="1000" {% if per_page == 1000 %}selected{% endif %}>1000 per page</option>
+                <option value="20000" {% if per_page == 20000 %}selected{% endif %}>20000 per page</option>
             </select>
             <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i></button>
             <button type="button" id="clear-search-btn" class="btn btn-outline-secondary {% if not query and not selected_ssa and (not search_by or search_by == 'all') and (not sort_by or sort_by == 'id') %}d-none{% endif %}" title="Clear Search & Filters">
@@ -308,6 +310,16 @@
                 <i class="fa-solid fa-copy me-1"></i> Copy Table
             </button>
 
+            <!-- Export Searched CSV Button -->
+            <button type="button" id="btn-export-searched-csv" class="btn btn-sm btn-outline-primary fw-semibold" onclick="exportSearchedResults('csv')" title="Export active search results to CSV file">
+                <i class="fa-solid fa-file-csv me-1"></i> Export CSV
+            </button>
+
+            <!-- Export Searched Excel Button -->
+            <button type="button" id="btn-export-searched-excel" class="btn btn-sm btn-outline-success fw-semibold" onclick="exportSearchedResults('excel')" title="Export active search results to Excel file">
+                <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+            </button>
+
             <!-- Column Customizer Dropdown -->
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle fw-semibold" type="button" id="columnToggleDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" title="Customize Visible Table Columns">
@@ -332,6 +344,7 @@
                         <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-mgmt-vlan" checked> Mgmt/RAC VLAN</label>
                         <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-s1c-vlan" checked> S1-C VLAN</label>
                         <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-s1u-vlan" checked> S1-U VLAN</label>
+                        <label class="form-check-label user-select-none cursor-pointer"><input class="form-check-input col-toggle-cb me-1" type="checkbox" data-col="col-reason" checked> Reason / Remark</label>
                     </div>
                 </div>
             </div>
@@ -416,7 +429,10 @@
                         <th scope="col" style="width: 4.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer col-s1u-vlan" data-sort="s1_u_vlan" title="Click to Sort by S1-U VLAN">
                             S1-U VLAN <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
                         </th>
-                        <th scope="col" style="width: 6.5%;" class="px-1 text-center col-actions">Actions</th>
+                        <th scope="col" style="width: 8.5%;" class="px-1 text-center sortable-col user-select-none cursor-pointer col-reason" data-sort="reason" title="Click to Sort by Reason / Remark">
+                            Reason / Remark <i class="fa-solid fa-sort sort-icon text-muted opacity-50 ms-1"></i>
+                        </th>
+                        <th scope="col" style="width: 6%;" class="px-1 text-center col-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="records-tbody">
@@ -476,6 +492,17 @@
                                 <td class="px-1 text-center col-mgmt-vlan"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">{{ rec['mgmt_rac_vlan'] or '-' }}</span></td>
                                 <td class="px-1 text-center col-s1c-vlan"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">{{ rec['s1_c_vlan'] or '-' }}</span></td>
                                 <td class="px-1 text-center col-s1u-vlan"><span class="badge bg-primary-subtle text-primary border px-1 py-1">{{ rec['s1_u_vlan'] or '-' }}</span></td>
+                                <td class="px-1 text-center col-reason">
+                                    {% set r_val = rec['reason'] or '' %}
+                                    <select class="form-select form-select-sm site-reason-select shadow-none py-0 px-1 border small {% if r_val == 'Working OK' %}bg-success-subtle text-success-emphasis border-success fw-semibold{% elif r_val == 'Local Down' %}bg-danger-subtle text-danger-emphasis border-danger fw-semibold{% elif r_val == 'Diverted' %}bg-warning-subtle text-warning-emphasis border-warning fw-semibold{% elif r_val == 'Service Reset Done' %}bg-success-subtle text-success-emphasis border-success fw-semibold{% elif r_val == 'Port Reset Done' %}bg-info-subtle text-info-emphasis border-info fw-semibold{% endif %}" style="font-size: 0.72rem; height: 26px; min-width: 110px;" data-site-id="{{ rec['site_id'] }}" onchange="onReasonSelectChange(this)">
+                                        <option value="" {% if not r_val %}selected{% endif %}>-- Select --</option>
+                                        <option value="Working OK" {% if r_val == 'Working OK' %}selected{% endif %}>Working OK</option>
+                                        <option value="Local Down" {% if r_val == 'Local Down' %}selected{% endif %}>Local Down</option>
+                                        <option value="Diverted" {% if r_val == 'Diverted' %}selected{% endif %}>Diverted</option>
+                                        <option value="Service Reset Done" {% if r_val == 'Service Reset Done' %}selected{% endif %}>Service Reset Done</option>
+                                        <option value="Port Reset Done" {% if r_val == 'Port Reset Done' %}selected{% endif %}>Port Reset Done</option>
+                                    </select>
+                                </td>
                                 <td class="px-1 text-center col-actions">
                                     <div class="d-flex justify-content-center gap-1">
                                         <a href="javascript:void(0)" onclick="openSiteQuickView('{{ rec['site_id'] }}')" class="btn btn-sm btn-outline-info p-1" title="Quick View Popup">
@@ -880,6 +907,102 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // -------------------------------------------------------------
+    // Reason / Remark Change Handler
+    // -------------------------------------------------------------
+    window.onReasonSelectChange = function(selectElem) {
+        const siteId = selectElem.getAttribute('data-site-id');
+        const reason = selectElem.value;
+
+        // Reset styling
+        selectElem.className = 'form-select form-select-sm site-reason-select shadow-none py-0 px-1 border small';
+        selectElem.style.fontSize = '0.72rem';
+        selectElem.style.height = '26px';
+        selectElem.style.minWidth = '110px';
+
+        if (reason === 'Working OK') {
+            selectElem.classList.add('bg-success-subtle', 'text-success-emphasis', 'border-success', 'fw-semibold');
+        } else if (reason === 'Local Down') {
+            selectElem.classList.add('bg-danger-subtle', 'text-danger-emphasis', 'border-danger', 'fw-semibold');
+        } else if (reason === 'Diverted') {
+            selectElem.classList.add('bg-warning-subtle', 'text-warning-emphasis', 'border-warning', 'fw-semibold');
+        } else if (reason === 'Service Reset Done') {
+            selectElem.classList.add('bg-success-subtle', 'text-success-emphasis', 'border-success', 'fw-semibold');
+        } else if (reason === 'Port Reset Done') {
+            selectElem.classList.add('bg-info-subtle', 'text-info-emphasis', 'border-info', 'fw-semibold');
+        }
+
+        fetch(`/api/site/${encodeURIComponent(siteId)}/update-reason`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                selectElem.classList.add('border-2');
+                setTimeout(() => selectElem.classList.remove('border-2'), 1200);
+            }
+        })
+        .catch(err => console.error('Failed to update reason:', err));
+    };
+
+    // -------------------------------------------------------------
+    // Export Searched Results Handler (CSV & Excel)
+    // -------------------------------------------------------------
+    window.exportSearchedResults = function(format) {
+        const query = searchInput ? searchInput.value.trim() : '';
+        const searchBy = searchBySelect ? searchBySelect.value : 'all';
+        const ssa = ssaSelect ? ssaSelect.value : '';
+        const sortBy = sortBySelect ? sortBySelect.value : 'id';
+        const sortOrder = sortOrderInput ? sortOrderInput.value : 'asc';
+
+        // Map column toggle classes to backend database column names
+        const classToColName = {
+            'col-site-id': 'site_id',
+            'col-site-name': 'site_name',
+            'col-cef-ip': 'oam_cef_ip_pool',
+            'col-ssa': 'ssa',
+            'col-location': 'location',
+            'col-type': 'cpan_maan_vsat',
+            'col-endpoint-ip': 'endpoint_ip',
+            'col-endpoint-node': 'endpoint_node_router',
+            'col-endpoint-port': 'endpoint_ports',
+            'col-oam-vlan': 'oam_vlan',
+            'col-mgmt-vlan': 'mgmt_rac_vlan',
+            'col-s1c-vlan': 's1_c_vlan',
+            'col-s1u-vlan': 's1_u_vlan',
+            'col-reason': 'reason'
+        };
+
+        const activeCols = [];
+        document.querySelectorAll('.col-toggle-cb').forEach(cb => {
+            const colClass = cb.getAttribute('data-col');
+            if (cb.checked && classToColName[colClass]) {
+                activeCols.push(classToColName[colClass]);
+            }
+        });
+
+        // Fallback to all frontend columns if none checked
+        if (activeCols.length === 0) {
+            Object.values(classToColName).forEach(c => activeCols.push(c));
+        }
+
+        const params = new URLSearchParams({
+            format: format,
+            scope: 'filtered',
+            q: query,
+            search_by: searchBy,
+            ssa: ssa,
+            sort_by: sortBy,
+            sort_order: sortOrder
+        });
+
+        activeCols.forEach(col => params.append('cols', col));
+
+        window.location.href = `/export/custom?${params.toString()}`;
+    };
+
+    // -------------------------------------------------------------
     // Bulk Selection Bar Handlers
     // -------------------------------------------------------------
     window.toggleSelectAllRows = function(masterCb) {
@@ -1144,7 +1267,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     { colClass: 'col-oam-vlan', label: 'OAM VLAN', getValue: r => r.oam_vlan },
                     { colClass: 'col-mgmt-vlan', label: 'Mgmt/RAC VLAN', getValue: r => r.mgmt_rac_vlan },
                     { colClass: 'col-s1c-vlan', label: 'S1-C VLAN', getValue: r => r.s1_c_vlan },
-                    { colClass: 'col-s1u-vlan', label: 'S1-U VLAN', getValue: r => r.s1_u_vlan }
+                    { colClass: 'col-s1u-vlan', label: 'S1-U VLAN', getValue: r => r.s1_u_vlan },
+                    { colClass: 'col-reason', label: 'Reason / Remark', getValue: r => r.reason }
                 ];
 
                 let hiddenCols = [];
@@ -1395,6 +1519,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     const mgmtRacVlan = escapeHtml(rec.mgmt_rac_vlan || '-');
                     const s1cVlan = escapeHtml(rec.s1_c_vlan || '-');
                     const s1uVlan = escapeHtml(rec.s1_u_vlan || '-');
+                    const rVal = rec.reason || '';
+                    let rClass = '';
+                    if (rVal === 'Working OK') rClass = 'bg-success-subtle text-success-emphasis border-success fw-semibold';
+                    else if (rVal === 'Local Down') rClass = 'bg-danger-subtle text-danger-emphasis border-danger fw-semibold';
+                    else if (rVal === 'Diverted') rClass = 'bg-warning-subtle text-warning-emphasis border-warning fw-semibold';
+                    else if (rVal === 'Service Reset Done') rClass = 'bg-success-subtle text-success-emphasis border-success fw-semibold';
+                    else if (rVal === 'Port Reset Done') rClass = 'bg-info-subtle text-info-emphasis border-info fw-semibold';
+
+                    const reasonSelect = `
+                        <select class="form-select form-select-sm site-reason-select shadow-none py-0 px-1 border small ${rClass}" style="font-size: 0.72rem; height: 26px; min-width: 110px;" data-site-id="${escapeHtml(rec.site_id)}" onchange="onReasonSelectChange(this)">
+                            <option value="" ${!rVal ? 'selected' : ''}>-- Select --</option>
+                            <option value="Working OK" ${rVal === 'Working OK' ? 'selected' : ''}>Working OK</option>
+                            <option value="Local Down" ${rVal === 'Local Down' ? 'selected' : ''}>Local Down</option>
+                            <option value="Diverted" ${rVal === 'Diverted' ? 'selected' : ''}>Diverted</option>
+                            <option value="Service Reset Done" ${rVal === 'Service Reset Done' ? 'selected' : ''}>Service Reset Done</option>
+                            <option value="Port Reset Done" ${rVal === 'Port Reset Done' ? 'selected' : ''}>Port Reset Done</option>
+                        </select>
+                    `;
 
                     html += `
                         <tr>
@@ -1418,6 +1560,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <td class="px-1 text-center col-mgmt-vlan"><span class="badge bg-secondary-subtle text-dark border px-1 py-1">${mgmtRacVlan}</span></td>
                             <td class="px-1 text-center col-s1c-vlan"><span class="badge bg-info-subtle text-info-emphasis border px-1 py-1">${s1cVlan}</span></td>
                             <td class="px-1 text-center col-s1u-vlan"><span class="badge bg-primary-subtle text-primary border px-1 py-1">${s1uVlan}</span></td>
+                            <td class="px-1 text-center col-reason">${reasonSelect}</td>
                             <td class="px-1 text-center col-actions">
                                 <div class="d-flex justify-content-center gap-1">
                                     <a href="javascript:void(0)" onclick="openSiteQuickView('${escapeHtml(rec.site_id)}')" class="btn btn-sm btn-outline-info p-1" title="Quick View Popup">
