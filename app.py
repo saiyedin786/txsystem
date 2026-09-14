@@ -649,6 +649,36 @@ def api_update_site_reason(site_id):
     return jsonify({'success': True, 'site_id': site_id, 'reason': reason, 'message': 'Reason updated successfully.'})
 
 
+def check_ip_reachability(target_ip, returncode, output):
+    if returncode != 0 or not output:
+        return False
+
+    output_upper = output.upper()
+    clean_target = str(target_ip).split('/')[0].strip().upper()
+
+    failure_keywords = [
+        'UNREACHABLE', 'TIMED OUT', '100% LOSS', '100% PACKET LOSS',
+        'GENERAL FAILURE', 'TRANSMIT FAILED', 'HARDWARE ERROR',
+        'EXPIRED IN TRANSIT', 'UNKNOWN HOST', 'COULD NOT FIND HOST',
+        'ADMINISTRATIVELY PROHIBITED'
+    ]
+    if any(kw in output_upper for kw in failure_keywords):
+        return False
+
+    has_echo_reply_marker = ('TTL=' in output_upper or 'BYTES=' in output_upper or 'BYTES FROM' in output_upper)
+    if not has_echo_reply_marker:
+        return False
+
+    for line in output_upper.splitlines():
+        if 'REPLY FROM' in line:
+            if clean_target in line and ('TTL=' in line or 'BYTES=' in line or 'TIME' in line):
+                return True
+            if clean_target not in line:
+                return False
+
+    return has_echo_reply_marker
+
+
 @app.route('/api/ping', methods=['POST'])
 @login_required
 def api_ping():
@@ -676,14 +706,7 @@ def api_ping():
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         output = (proc.stdout or proc.stderr or "No ping output returned.").strip()
-        output_upper = output.upper()
-        
-        is_reachable = (proc.returncode == 0) and (
-            'TTL=' in output_upper or
-            'BYTES=' in output_upper or
-            'TIME=' in output_upper or
-            'REPLY FROM' in output_upper
-        ) and ('UNREACHABLE' not in output_upper and 'TIMED OUT' not in output_upper and '100% LOSS' not in output_upper)
+        is_reachable = check_ip_reachability(str(ip_obj), proc.returncode, output)
         
         return jsonify({
             'success': True,
@@ -733,16 +756,14 @@ def api_ping_cef_batch():
             return (raw_ip, {'status': 'DOWN', 'is_reachable': False, 'message': 'Invalid IP format'})
 
         if os.name == 'nt':
-            cmd = ['ping', '-n', '1', '-w', '1000', ip_obj]
+            cmd = ['ping', '-n', '2', '-w', '1000', ip_obj]
         else:
-            cmd = ['ping', '-c', '1', '-W', '1', ip_obj]
+            cmd = ['ping', '-c', '2', '-W', '1', ip_obj]
 
         try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=2.5)
-            output = (proc.stdout or proc.stderr or '').upper()
-            is_reachable = (proc.returncode == 0) and (
-                'TTL=' in output or 'BYTES=' in output or 'TIME=' in output or 'REPLY FROM' in output
-            ) and ('UNREACHABLE' not in output and 'TIMED OUT' not in output and '100% LOSS' not in output)
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=3.5)
+            output = proc.stdout or proc.stderr or ''
+            is_reachable = check_ip_reachability(ip_obj, proc.returncode, output)
 
             return (raw_ip, {
                 'ip': ip_obj,
