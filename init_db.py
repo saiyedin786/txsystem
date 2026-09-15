@@ -18,6 +18,8 @@ EXCEL_PATH = NEW_EXCEL_PATH if os.path.exists(NEW_EXCEL_PATH) else OLD_EXCEL_PAT
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA cache_size = -65536;")  # 64 MB in-memory SQL cache
+    conn.execute("PRAGMA temp_store = MEMORY;")   # Keep temporary tables and indices in RAM
     return conn
 
 
@@ -442,6 +444,35 @@ def init_db(force_reimport=False):
             print(f"Importing CPAN Nodes from {source_path}...")
             import_cpan_nodes_csv(source_path, conn)
 
+        service_csv = os.path.join(DATA_DIR, 'CPAN_Service_List.csv') if os.path.exists(os.path.join(DATA_DIR, 'CPAN_Service_List.csv')) else os.path.join(BASE_DIR, 'CPAN_Service_List.csv')
+        if os.path.exists(service_csv):
+            print(f"Importing CPAN Services from {service_csv}...")
+            import_cpan_services_csv(service_csv, conn)
+
+    # Ensure cpan_services table exists and has data
+    cursor.execute("SELECT COUNT(*) FROM cpan_services;")
+    srv_count = cursor.fetchone()[0]
+    if srv_count == 0:
+        service_csv = os.path.join(DATA_DIR, 'CPAN_Service_List.csv') if os.path.exists(os.path.join(DATA_DIR, 'CPAN_Service_List.csv')) else os.path.join(BASE_DIR, 'CPAN_Service_List.csv')
+        if os.path.exists(service_csv):
+            print(f"Importing CPAN Services from {service_csv}...")
+            import_cpan_services_csv(service_csv, conn)
+
+    # Ensure cpan_dl_list table exists and has data
+    cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='cpan_dl_list';")
+    if not cursor.fetchone():
+        dl_count = 0
+    else:
+        cursor.execute("SELECT COUNT(*) FROM cpan_dl_list;")
+        dl_count = cursor.fetchone()[0]
+    if dl_count == 0:
+        dl_csv = os.path.join(DATA_DIR, 'CPAN_DL_LIST.csv') if os.path.exists(os.path.join(DATA_DIR, 'CPAN_DL_LIST.csv')) else os.path.join(BASE_DIR, 'CPAN_DL_LIST.csv')
+        if os.path.exists(dl_csv):
+            print(f"Importing CPAN DL List from {dl_csv}...")
+            import_cpan_dl_list_csv(dl_csv, conn)
+
+        init_maan_tables(conn)
+
     conn.close()
 
 
@@ -560,6 +591,514 @@ def import_cpan_nodes_csv(csv_source, conn=None):
     return count
 
 
+def import_cpan_services_csv(csv_source, conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cpan_services (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            service_index INTEGER,
+            name TEXT,
+            service_type TEXT,
+            bandwidth_kbps REAL,
+            traffic_cir_kbps REAL,
+            traffic_eir_kbps REAL,
+            network_cir_kbps REAL,
+            network_eir_kbps REAL,
+            cos TEXT,
+            trust_ce_qos TEXT,
+            order_name TEXT,
+            client TEXT,
+            a_end TEXT,
+            z_end TEXT,
+            create_time TEXT,
+            update_time TEXT,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_services_name ON cpan_services(name);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_services_type ON cpan_services(service_type);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_services_client ON cpan_services(client);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_services_order ON cpan_services(order_name);')
+
+    if isinstance(csv_source, str) and os.path.exists(csv_source):
+        df = pd.read_csv(csv_source)
+    elif isinstance(csv_source, pd.DataFrame):
+        df = csv_source
+    else:
+        if close_conn:
+            conn.close()
+        return 0
+
+    records = []
+    for idx, row in df.iterrows():
+        name = str(row.get('Name', row.get('name', ''))).strip() if pd.notna(row.get('Name', row.get('name'))) else ''
+        if not name and pd.isna(row.get('Index', row.get('service_index'))):
+            continue
+
+        s_idx_val = row.get('Index', row.get('service_index'))
+        s_idx = int(s_idx_val) if pd.notna(s_idx_val) and str(s_idx_val).isdigit() else None
+        stype = str(row.get('Service Type', row.get('service_type', ''))).strip() if pd.notna(row.get('Service Type', row.get('service_type'))) else ''
+        bw_val = row.get('Bandwidth(Kbps)', row.get('bandwidth_kbps'))
+        bw = float(bw_val) if pd.notna(bw_val) else 0.0
+        t_cir_val = row.get('Traffic CIR(Kbps)', row.get('traffic_cir_kbps'))
+        t_cir = float(t_cir_val) if pd.notna(t_cir_val) else 0.0
+        t_eir_val = row.get('Traffic EIR(Kbps)', row.get('traffic_eir_kbps'))
+        t_eir = float(t_eir_val) if pd.notna(t_eir_val) else 0.0
+        n_cir_val = row.get('Network CIR(Kbps)', row.get('network_cir_kbps'))
+        n_cir = float(n_cir_val) if pd.notna(n_cir_val) else 0.0
+        n_eir_val = row.get('Network EIR(Kbps)', row.get('network_eir_kbps'))
+        n_eir = float(n_eir_val) if pd.notna(n_eir_val) else 0.0
+
+        cos = str(row.get('Cos', row.get('cos', ''))).strip() if pd.notna(row.get('Cos', row.get('cos'))) else ''
+        qos = str(row.get('Trust CE QoS', row.get('trust_ce_qos', ''))).strip() if pd.notna(row.get('Trust CE QoS', row.get('trust_ce_qos'))) else ''
+        order = str(row.get('Order Name', row.get('order_name', ''))).strip() if pd.notna(row.get('Order Name', row.get('order_name'))) else ''
+        client = str(row.get('Client', row.get('client', ''))).strip() if pd.notna(row.get('Client', row.get('client'))) else ''
+        a_end = str(row.get('A End', row.get('a_end', ''))).strip() if pd.notna(row.get('A End', row.get('a_end'))) else ''
+        z_end = str(row.get('Z End', row.get('z_end', ''))).strip() if pd.notna(row.get('Z End', row.get('z_end'))) else ''
+        c_time = str(row.get('Create Time', row.get('create_time', ''))).strip() if pd.notna(row.get('Create Time', row.get('create_time'))) else ''
+        u_time = str(row.get('Update Time', row.get('update_time', ''))).strip() if pd.notna(row.get('Update Time', row.get('update_time'))) else ''
+        desc = str(row.get('Description', row.get('description', ''))).strip() if pd.notna(row.get('Description', row.get('description'))) else ''
+
+        records.append((
+            s_idx, name, stype, bw, t_cir, t_eir, n_cir, n_eir,
+            cos, qos, order, client, a_end, z_end, c_time, u_time, desc
+        ))
+
+    cursor.execute('DELETE FROM cpan_services;')
+    cursor.executemany('''
+        INSERT INTO cpan_services (
+            service_index, name, service_type, bandwidth_kbps,
+            traffic_cir_kbps, traffic_eir_kbps, network_cir_kbps, network_eir_kbps,
+            cos, trust_ce_qos, order_name, client, a_end, z_end,
+            create_time, update_time, description
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    ''', records)
+
+    conn.commit()
+    count = len(records)
+    print(f"Imported {count} CPAN services into cpan_services table.")
+    if close_conn:
+        conn.close()
+    return count
+
+
+def import_cpan_dl_list_csv(csv_source, conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cpan_dl_list (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            media_type TEXT,
+            bandwidth TEXT,
+            signal_type TEXT,
+            direction TEXT,
+            a_end TEXT,
+            z_end TEXT,
+            alarm_status TEXT,
+            cir_utilization TEXT,
+            bandwidth_utilization TEXT,
+            order_name TEXT,
+            creator TEXT,
+            client TEXT,
+            cost TEXT,
+            create_time TEXT,
+            update_time TEXT,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_dl_name ON cpan_dl_list(name);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_dl_creator ON cpan_dl_list(creator);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_cpan_dl_order ON cpan_dl_list(order_name);')
+
+    if isinstance(csv_source, str) and os.path.exists(csv_source):
+        df = pd.read_csv(csv_source)
+    elif isinstance(csv_source, pd.DataFrame):
+        df = csv_source
+    else:
+        if close_conn:
+            conn.close()
+        return 0
+
+    records = []
+    for idx, row in df.iterrows():
+        name = str(row.get('Name', row.get('name', ''))).strip() if pd.notna(row.get('Name', row.get('name'))) else ''
+        if not name:
+            continue
+
+        media_type = str(row.get('Media Type', row.get('media_type', ''))).strip() if pd.notna(row.get('Media Type', row.get('media_type'))) else ''
+        bandwidth = str(row.get('Bandwidth', row.get('bandwidth', ''))).strip() if pd.notna(row.get('Bandwidth', row.get('bandwidth'))) else ''
+        signal_type = str(row.get('Signal Type', row.get('signal_type', ''))).strip() if pd.notna(row.get('Signal Type', row.get('signal_type'))) else ''
+        direction = str(row.get('Direction', row.get('direction', ''))).strip() if pd.notna(row.get('Direction', row.get('direction'))) else ''
+        a_end = str(row.get('A End', row.get('a_end', ''))).strip() if pd.notna(row.get('A End', row.get('a_end'))) else ''
+        z_end = str(row.get('Z End', row.get('z_end', ''))).strip() if pd.notna(row.get('Z End', row.get('z_end'))) else ''
+        alarm_status = str(row.get('Alarm Status', row.get('alarm_status', ''))).strip() if pd.notna(row.get('Alarm Status', row.get('alarm_status'))) else ''
+        cir_util = str(row.get('CIR Utilization Ratio(%)', row.get('cir_utilization', ''))).strip() if pd.notna(row.get('CIR Utilization Ratio(%)', row.get('cir_utilization'))) else ''
+        bw_util = str(row.get('Bandwidth Utilization Ratio(%)', row.get('bandwidth_utilization', ''))).strip() if pd.notna(row.get('Bandwidth Utilization Ratio(%)', row.get('bandwidth_utilization'))) else ''
+        order_name = str(row.get('Order Name', row.get('order_name', ''))).strip() if pd.notna(row.get('Order Name', row.get('order_name'))) else ''
+        creator = str(row.get('Creator', row.get('creator', ''))).strip() if pd.notna(row.get('Creator', row.get('creator'))) else ''
+        client = str(row.get('Client', row.get('client', ''))).strip() if pd.notna(row.get('Client', row.get('client'))) else ''
+        cost = str(row.get('Cost', row.get('cost', ''))).strip() if pd.notna(row.get('Cost', row.get('cost'))) else ''
+        create_time = str(row.get('Create Time', row.get('create_time', ''))).strip() if pd.notna(row.get('Create Time', row.get('create_time'))) else ''
+        update_time = str(row.get('Update Time', row.get('update_time', ''))).strip() if pd.notna(row.get('Update Time', row.get('update_time'))) else ''
+        description = str(row.get('Description', row.get('description', ''))).strip() if pd.notna(row.get('Description', row.get('description'))) else ''
+
+        records.append((
+            name, media_type, bandwidth, signal_type, direction,
+            a_end, z_end, alarm_status, cir_util, bw_util,
+            order_name, creator, client, cost, create_time, update_time, description
+        ))
+
+    cursor.execute('DELETE FROM cpan_dl_list;')
+    cursor.executemany('''
+        INSERT INTO cpan_dl_list (
+            name, media_type, bandwidth, signal_type, direction,
+            a_end, z_end, alarm_status, cir_utilization, bandwidth_utilization,
+            order_name, creator, client, cost, create_time, update_time, description
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    ''', records)
+
+    conn.commit()
+    count = len(records)
+    print(f"Imported {count} CPAN DL List records into cpan_dl_list table.")
+    if close_conn:
+        conn.close()
+    return count
+
+
+def get_row_val(row, col_names, default=""):
+    for c in col_names:
+        for key in row.index:
+            if str(key).strip().lower() == c.strip().lower():
+                val = row[key]
+                if pd.notna(val) and val is not None:
+                    s_val = str(val).strip()
+                    if s_val.lower() not in ('nan', 'none', '<na>', 'null'):
+                        return s_val
+    return default
+
+
+def create_maan_tables_schema(conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+
+    # Create MAAN Nodes Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS maan_nodes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ne_ip TEXT,
+            location TEXT,
+            type TEXT,
+            ssa TEXT,
+            phase TEXT,
+            ne_name TEXT,
+            dcc_ip TEXT,
+            software_version TEXT,
+            hardware_version TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_maan_ne_ip ON maan_nodes(ne_ip);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_maan_location ON maan_nodes(location);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_maan_type ON maan_nodes(type);')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_maan_ssa ON maan_nodes(ssa);')
+
+    # Create MAAN Services Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS maan_services (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            service_index INTEGER,
+            name TEXT,
+            service_type TEXT,
+            bandwidth_kbps REAL DEFAULT 0.0,
+            traffic_cir_kbps REAL DEFAULT 0.0,
+            a_end TEXT,
+            z_end TEXT,
+            order_name TEXT,
+            client TEXT,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_maan_srv_name ON maan_services(name);')
+
+    # Create MAAN TLS Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS maan_tls (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            media_type TEXT,
+            bandwidth TEXT,
+            signal_type TEXT,
+            direction TEXT,
+            a_end TEXT,
+            z_end TEXT,
+            alarm_status TEXT,
+            cir_utilization TEXT,
+            bandwidth_utilization TEXT,
+            order_name TEXT,
+            creator TEXT,
+            client TEXT,
+            cost TEXT,
+            create_time TEXT,
+            update_time TEXT,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    ''')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_maan_tls_name ON maan_tls(name);')
+
+    conn.commit()
+    if close_conn:
+        conn.close()
+
+
+def init_maan_tables(conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+
+    create_maan_tables_schema(conn)
+
+    # Seed MAAN Nodes from GJAHMPROV1_Node_Report0.csv or bts_sites if empty
+    cursor.execute("SELECT COUNT(*) FROM maan_nodes;")
+    if cursor.fetchone()[0] == 0:
+        maan_csv = os.path.join(DATA_DIR, 'GJAHMPROV1_Node_Report0.csv') if os.path.exists(os.path.join(DATA_DIR, 'GJAHMPROV1_Node_Report0.csv')) else os.path.join(BASE_DIR, 'GJAHMPROV1_Node_Report0.csv')
+        if os.path.exists(maan_csv):
+            print(f"Importing MAAN Nodes from {maan_csv}...")
+            import_maan_nodes_csv(maan_csv, conn)
+        else:
+            cursor.execute("""
+                SELECT DISTINCT
+                    COALESCE(NULLIF(mgmt_ip, ''), NULLIF(endpoint_ip, ''), NULLIF(enodeb_address, ''), '10.228.0.1') as ne_ip,
+                    COALESCE(NULLIF(location, ''), NULLIF(site_name, ''), 'GUJARAT') as location,
+                    COALESCE(NULLIF(endpoint_type, ''), NULLIF(endpoint_node_router, ''), 'MAAN-Router') as type,
+                    COALESCE(NULLIF(ssa, ''), 'GJ_SSA') as ssa,
+                    'PH1' as phase,
+                    (site_id || '_' || COALESCE(site_name, '')) as ne_name,
+                    COALESCE(NULLIF(mgmt_ip, ''), '') as dcc_ip
+                FROM bts_sites
+                WHERE LOWER(cpan_maan_vsat) LIKE '%maan%';
+            """)
+            m_nodes = cursor.fetchall()
+            if m_nodes:
+                cursor.executemany("""
+                    INSERT INTO maan_nodes (ne_ip, location, type, ssa, phase, ne_name, dcc_ip)
+                    VALUES (?, ?, ?, ?, ?, ?, ?);
+                """, [tuple(r) for r in m_nodes])
+                print(f"Seeded {len(m_nodes)} MAAN nodes into maan_nodes table.")
+
+    # Seed MAAN Services from bts_sites if empty
+    cursor.execute("SELECT COUNT(*) FROM maan_services;")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+            SELECT DISTINCT
+                (site_id || ' - MAAN Service') as name,
+                COALESCE(NULLIF(maan_vpn, ''), 'L3VPN') as service_type,
+                100000.0 as bandwidth_kbps,
+                50000.0 as traffic_cir_kbps,
+                COALESCE(NULLIF(endpoint_node_router, ''), site_name) as a_end,
+                COALESCE(NULLIF(location, ''), ssa) as z_end,
+                COALESCE(NULLIF(site_id, ''), 'ORD_MAAN') as order_name,
+                COALESCE(NULLIF(ssa, ''), 'BSNL_MAAN') as client
+            FROM bts_sites
+            WHERE LOWER(cpan_maan_vsat) LIKE '%maan%';
+        """)
+        m_srvs = cursor.fetchall()
+        if m_srvs:
+            cursor.executemany("""
+                INSERT INTO maan_services (name, service_type, bandwidth_kbps, traffic_cir_kbps, a_end, z_end, order_name, client)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            """, [tuple(r) for r in m_srvs])
+            print(f"Seeded {len(m_srvs)} MAAN services into maan_services table.")
+
+    # Seed MAAN TLS from bts_sites if empty
+    cursor.execute("SELECT COUNT(*) FROM maan_tls;")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("""
+            SELECT DISTINCT
+                (site_id || ' - MAAN TLS Circuit') as name,
+                'Fiber' as media_type,
+                '100M' as bandwidth,
+                'Eth' as signal_type,
+                COALESCE(NULLIF(endpoint_node_router, ''), site_name) as a_end,
+                COALESCE(NULLIF(location, ''), ssa) as z_end,
+                'Normal' as alarm_status,
+                COALESCE(NULLIF(site_id, ''), 'ORD_TLS') as order_name,
+                COALESCE(NULLIF(ssa, ''), 'BSNL_TLS') as client
+            FROM bts_sites
+            WHERE LOWER(cpan_maan_vsat) LIKE '%maan%';
+        """)
+        m_tls = cursor.fetchall()
+        if m_tls:
+            cursor.executemany("""
+                INSERT INTO maan_tls (name, media_type, bandwidth, signal_type, a_end, z_end, alarm_status, order_name, client)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """, [tuple(r) for r in m_tls])
+            print(f"Seeded {len(m_tls)} MAAN TLS records into maan_tls table.")
+
+    conn.commit()
+    if close_conn:
+        conn.close()
+
+
+def import_maan_nodes_csv(csv_source, conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+
+    create_maan_tables_schema(conn)
+
+    if isinstance(csv_source, str) and os.path.exists(csv_source):
+        df = pd.read_csv(csv_source)
+    elif isinstance(csv_source, pd.DataFrame):
+        df = csv_source
+    else:
+        if close_conn:
+            conn.close()
+        return 0
+
+    records = []
+    for idx, row in df.iterrows():
+        ne_ip = get_row_val(row, ['Node IP or Name', 'NE IP', 'ne_ip', 'ip'])
+        location = get_row_val(row, ['Location', 'location', 'site_name', 'site'])
+        ne_type = get_row_val(row, ['Product Name', 'Product Type', 'Type', 'type', 'hardware_type'])
+        ssa = get_row_val(row, ['Partition Label', 'SSA', 'ssa', 'circle'])
+        phase = get_row_val(row, ['Product code', 'Version', 'Phase', 'phase'])
+        ne_name = get_row_val(row, ['Node Label', 'NE Name', 'ne_name', 'node_name'])
+        dcc_ip = get_row_val(row, ['Ethernet IP', 'DCC IP', 'dcc_ip', 'dcc'])
+
+        if not ne_ip and not location and not ne_name:
+            continue
+
+        records.append((ne_ip, location, ne_type, ssa, phase, ne_name, dcc_ip))
+
+    cursor.execute('DELETE FROM maan_nodes;')
+    cursor.executemany('''
+        INSERT INTO maan_nodes (ne_ip, location, type, ssa, phase, ne_name, dcc_ip)
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+    ''', records)
+    conn.commit()
+    count = len(records)
+    print(f"Imported {count} MAAN nodes into maan_nodes table.")
+    if close_conn:
+        conn.close()
+    return count
+
+
+def import_maan_services_csv(csv_source, conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+
+    init_maan_tables(conn)
+
+    if isinstance(csv_source, str) and os.path.exists(csv_source):
+        df = pd.read_csv(csv_source)
+    elif isinstance(csv_source, pd.DataFrame):
+        df = csv_source
+    else:
+        if close_conn:
+            conn.close()
+        return 0
+
+    records = []
+    for idx, row in df.iterrows():
+        name = str(row.get('Name', row.get('name', ''))).strip() if pd.notna(row.get('Name', row.get('name'))) else ''
+        if not name:
+            continue
+        service_type = str(row.get('Service Type', row.get('service_type', ''))).strip() if pd.notna(row.get('Service Type', row.get('service_type'))) else ''
+        bw = float(row.get('Bandwidth(Kbps)', row.get('bandwidth_kbps', 0))) if pd.notna(row.get('Bandwidth(Kbps)', row.get('bandwidth_kbps'))) else 0.0
+        t_cir = float(row.get('Traffic CIR(Kbps)', row.get('traffic_cir_kbps', 0))) if pd.notna(row.get('Traffic CIR(Kbps)', row.get('traffic_cir_kbps'))) else 0.0
+        order = str(row.get('Order Name', row.get('order_name', ''))).strip() if pd.notna(row.get('Order Name', row.get('order_name'))) else ''
+        client = str(row.get('Client', row.get('client', ''))).strip() if pd.notna(row.get('Client', row.get('client'))) else ''
+        a_end = str(row.get('A End', row.get('a_end', ''))).strip() if pd.notna(row.get('A End', row.get('a_end'))) else ''
+        z_end = str(row.get('Z End', row.get('z_end', ''))).strip() if pd.notna(row.get('Z End', row.get('z_end'))) else ''
+        desc = str(row.get('Description', row.get('description', ''))).strip() if pd.notna(row.get('Description', row.get('description'))) else ''
+        records.append((idx + 1, name, service_type, bw, t_cir, order, client, a_end, z_end, desc))
+
+    cursor.execute('DELETE FROM maan_services;')
+    cursor.executemany('''
+        INSERT INTO maan_services (service_index, name, service_type, bandwidth_kbps, traffic_cir_kbps, order_name, client, a_end, z_end, description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    ''', records)
+    conn.commit()
+    count = len(records)
+    print(f"Imported {count} MAAN services into maan_services table.")
+    if close_conn:
+        conn.close()
+    return count
+
+
+def import_maan_tls_csv(csv_source, conn=None):
+    close_conn = False
+    if conn is None:
+        conn = get_db_connection()
+        close_conn = True
+    cursor = conn.cursor()
+
+    init_maan_tables(conn)
+
+    if isinstance(csv_source, str) and os.path.exists(csv_source):
+        df = pd.read_csv(csv_source)
+    elif isinstance(csv_source, pd.DataFrame):
+        df = csv_source
+    else:
+        if close_conn:
+            conn.close()
+        return 0
+
+    records = []
+    for idx, row in df.iterrows():
+        name = str(row.get('Name', row.get('name', ''))).strip() if pd.notna(row.get('Name', row.get('name'))) else ''
+        if not name:
+            continue
+        media_type = str(row.get('Media Type', row.get('media_type', ''))).strip() if pd.notna(row.get('Media Type', row.get('media_type'))) else ''
+        bandwidth = str(row.get('Bandwidth', row.get('bandwidth', ''))).strip() if pd.notna(row.get('Bandwidth', row.get('bandwidth'))) else ''
+        signal_type = str(row.get('Signal Type', row.get('signal_type', ''))).strip() if pd.notna(row.get('Signal Type', row.get('signal_type'))) else ''
+        a_end = str(row.get('A End', row.get('a_end', ''))).strip() if pd.notna(row.get('A End', row.get('a_end'))) else ''
+        z_end = str(row.get('Z End', row.get('z_end', ''))).strip() if pd.notna(row.get('Z End', row.get('z_end'))) else ''
+        alarm_status = str(row.get('Alarm Status', row.get('alarm_status', ''))).strip() if pd.notna(row.get('Alarm Status', row.get('alarm_status'))) else ''
+        order_name = str(row.get('Order Name', row.get('order_name', ''))).strip() if pd.notna(row.get('Order Name', row.get('order_name'))) else ''
+        client = str(row.get('Client', row.get('client', ''))).strip() if pd.notna(row.get('Client', row.get('client'))) else ''
+        desc = str(row.get('Description', row.get('description', ''))).strip() if pd.notna(row.get('Description', row.get('description'))) else ''
+        records.append((name, media_type, bandwidth, signal_type, a_end, z_end, alarm_status, order_name, client, desc))
+
+    cursor.execute('DELETE FROM maan_tls;')
+    cursor.executemany('''
+        INSERT INTO maan_tls (name, media_type, bandwidth, signal_type, a_end, z_end, alarm_status, order_name, client, description)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    ''', records)
+    conn.commit()
+    count = len(records)
+    print(f"Imported {count} MAAN TLS records into maan_tls table.")
+    if close_conn:
+        conn.close()
+    return count
+
+
 if __name__ == '__main__':
     init_db(force_reimport=True)
+
+
 

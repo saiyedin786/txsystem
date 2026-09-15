@@ -29,6 +29,8 @@ app.add_template_global(min, 'min')
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA cache_size = -65536;")  # 64 MB in-memory SQL cache
+    conn.execute("PRAGMA temp_store = MEMORY;")   # Keep temporary tables and indices in RAM
     return conn
 
 
@@ -232,7 +234,10 @@ def parse_search_query(query):
             items = tokens
         else:
             items = [raw]
-    return items
+    return list(dict.fromkeys(items))
+
+
+app.add_template_global(parse_search_query, 'parse_multi_items')
 
 
 def get_ssa_summary():
@@ -2097,7 +2102,7 @@ def cpan_nodes():
         
     try:
         per_page = int(request.args.get('per_page', 25))
-        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 20000):
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000):
             per_page = 25
     except ValueError:
         per_page = 25
@@ -2142,7 +2147,7 @@ def api_search_cpan_nodes():
         
     try:
         per_page = int(request.args.get('per_page', 25))
-        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 20000):
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000):
             per_page = 25
     except ValueError:
         per_page = 25
@@ -2416,9 +2421,1593 @@ def export_cpan_nodes():
             download_name=filename,
             mimetype='text/csv'
         )
+
+
+# ==========================================
+# CPAN DL LIST & SERVICES ROUTES
+# ==========================================
+
+VALID_CPAN_DL_SEARCH_COLUMNS = {
+    'all': 'Generic (All Columns)',
+    'name': 'Name',
+    'media_type': 'Media Type',
+    'bandwidth': 'Bandwidth',
+    'signal_type': 'Signal Type',
+    'a_end': 'A End',
+    'z_end': 'Z End',
+    'alarm_status': 'Alarm Status',
+    'client': 'Client'
+}
+
+ALL_CPAN_DL_SEARCHABLE_COLS = [
+    'name', 'media_type', 'bandwidth', 'signal_type', 'direction',
+    'a_end', 'z_end', 'alarm_status', 'order_name', 'creator', 'client', 'description'
+]
+
+VALID_CPAN_DL_SORT_COLUMNS = {
+    'id': 'cpan_dl_list.id',
+    'name': 'name',
+    'media_type': 'media_type',
+    'bandwidth': 'bandwidth',
+    'signal_type': 'signal_type',
+    'a_end': 'a_end',
+    'z_end': 'z_end',
+    'alarm_status': 'alarm_status'
+}
+
+
+def search_cpan_dl_list(query="", search_by="all", selected_media="", page=1, per_page=25, sort_by="id", sort_order="asc"):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if search_by not in VALID_CPAN_DL_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    sort_col = VALID_CPAN_DL_SORT_COLUMNS.get(sort_by, 'cpan_dl_list.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
+    cursor.execute("SELECT COUNT(*) FROM cpan_dl_list;")
+    total_records = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT DISTINCT media_type FROM cpan_dl_list WHERE media_type IS NOT NULL AND media_type != '' ORDER BY media_type ASC;")
+    unique_media_types = [r['media_type'] for r in cursor.fetchall()]
+    
+    where_clauses = []
+    params = []
+    
+    if query:
+        q_like = f"%{query.strip()}%"
+        if search_by != "all" and search_by in ALL_CPAN_DL_SEARCHABLE_COLS:
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_DL_SEARCHABLE_COLS]
+            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+            params.extend([q_like] * len(ALL_CPAN_DL_SEARCHABLE_COLS))
+            
+    if selected_media:
+        where_clauses.append("LOWER(media_type) = LOWER(?)")
+        params.append(selected_media.strip())
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    count_sql = f"SELECT COUNT(*) FROM cpan_dl_list {where_sql};"
+    cursor.execute(count_sql, params)
+    filtered_count = cursor.fetchone()[0]
+    
+    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * per_page
+    
+    data_sql = f"SELECT * FROM cpan_dl_list {where_sql} ORDER BY {sort_col} {sort_dir} LIMIT ? OFFSET ?;"
+    cursor.execute(data_sql, params + [per_page, offset])
+    rows = [dict(r) for r in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        'rows': rows,
+        'total_records': total_records,
+        'filtered_count': filtered_count,
+        'unique_media_types': unique_media_types,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'query': query,
+        'search_by': search_by,
+        'selected_media': selected_media,
+        'sort_by': sort_by,
+        'sort_order': sort_order
+    }
+
+
+@app.route('/cpan-dl-list')
+@login_required
+def cpan_dl_list():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_media = request.args.get('media', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+        
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000):
+            per_page = 25
+    except ValueError:
+        per_page = 25
+        
+    res = search_cpan_dl_list(query, search_by, selected_media, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    
+    return render_template(
+        'cpan_dl_list.html',
+        rows=res['rows'],
+        total_records=res['total_records'],
+        filtered_count=res['filtered_count'],
+        unique_media_types=res['unique_media_types'],
+        page=res['page'],
+        per_page=res['per_page'],
+        total_pages=res['total_pages'],
+        query=query,
+        search_by=search_by,
+        selected_media=selected_media,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search_columns=VALID_CPAN_DL_SEARCH_COLUMNS
+    )
+
+
+@app.route('/export-cpan-dl-list')
+@login_required
+def export_cpan_dl_list():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_media = request.args.get('media', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    export_format = request.args.get('format', 'csv').strip().lower()
+    
+    sort_col = VALID_CPAN_DL_SORT_COLUMNS.get(sort_by, 'cpan_dl_list.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
+    conn = get_db()
+    
+    where_clauses = []
+    params = []
+    
+    if search_by not in VALID_CPAN_DL_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    if query:
+        q_like = f"%{query.strip()}%"
+        if search_by != "all" and search_by in ALL_CPAN_DL_SEARCHABLE_COLS:
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_DL_SEARCHABLE_COLS]
+            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+            params.extend([q_like] * len(ALL_CPAN_DL_SEARCHABLE_COLS))
+            
+    if selected_media:
+        where_clauses.append("LOWER(media_type) = LOWER(?)")
+        params.append(selected_media)
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    query_sql = f"""
+        SELECT name AS 'Name', media_type AS 'Media Type', bandwidth AS 'Bandwidth',
+               signal_type AS 'Signal Type', direction AS 'Direction', a_end AS 'A End',
+               z_end AS 'Z End', alarm_status AS 'Alarm Status', cir_utilization AS 'CIR Util %',
+               bandwidth_utilization AS 'BW Util %', order_name AS 'Order Name',
+               creator AS 'Creator', client AS 'Client', create_time AS 'Create Time',
+               update_time AS 'Update Time', description AS 'Description'
+        FROM cpan_dl_list {where_sql} ORDER BY {sort_col} {sort_dir};
+    """
+    df = pd.read_sql_query(query_sql, conn, params=params)
+    conn.close()
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    if export_format in ('excel', 'xlsx'):
+        filename = f"CPAN_DL_List_{timestamp}.xlsx"
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='CPAN DL List')
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
+        filename = f"CPAN_DL_List_{timestamp}.csv"
+        output = BytesIO()
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
+
+
+VALID_CPAN_SERVICES_SEARCH_COLUMNS = {
+    'all': 'Generic (All Columns)',
+    'name': 'Name',
+    'service_type': 'Service Type',
+    'order_name': 'Order Name',
+    'client': 'Client',
+    'a_end': 'A End',
+    'z_end': 'Z End'
+}
+
+ALL_CPAN_SERVICES_SEARCHABLE_COLS = [
+    'name', 'service_type', 'cos', 'trust_ce_qos', 'order_name',
+    'client', 'a_end', 'z_end', 'description'
+]
+
+VALID_CPAN_SERVICES_SORT_COLUMNS = {
+    'id': 'cpan_services.id',
+    'name': 'name',
+    'service_type': 'service_type',
+    'bandwidth_kbps': 'bandwidth_kbps',
+    'traffic_cir_kbps': 'traffic_cir_kbps',
+    'order_name': 'order_name',
+    'client': 'client',
+    'a_end': 'a_end',
+    'z_end': 'z_end'
+}
+
+
+def search_cpan_services(query="", search_by="all", selected_type="", page=1, per_page=25, sort_by="id", sort_order="asc"):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if search_by not in VALID_CPAN_SERVICES_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    sort_col = VALID_CPAN_SERVICES_SORT_COLUMNS.get(sort_by, 'cpan_services.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
+    cursor.execute("SELECT COUNT(*) FROM cpan_services;")
+    total_records = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT DISTINCT service_type FROM cpan_services WHERE service_type IS NOT NULL AND service_type != '' ORDER BY service_type ASC;")
+    unique_service_types = [r['service_type'] for r in cursor.fetchall()]
+    
+    where_clauses = []
+    params = []
+    
+    if query:
+        q_like = f"%{query.strip()}%"
+        if search_by != "all" and search_by in ALL_CPAN_SERVICES_SEARCHABLE_COLS:
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_SERVICES_SEARCHABLE_COLS]
+            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+            params.extend([q_like] * len(ALL_CPAN_SERVICES_SEARCHABLE_COLS))
+            
+    if selected_type:
+        where_clauses.append("LOWER(service_type) = LOWER(?)")
+        params.append(selected_type.strip())
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    count_sql = f"SELECT COUNT(*) FROM cpan_services {where_sql};"
+    cursor.execute(count_sql, params)
+    filtered_count = cursor.fetchone()[0]
+    
+    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * per_page
+    
+    data_sql = f"SELECT * FROM cpan_services {where_sql} ORDER BY {sort_col} {sort_dir} LIMIT ? OFFSET ?;"
+    cursor.execute(data_sql, params + [per_page, offset])
+    rows = [dict(r) for r in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        'rows': rows,
+        'total_records': total_records,
+        'filtered_count': filtered_count,
+        'unique_service_types': unique_service_types,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'query': query,
+        'search_by': search_by,
+        'selected_type': selected_type,
+        'sort_by': sort_by,
+        'sort_order': sort_order
+    }
+
+
+@app.route('/cpan-services')
+@login_required
+def cpan_services():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+        
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000):
+            per_page = 25
+    except ValueError:
+        per_page = 25
+        
+    res = search_cpan_services(query, search_by, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    
+    return render_template(
+        'cpan_services.html',
+        rows=res['rows'],
+        total_records=res['total_records'],
+        filtered_count=res['filtered_count'],
+        unique_service_types=res['unique_service_types'],
+        page=res['page'],
+        per_page=res['per_page'],
+        total_pages=res['total_pages'],
+        query=query,
+        search_by=search_by,
+        selected_type=selected_type,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search_columns=VALID_CPAN_SERVICES_SEARCH_COLUMNS
+    )
+
+
+@app.route('/export-cpan-services')
+@login_required
+def export_cpan_services():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    export_format = request.args.get('format', 'csv').strip().lower()
+    
+    sort_col = VALID_CPAN_SERVICES_SORT_COLUMNS.get(sort_by, 'cpan_services.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
+    conn = get_db()
+    
+    where_clauses = []
+    params = []
+    
+    if search_by not in VALID_CPAN_SERVICES_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    if query:
+        q_like = f"%{query.strip()}%"
+        if search_by != "all" and search_by in ALL_CPAN_SERVICES_SEARCHABLE_COLS:
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_CPAN_SERVICES_SEARCHABLE_COLS]
+            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+            params.extend([q_like] * len(ALL_CPAN_SERVICES_SEARCHABLE_COLS))
+            
+    if selected_type:
+        where_clauses.append("LOWER(service_type) = LOWER(?)")
+        params.append(selected_type)
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    query_sql = f"""
+        SELECT name AS 'Name', service_type AS 'Service Type', bandwidth_kbps AS 'Bandwidth (Kbps)',
+               traffic_cir_kbps AS 'Traffic CIR (Kbps)', traffic_eir_kbps AS 'Traffic EIR (Kbps)',
+               network_cir_kbps AS 'Network CIR (Kbps)', network_eir_kbps AS 'Network EIR (Kbps)',
+               cos AS 'Cos', trust_ce_qos AS 'Trust CE QoS', order_name AS 'Order Name',
+               client AS 'Client', a_end AS 'A End', z_end AS 'Z End', create_time AS 'Create Time',
+               update_time AS 'Update Time', description AS 'Description'
+        FROM cpan_services {where_sql} ORDER BY {sort_col} {sort_dir};
+    """
+    df = pd.read_sql_query(query_sql, conn, params=params)
+    conn.close()
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    if export_format in ('excel', 'xlsx'):
+        filename = f"CPAN_Services_{timestamp}.xlsx"
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='CPAN Services')
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
+        filename = f"CPAN_Services_{timestamp}.csv"
+        output = BytesIO()
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='text/csv'
+        )
+
+
+# ==========================================
+# CPAN DL LIST API & CRUD ROUTES
+# ==========================================
+
+@app.route('/api/cpan-dl-list/search')
+@login_required
+def api_search_cpan_dl_list():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_media = request.args.get('media', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+        
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000):
+            per_page = 25
+    except ValueError:
+        per_page = 25
+        
+    res = search_cpan_dl_list(query, search_by, selected_media, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return jsonify(res)
+
+
+@app.route('/cpan-dl/new', methods=['POST'])
+@login_required
+def create_cpan_dl():
+    name = request.form.get('name', '').strip()
+    media_type = request.form.get('media_type', '').strip()
+    bandwidth = request.form.get('bandwidth', '').strip()
+    signal_type = request.form.get('signal_type', '').strip()
+    direction = request.form.get('direction', 'BI-DIR').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    alarm_status = request.form.get('alarm_status', '-').strip()
+    cir_utilization = request.form.get('cir_utilization', '').strip()
+    bandwidth_utilization = request.form.get('bandwidth_utilization', '').strip()
+    order_name = request.form.get('order_name', '').strip()
+    creator = request.form.get('creator', session.get('username', '')).strip()
+    client = request.form.get('client', '').strip()
+    cost = request.form.get('cost', '1.0').strip()
+    description = request.form.get('description', '').strip()
+    
+    if not name:
+        flash('Name is a required field for CPAN DL record.', 'warning')
+        return redirect(url_for('cpan_dl_list'))
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO cpan_dl_list (
+                name, media_type, bandwidth, signal_type, direction,
+                a_end, z_end, alarm_status, cir_utilization, bandwidth_utilization,
+                order_name, creator, client, cost, description
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        ''', (
+            name, media_type, bandwidth, signal_type, direction,
+            a_end, z_end, alarm_status, cir_utilization, bandwidth_utilization,
+            order_name, creator, client, cost, description
+        ))
+        conn.commit()
+        flash(f'CPAN DL Record "{name}" added successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error adding CPAN DL Record: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_dl_list'))
+
+
+@app.route('/api/cpan-dl/<int:dl_id>')
+@login_required
+def get_cpan_dl(dl_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM cpan_dl_list WHERE id = ?;", (dl_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row is None:
+        return jsonify({'error': 'CPAN DL Record not found'}), 404
+        
+    return jsonify(dict(row))
+
+
+@app.route('/cpan-dl/<int:dl_id>/edit', methods=['POST'])
+@login_required
+def edit_cpan_dl(dl_id):
+    name = request.form.get('name', '').strip()
+    media_type = request.form.get('media_type', '').strip()
+    bandwidth = request.form.get('bandwidth', '').strip()
+    signal_type = request.form.get('signal_type', '').strip()
+    direction = request.form.get('direction', 'BI-DIR').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    alarm_status = request.form.get('alarm_status', '-').strip()
+    cir_utilization = request.form.get('cir_utilization', '').strip()
+    bandwidth_utilization = request.form.get('bandwidth_utilization', '').strip()
+    order_name = request.form.get('order_name', '').strip()
+    creator = request.form.get('creator', '').strip()
+    client = request.form.get('client', '').strip()
+    cost = request.form.get('cost', '1.0').strip()
+    description = request.form.get('description', '').strip()
+    
+    if not name:
+        flash('Name is required.', 'warning')
+        return redirect(url_for('cpan_dl_list'))
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            UPDATE cpan_dl_list
+            SET name = ?, media_type = ?, bandwidth = ?, signal_type = ?, direction = ?,
+                a_end = ?, z_end = ?, alarm_status = ?, cir_utilization = ?, bandwidth_utilization = ?,
+                order_name = ?, creator = ?, client = ?, cost = ?, description = ?
+            WHERE id = ?;
+        ''', (
+            name, media_type, bandwidth, signal_type, direction,
+            a_end, z_end, alarm_status, cir_utilization, bandwidth_utilization,
+            order_name, creator, client, cost, description, dl_id
+        ))
+        conn.commit()
+        flash(f'CPAN DL Record #{dl_id} updated successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error updating CPAN DL Record: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_dl_list'))
+
+
+@app.route('/cpan-dl/<int:dl_id>/delete', methods=['POST'])
+@login_required
+def delete_cpan_dl(dl_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM cpan_dl_list WHERE id = ?;", (dl_id,))
+        conn.commit()
+        flash(f'CPAN DL Record #{dl_id} deleted successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error deleting CPAN DL Record: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_dl_list'))
+
+
+@app.route('/upload-cpan-dl-list', methods=['POST'])
+@login_required
+def upload_cpan_dl_list():
+    if 'file' not in request.files:
+        flash('No file uploaded.', 'danger')
+        return redirect(url_for('cpan_dl_list'))
+        
+    file = request.files['file']
+    if file.filename == '':
+        flash('No file selected.', 'warning')
+        return redirect(url_for('cpan_dl_list'))
+        
+    if not (file.filename.endswith('.csv') or file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        flash('Invalid file format. Please upload a CSV or Excel file (e.g. CPAN_DL_LIST.csv).', 'danger')
+        return redirect(url_for('cpan_dl_list'))
+        
+    try:
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file)
+            
+        from init_db import import_cpan_dl_list_csv
+        imported_count = import_cpan_dl_list_csv(df)
+        flash(f'Successfully uploaded and processed {imported_count} CPAN DL records into database!', 'success')
+    except Exception as e:
+        flash(f'Error processing file: {str(e)}', 'danger')
+        
+    return redirect(url_for('cpan_dl_list'))
+
+
+# ==========================================
+# CPAN SERVICES API & CRUD ROUTES
+# ==========================================
+
+@app.route('/api/cpan-services/search')
+@login_required
+def api_search_cpan_services():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    
+    try:
+        page = int(request.args.get('page', 1))
+    except ValueError:
+        page = 1
+        
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000):
+            per_page = 25
+    except ValueError:
+        per_page = 25
+        
+    res = search_cpan_services(query, search_by, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return jsonify(res)
+
+
+@app.route('/cpan-service/new', methods=['POST'])
+@login_required
+def create_cpan_service():
+    name = request.form.get('name', '').strip()
+    service_type = request.form.get('service_type', '').strip()
+    bandwidth_kbps = request.form.get('bandwidth_kbps', '0.0').strip()
+    traffic_cir_kbps = request.form.get('traffic_cir_kbps', '0.0').strip()
+    traffic_eir_kbps = request.form.get('traffic_eir_kbps', '0.0').strip()
+    network_cir_kbps = request.form.get('network_cir_kbps', '0.0').strip()
+    network_eir_kbps = request.form.get('network_eir_kbps', '0.0').strip()
+    cos = request.form.get('cos', '').strip()
+    trust_ce_qos = request.form.get('trust_ce_qos', '').strip()
+    order_name = request.form.get('order_name', '').strip()
+    client = request.form.get('client', '').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    description = request.form.get('description', '').strip()
+    
+    if not name:
+        flash('Service Name is required.', 'warning')
+        return redirect(url_for('cpan_services'))
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO cpan_services (
+                name, service_type, bandwidth_kbps, traffic_cir_kbps, traffic_eir_kbps,
+                network_cir_kbps, network_eir_kbps, cos, trust_ce_qos, order_name,
+                client, a_end, z_end, description
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        ''', (
+            name, service_type, bandwidth_kbps, traffic_cir_kbps, traffic_eir_kbps,
+            network_cir_kbps, network_eir_kbps, cos, trust_ce_qos, order_name,
+            client, a_end, z_end, description
+        ))
+        conn.commit()
+        flash(f'CPAN Service "{name}" added successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error adding CPAN Service: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_services'))
+
+
+@app.route('/api/cpan-service/<int:service_id>')
+@login_required
+def get_cpan_service(service_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM cpan_services WHERE id = ?;", (service_id,))
+    row = cursor.fetchone()
+    conn.close()
+    
+    if row is None:
+        return jsonify({'error': 'CPAN Service not found'}), 404
+        
+    return jsonify(dict(row))
+
+
+@app.route('/cpan-service/<int:service_id>/edit', methods=['POST'])
+@login_required
+def edit_cpan_service(service_id):
+    name = request.form.get('name', '').strip()
+    service_type = request.form.get('service_type', '').strip()
+    bandwidth_kbps = request.form.get('bandwidth_kbps', '0.0').strip()
+    traffic_cir_kbps = request.form.get('traffic_cir_kbps', '0.0').strip()
+    traffic_eir_kbps = request.form.get('traffic_eir_kbps', '0.0').strip()
+    network_cir_kbps = request.form.get('network_cir_kbps', '0.0').strip()
+    network_eir_kbps = request.form.get('network_eir_kbps', '0.0').strip()
+    cos = request.form.get('cos', '').strip()
+    trust_ce_qos = request.form.get('trust_ce_qos', '').strip()
+    order_name = request.form.get('order_name', '').strip()
+    client = request.form.get('client', '').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    description = request.form.get('description', '').strip()
+    
+    if not name:
+        flash('Service Name is required.', 'warning')
+        return redirect(url_for('cpan_services'))
+        
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            UPDATE cpan_services
+            SET name = ?, service_type = ?, bandwidth_kbps = ?, traffic_cir_kbps = ?,
+                traffic_eir_kbps = ?, network_cir_kbps = ?, network_eir_kbps = ?, cos = ?,
+                trust_ce_qos = ?, order_name = ?, client = ?, a_end = ?, z_end = ?, description = ?
+            WHERE id = ?;
+        ''', (
+            name, service_type, bandwidth_kbps, traffic_cir_kbps, traffic_eir_kbps,
+            network_cir_kbps, network_eir_kbps, cos, trust_ce_qos, order_name,
+            client, a_end, z_end, description, service_id
+        ))
+        conn.commit()
+        flash(f'CPAN Service #{service_id} updated successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error updating CPAN Service: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_services'))
+
+
+@app.route('/cpan-service/<int:service_id>/delete', methods=['POST'])
+@login_required
+def delete_cpan_service(service_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM cpan_services WHERE id = ?;", (service_id,))
+        conn.commit()
+        flash(f'CPAN Service #{service_id} deleted successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error deleting CPAN Service: {str(e)}', 'danger')
+    finally:
+        conn.close()
+        
+    return redirect(url_for('cpan_services'))
+
+
+@app.route('/upload-cpan-services', methods=['POST'])
+@login_required
+def upload_cpan_services():
+    if 'file' not in request.files:
+        flash('No file uploaded.', 'danger')
+        return redirect(url_for('cpan_services'))
+        
+    file = request.files['file']
+    if file.filename == '':
+        flash('No file selected.', 'warning')
+        return redirect(url_for('cpan_services'))
+        
+    if not (file.filename.endswith('.csv') or file.filename.endswith('.xlsx') or file.filename.endswith('.xls')):
+        flash('Invalid file format. Please upload a CSV or Excel file (e.g. CPAN_Service_List.csv).', 'danger')
+        return redirect(url_for('cpan_services'))
+        
+    try:
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        else:
+            df = pd.read_excel(file)
+            
+        from init_db import import_cpan_services_csv
+        imported_count = import_cpan_services_csv(df)
+        flash(f'Successfully uploaded and processed {imported_count} CPAN services into database!', 'success')
+    except Exception as e:
+        flash(f'Error processing file: {str(e)}', 'danger')
+        
+    return redirect(url_for('cpan_services'))
+
+
+# ==========================================
+# MAAN NETWORK SEARCH, CRUD & EXPORT ROUTES
+# ==========================================
+
+VALID_MAAN_SEARCH_COLUMNS = {
+    'all': 'Generic (All Columns)',
+    'ne_ip': 'NE IP',
+    'location': 'Location',
+    'type': 'Type',
+    'ssa': 'SSA',
+    'phase': 'Phase',
+    'ne_name': 'NE Name',
+    'dcc_ip': 'DCC IP'
+}
+ALL_MAAN_SEARCHABLE_COLS = ['ne_ip', 'location', 'type', 'ssa', 'phase', 'ne_name', 'dcc_ip']
+VALID_MAAN_SORT_COLUMNS = {
+    'id': 'maan_nodes.id',
+    'ne_ip': 'ne_ip',
+    'location': 'location',
+    'type': 'type',
+    'ssa': 'ssa',
+    'phase': 'phase',
+    'ne_name': 'ne_name',
+    'dcc_ip': 'dcc_ip'
+}
+
+VALID_MAAN_SERVICES_SEARCH_COLUMNS = {
+    'all': 'Generic (All Columns)',
+    'name': 'Name',
+    'service_type': 'Service Type',
+    'order_name': 'Order Name',
+    'client': 'Client',
+    'a_end': 'A End',
+    'z_end': 'Z End'
+}
+ALL_MAAN_SERVICES_SEARCHABLE_COLS = ['name', 'service_type', 'order_name', 'client', 'a_end', 'z_end', 'description']
+VALID_MAAN_SERVICES_SORT_COLUMNS = {
+    'id': 'maan_services.id',
+    'name': 'name',
+    'service_type': 'service_type',
+    'bandwidth_kbps': 'bandwidth_kbps',
+    'traffic_cir_kbps': 'traffic_cir_kbps',
+    'order_name': 'order_name',
+    'client': 'client',
+    'a_end': 'a_end',
+    'z_end': 'z_end'
+}
+
+VALID_MAAN_TLS_SEARCH_COLUMNS = {
+    'all': 'Generic (All Columns)',
+    'name': 'Name',
+    'media_type': 'Media Type',
+    'bandwidth': 'Bandwidth',
+    'signal_type': 'Signal Type',
+    'a_end': 'A End',
+    'z_end': 'Z End',
+    'alarm_status': 'Alarm Status',
+    'client': 'Client'
+}
+ALL_MAAN_TLS_SEARCHABLE_COLS = ['name', 'media_type', 'bandwidth', 'signal_type', 'a_end', 'z_end', 'alarm_status', 'order_name', 'client', 'description']
+VALID_MAAN_TLS_SORT_COLUMNS = {
+    'id': 'maan_tls.id',
+    'name': 'name',
+    'media_type': 'media_type',
+    'bandwidth': 'bandwidth',
+    'signal_type': 'signal_type',
+    'a_end': 'a_end',
+    'z_end': 'z_end',
+    'alarm_status': 'alarm_status'
+}
+
+
+def search_maan_nodes(query="", search_by="all", selected_ssa="", selected_type="", page=1, per_page=25, sort_by="id", sort_order="asc"):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if search_by not in VALID_MAAN_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    sort_col = VALID_MAAN_SORT_COLUMNS.get(sort_by, 'maan_nodes.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
+    cursor.execute("SELECT COUNT(*) FROM maan_nodes;")
+    total_records = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT DISTINCT ssa FROM maan_nodes WHERE ssa IS NOT NULL AND ssa != '' ORDER BY ssa ASC;")
+    unique_ssas = [r['ssa'] for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT DISTINCT type FROM maan_nodes WHERE type IS NOT NULL AND type != '' ORDER BY type ASC;")
+    unique_types = [r['type'] for r in cursor.fetchall()]
+    
+    cursor.execute("SELECT COUNT(DISTINCT location) FROM maan_nodes WHERE location IS NOT NULL AND location != '';")
+    unique_locations_count = cursor.fetchone()[0]
+    
+    where_clauses = []
+    params = []
+    
+    if query:
+        q_like = f"%{query.strip()}%"
+        if search_by != "all" and search_by in ALL_MAAN_SEARCHABLE_COLS:
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_MAAN_SEARCHABLE_COLS]
+            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+            params.extend([q_like] * len(ALL_MAAN_SEARCHABLE_COLS))
+            
+    if selected_ssa:
+        where_clauses.append("LOWER(ssa) = LOWER(?)")
+        params.append(selected_ssa.strip())
+        
+    if selected_type:
+        where_clauses.append("LOWER(type) = LOWER(?)")
+        params.append(selected_type.strip())
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    count_sql = f"SELECT COUNT(*) FROM maan_nodes {where_sql};"
+    cursor.execute(count_sql, params)
+    filtered_count = cursor.fetchone()[0]
+    
+    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * per_page
+    
+    data_sql = f"SELECT * FROM maan_nodes {where_sql} ORDER BY {sort_col} {sort_dir} LIMIT ? OFFSET ?;"
+    cursor.execute(data_sql, params + [per_page, offset])
+    rows = [dict(r) for r in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        'nodes': rows,
+        'rows': rows,
+        'total_records': total_records,
+        'filtered_count': filtered_count,
+        'unique_ssas': unique_ssas,
+        'unique_types': unique_types,
+        'unique_locations_count': unique_locations_count,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'query': query,
+        'search_by': search_by,
+        'selected_ssa': selected_ssa,
+        'selected_type': selected_type,
+        'sort_by': sort_by,
+        'sort_order': sort_order
+    }
+
+
+def search_maan_services(query="", search_by="all", selected_type="", page=1, per_page=25, sort_by="id", sort_order="asc"):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if search_by not in VALID_MAAN_SERVICES_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    sort_col = VALID_MAAN_SERVICES_SORT_COLUMNS.get(sort_by, 'maan_services.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
+    cursor.execute("SELECT COUNT(*) FROM maan_services;")
+    total_records = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT DISTINCT service_type FROM maan_services WHERE service_type IS NOT NULL AND service_type != '' ORDER BY service_type ASC;")
+    unique_service_types = [r['service_type'] for r in cursor.fetchall()]
+    
+    where_clauses = []
+    params = []
+    
+    if query:
+        q_like = f"%{query.strip()}%"
+        if search_by != "all" and search_by in ALL_MAAN_SERVICES_SEARCHABLE_COLS:
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_MAAN_SERVICES_SEARCHABLE_COLS]
+            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+            params.extend([q_like] * len(ALL_MAAN_SERVICES_SEARCHABLE_COLS))
+            
+    if selected_type:
+        where_clauses.append("LOWER(service_type) = LOWER(?)")
+        params.append(selected_type.strip())
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    count_sql = f"SELECT COUNT(*) FROM maan_services {where_sql};"
+    cursor.execute(count_sql, params)
+    filtered_count = cursor.fetchone()[0]
+    
+    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * per_page
+    
+    data_sql = f"SELECT * FROM maan_services {where_sql} ORDER BY {sort_col} {sort_dir} LIMIT ? OFFSET ?;"
+    cursor.execute(data_sql, params + [per_page, offset])
+    rows = [dict(r) for r in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        'rows': rows,
+        'total_records': total_records,
+        'filtered_count': filtered_count,
+        'unique_service_types': unique_service_types,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'query': query,
+        'search_by': search_by,
+        'selected_type': selected_type,
+        'sort_by': sort_by,
+        'sort_order': sort_order
+    }
+
+
+def search_maan_tls(query="", search_by="all", selected_media="", page=1, per_page=25, sort_by="id", sort_order="asc"):
+    conn = get_db()
+    cursor = conn.cursor()
+    
+    if search_by not in VALID_MAAN_TLS_SEARCH_COLUMNS:
+        search_by = "all"
+        
+    sort_col = VALID_MAAN_TLS_SORT_COLUMNS.get(sort_by, 'maan_tls.id')
+    sort_dir = "DESC" if str(sort_order).lower() in ("desc", "descending") else "ASC"
+    
+    cursor.execute("SELECT COUNT(*) FROM maan_tls;")
+    total_records = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT DISTINCT media_type FROM maan_tls WHERE media_type IS NOT NULL AND media_type != '' ORDER BY media_type ASC;")
+    unique_media_types = [r['media_type'] for r in cursor.fetchall()]
+    
+    where_clauses = []
+    params = []
+    
+    if query:
+        q_like = f"%{query.strip()}%"
+        if search_by != "all" and search_by in ALL_MAAN_TLS_SEARCHABLE_COLS:
+            where_clauses.append(f"LOWER({search_by}) LIKE LOWER(?)")
+            params.append(q_like)
+        else:
+            or_clauses = [f"LOWER({c}) LIKE LOWER(?)" for c in ALL_MAAN_TLS_SEARCHABLE_COLS]
+            where_clauses.append("(" + " OR ".join(or_clauses) + ")")
+            params.extend([q_like] * len(ALL_MAAN_TLS_SEARCHABLE_COLS))
+            
+    if selected_media:
+        where_clauses.append("LOWER(media_type) = LOWER(?)")
+        params.append(selected_media.strip())
+        
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+        
+    count_sql = f"SELECT COUNT(*) FROM maan_tls {where_sql};"
+    cursor.execute(count_sql, params)
+    filtered_count = cursor.fetchone()[0]
+    
+    total_pages = max(1, (filtered_count + per_page - 1) // per_page)
+    page = max(1, min(page, total_pages))
+    offset = (page - 1) * per_page
+    
+    data_sql = f"SELECT * FROM maan_tls {where_sql} ORDER BY {sort_col} {sort_dir} LIMIT ? OFFSET ?;"
+    cursor.execute(data_sql, params + [per_page, offset])
+    rows = [dict(r) for r in cursor.fetchall()]
+    
+    conn.close()
+    
+    return {
+        'rows': rows,
+        'total_records': total_records,
+        'filtered_count': filtered_count,
+        'unique_media_types': unique_media_types,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'query': query,
+        'search_by': search_by,
+        'selected_media': selected_media,
+        'sort_by': sort_by,
+        'sort_order': sort_order
+    }
+
+
+# Page & API Routes for MAAN Nodes
+@app.route('/maan-nodes')
+@login_required
+def maan_nodes():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_ssa = request.args.get('ssa', '').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    try: page = int(request.args.get('page', 1))
+    except ValueError: page = 1
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000): per_page = 25
+    except ValueError: per_page = 25
+    res = search_maan_nodes(query, search_by, selected_ssa, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return render_template('maan_nodes.html', active_tab='nodes', nodes=res['rows'], total_records=res['total_records'], filtered_count=res['filtered_count'], unique_ssas=res['unique_ssas'], unique_types=res['unique_types'], unique_locations_count=res['unique_locations_count'], page=res['page'], per_page=res['per_page'], total_pages=res['total_pages'], query=query, search_by=search_by, selected_ssa=selected_ssa, selected_type=selected_type, sort_by=sort_by, sort_order=sort_order, search_columns=VALID_MAAN_SEARCH_COLUMNS)
+
+@app.route('/api/maan-nodes/search')
+@login_required
+def api_search_maan_nodes():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_ssa = request.args.get('ssa', '').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    try: page = int(request.args.get('page', 1))
+    except ValueError: page = 1
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000): per_page = 25
+    except ValueError: per_page = 25
+    res = search_maan_nodes(query, search_by, selected_ssa, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return jsonify(res)
+
+@app.route('/api/maan-node/<int:node_id>')
+@login_required
+def get_maan_node(node_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM maan_nodes WHERE id = ?;", (node_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None: return jsonify({'error': 'MAAN Node not found'}), 404
+    return jsonify(dict(row))
+
+@app.route('/maan-node/new', methods=['POST'])
+@login_required
+def create_maan_node():
+    ne_ip = request.form.get('ne_ip', '').strip()
+    location = request.form.get('location', '').strip()
+    ne_type = request.form.get('type', '').strip()
+    ssa = request.form.get('ssa', '').strip()
+    phase = request.form.get('phase', '').strip()
+    ne_name = request.form.get('ne_name', '').strip()
+    dcc_ip = request.form.get('dcc_ip', '').strip()
+    if not ne_ip or not location:
+        flash('NE IP and Location are required fields.', 'warning')
+        return redirect(url_for('maan_nodes'))
+    if not ne_name: ne_name = f"{ne_ip}_{location}_{ne_type}_{ssa}".rstrip('_')
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('INSERT INTO maan_nodes (ne_ip, location, type, ssa, phase, ne_name, dcc_ip) VALUES (?, ?, ?, ?, ?, ?, ?);', (ne_ip, location, ne_type, ssa, phase, ne_name, dcc_ip))
+        conn.commit()
+        flash(f'MAAN Node {ne_ip} ({location}) added successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error adding MAAN Node: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_nodes'))
+
+@app.route('/maan-node/<int:node_id>/edit', methods=['POST'])
+@login_required
+def edit_maan_node(node_id):
+    ne_ip = request.form.get('ne_ip', '').strip()
+    location = request.form.get('location', '').strip()
+    ne_type = request.form.get('type', '').strip()
+    ssa = request.form.get('ssa', '').strip()
+    phase = request.form.get('phase', '').strip()
+    ne_name = request.form.get('ne_name', '').strip()
+    dcc_ip = request.form.get('dcc_ip', '').strip()
+    if not ne_ip or not location:
+        flash('NE IP and Location are required fields.', 'warning')
+        return redirect(url_for('maan_nodes'))
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('UPDATE maan_nodes SET ne_ip=?, location=?, type=?, ssa=?, phase=?, ne_name=?, dcc_ip=? WHERE id=?;', (ne_ip, location, ne_type, ssa, phase, ne_name, dcc_ip, node_id))
+        conn.commit()
+        flash(f'MAAN Node #{node_id} updated successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error updating MAAN Node: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_nodes'))
+
+@app.route('/maan-node/<int:node_id>/delete', methods=['POST'])
+@login_required
+def delete_maan_node(node_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('DELETE FROM maan_nodes WHERE id=?;', (node_id,))
+        conn.commit()
+        flash(f'MAAN Node #{node_id} deleted successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error deleting MAAN Node: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_nodes'))
+
+@app.route('/upload-maan-nodes', methods=['POST'])
+@login_required
+def upload_maan_nodes():
+    if 'file' not in request.files:
+        flash('No file uploaded.', 'danger')
+        return redirect(url_for('maan_nodes'))
+    file = request.files['file']
+    if file.filename == '':
+        flash('No file selected.', 'warning')
+        return redirect(url_for('maan_nodes'))
+    try:
+        if file.filename.endswith('.csv'): df = pd.read_csv(file)
+        else: df = pd.read_excel(file)
+        from init_db import import_maan_nodes_csv
+        cnt = import_maan_nodes_csv(df)
+        flash(f'Successfully imported {cnt} MAAN nodes!', 'success')
+    except Exception as e: flash(f'Error processing file: {str(e)}', 'danger')
+    return redirect(url_for('maan_nodes'))
+
+@app.route('/export-maan-nodes')
+@login_required
+def export_maan_nodes():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_ssa = request.args.get('ssa', '').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    export_format = request.args.get('format', 'csv').strip().lower()
+    res = search_maan_nodes(query, search_by, selected_ssa, selected_type, page=1, per_page=20000, sort_by=sort_by, sort_order=sort_order)
+    df = pd.DataFrame(res['rows'])
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output = BytesIO()
+    if export_format in ('excel', 'xlsx'):
+        filename = f"MAAN_Nodes_{timestamp}.xlsx"
+        with pd.ExcelWriter(output, engine='openpyxl') as writer: df.to_excel(writer, index=False, sheet_name='MAAN Nodes')
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    else:
+        filename = f"MAAN_Nodes_{timestamp}.csv"
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='text/csv')
+
+
+# Page & API Routes for MAAN Services
+@app.route('/maan-services')
+@login_required
+def maan_services():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    try: page = int(request.args.get('page', 1))
+    except ValueError: page = 1
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000): per_page = 25
+    except ValueError: per_page = 25
+    res = search_maan_services(query, search_by, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return render_template('maan_services.html', active_tab='services', rows=res['rows'], total_records=res['total_records'], filtered_count=res['filtered_count'], unique_service_types=res['unique_service_types'], page=res['page'], per_page=res['per_page'], total_pages=res['total_pages'], query=query, search_by=search_by, selected_type=selected_type, sort_by=sort_by, sort_order=sort_order, search_columns=VALID_MAAN_SERVICES_SEARCH_COLUMNS)
+
+@app.route('/api/maan-services/search')
+@login_required
+def api_search_maan_services():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    try: page = int(request.args.get('page', 1))
+    except ValueError: page = 1
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000): per_page = 25
+    except ValueError: per_page = 25
+    res = search_maan_services(query, search_by, selected_type, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return jsonify(res)
+
+@app.route('/api/maan-service/<int:service_id>')
+@login_required
+def get_maan_service(service_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM maan_services WHERE id = ?;", (service_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None: return jsonify({'error': 'MAAN Service not found'}), 404
+    return jsonify(dict(row))
+
+@app.route('/maan-service/new', methods=['POST'])
+@login_required
+def create_maan_service():
+    name = request.form.get('name', '').strip()
+    service_type = request.form.get('service_type', '').strip()
+    bandwidth_kbps = request.form.get('bandwidth_kbps', '0.0').strip()
+    traffic_cir_kbps = request.form.get('traffic_cir_kbps', '0.0').strip()
+    order_name = request.form.get('order_name', '').strip()
+    client = request.form.get('client', '').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    description = request.form.get('description', '').strip()
+    if not name:
+        flash('Service Name is required.', 'warning')
+        return redirect(url_for('maan_services'))
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('INSERT INTO maan_services (name, service_type, bandwidth_kbps, traffic_cir_kbps, order_name, client, a_end, z_end, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);', (name, service_type, bandwidth_kbps, traffic_cir_kbps, order_name, client, a_end, z_end, description))
+        conn.commit()
+        flash(f'MAAN Service "{name}" added successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error adding MAAN Service: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_services'))
+
+@app.route('/maan-service/<int:service_id>/edit', methods=['POST'])
+@login_required
+def edit_maan_service(service_id):
+    name = request.form.get('name', '').strip()
+    service_type = request.form.get('service_type', '').strip()
+    bandwidth_kbps = request.form.get('bandwidth_kbps', '0.0').strip()
+    traffic_cir_kbps = request.form.get('traffic_cir_kbps', '0.0').strip()
+    order_name = request.form.get('order_name', '').strip()
+    client = request.form.get('client', '').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    description = request.form.get('description', '').strip()
+    if not name:
+        flash('Service Name is required.', 'warning')
+        return redirect(url_for('maan_services'))
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('UPDATE maan_services SET name=?, service_type=?, bandwidth_kbps=?, traffic_cir_kbps=?, order_name=?, client=?, a_end=?, z_end=?, description=? WHERE id=?;', (name, service_type, bandwidth_kbps, traffic_cir_kbps, order_name, client, a_end, z_end, description, service_id))
+        conn.commit()
+        flash(f'MAAN Service #{service_id} updated successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error updating MAAN Service: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_services'))
+
+@app.route('/maan-service/<int:service_id>/delete', methods=['POST'])
+@login_required
+def delete_maan_service(service_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('DELETE FROM maan_services WHERE id=?;', (service_id,))
+        conn.commit()
+        flash(f'MAAN Service #{service_id} deleted successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error deleting MAAN Service: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_services'))
+
+@app.route('/upload-maan-services', methods=['POST'])
+@login_required
+def upload_maan_services():
+    if 'file' not in request.files:
+        flash('No file uploaded.', 'danger')
+        return redirect(url_for('maan_services'))
+    file = request.files['file']
+    if file.filename == '':
+        flash('No file selected.', 'warning')
+        return redirect(url_for('maan_services'))
+    try:
+        if file.filename.endswith('.csv'): df = pd.read_csv(file)
+        else: df = pd.read_excel(file)
+        from init_db import import_maan_services_csv
+        cnt = import_maan_services_csv(df)
+        flash(f'Successfully imported {cnt} MAAN services!', 'success')
+    except Exception as e: flash(f'Error processing file: {str(e)}', 'danger')
+    return redirect(url_for('maan_services'))
+
+@app.route('/export-maan-services')
+@login_required
+def export_maan_services():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_type = request.args.get('type', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    export_format = request.args.get('format', 'csv').strip().lower()
+    res = search_maan_services(query, search_by, selected_type, page=1, per_page=20000, sort_by=sort_by, sort_order=sort_order)
+    df = pd.DataFrame(res['rows'])
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output = BytesIO()
+    if export_format in ('excel', 'xlsx'):
+        filename = f"MAAN_Services_{timestamp}.xlsx"
+        with pd.ExcelWriter(output, engine='openpyxl') as writer: df.to_excel(writer, index=False, sheet_name='MAAN Services')
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    else:
+        filename = f"MAAN_Services_{timestamp}.csv"
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='text/csv')
+
+
+# Page & API Routes for MAAN TLS
+@app.route('/maan-tls')
+@login_required
+def maan_tls():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_media = request.args.get('media', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    try: page = int(request.args.get('page', 1))
+    except ValueError: page = 1
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000): per_page = 25
+    except ValueError: per_page = 25
+    res = search_maan_tls(query, search_by, selected_media, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return render_template('maan_tls.html', active_tab='tls', rows=res['rows'], total_records=res['total_records'], filtered_count=res['filtered_count'], unique_media_types=res['unique_media_types'], page=res['page'], per_page=res['per_page'], total_pages=res['total_pages'], query=query, search_by=search_by, selected_media=selected_media, sort_by=sort_by, sort_order=sort_order, search_columns=VALID_MAAN_TLS_SEARCH_COLUMNS)
+
+@app.route('/api/maan-tls/search')
+@login_required
+def api_search_maan_tls():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_media = request.args.get('media', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    try: page = int(request.args.get('page', 1))
+    except ValueError: page = 1
+    try:
+        per_page = int(request.args.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100, 250, 500, 1000, 2000): per_page = 25
+    except ValueError: per_page = 25
+    res = search_maan_tls(query, search_by, selected_media, page, per_page, sort_by=sort_by, sort_order=sort_order)
+    return jsonify(res)
+
+@app.route('/api/maan-tls/<int:tls_id>')
+@login_required
+def get_maan_tls(tls_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM maan_tls WHERE id = ?;", (tls_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None: return jsonify({'error': 'MAAN TLS Record not found'}), 404
+    return jsonify(dict(row))
+
+@app.route('/maan-tls/new', methods=['POST'])
+@login_required
+def create_maan_tls():
+    name = request.form.get('name', '').strip()
+    media_type = request.form.get('media_type', '').strip()
+    bandwidth = request.form.get('bandwidth', '').strip()
+    signal_type = request.form.get('signal_type', '').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    alarm_status = request.form.get('alarm_status', 'Normal').strip()
+    order_name = request.form.get('order_name', '').strip()
+    client = request.form.get('client', '').strip()
+    description = request.form.get('description', '').strip()
+    if not name:
+        flash('Name is required.', 'warning')
+        return redirect(url_for('maan_tls'))
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('INSERT INTO maan_tls (name, media_type, bandwidth, signal_type, a_end, z_end, alarm_status, order_name, client, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);', (name, media_type, bandwidth, signal_type, a_end, z_end, alarm_status, order_name, client, description))
+        conn.commit()
+        flash(f'MAAN TLS Record "{name}" added successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error adding MAAN TLS Record: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_tls'))
+
+@app.route('/maan-tls/<int:tls_id>/edit', methods=['POST'])
+@login_required
+def edit_maan_tls(tls_id):
+    name = request.form.get('name', '').strip()
+    media_type = request.form.get('media_type', '').strip()
+    bandwidth = request.form.get('bandwidth', '').strip()
+    signal_type = request.form.get('signal_type', '').strip()
+    a_end = request.form.get('a_end', '').strip()
+    z_end = request.form.get('z_end', '').strip()
+    alarm_status = request.form.get('alarm_status', 'Normal').strip()
+    order_name = request.form.get('order_name', '').strip()
+    client = request.form.get('client', '').strip()
+    description = request.form.get('description', '').strip()
+    if not name:
+        flash('Name is required.', 'warning')
+        return redirect(url_for('maan_tls'))
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('UPDATE maan_tls SET name=?, media_type=?, bandwidth=?, signal_type=?, a_end=?, z_end=?, alarm_status=?, order_name=?, client=?, description=? WHERE id=?;', (name, media_type, bandwidth, signal_type, a_end, z_end, alarm_status, order_name, client, description, tls_id))
+        conn.commit()
+        flash(f'MAAN TLS Record #{tls_id} updated successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error updating MAAN TLS Record: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_tls'))
+
+@app.route('/maan-tls/<int:tls_id>/delete', methods=['POST'])
+@login_required
+def delete_maan_tls(tls_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('DELETE FROM maan_tls WHERE id=?;', (tls_id,))
+        conn.commit()
+        flash(f'MAAN TLS Record #{tls_id} deleted successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Error deleting MAAN TLS Record: {str(e)}', 'danger')
+    finally: conn.close()
+    return redirect(url_for('maan_tls'))
+
+@app.route('/upload-maan-tls', methods=['POST'])
+@login_required
+def upload_maan_tls():
+    if 'file' not in request.files:
+        flash('No file uploaded.', 'danger')
+        return redirect(url_for('maan_tls'))
+    file = request.files['file']
+    if file.filename == '':
+        flash('No file selected.', 'warning')
+        return redirect(url_for('maan_tls'))
+    try:
+        if file.filename.endswith('.csv'): df = pd.read_csv(file)
+        else: df = pd.read_excel(file)
+        from init_db import import_maan_tls_csv
+        cnt = import_maan_tls_csv(df)
+        flash(f'Successfully imported {cnt} MAAN TLS records!', 'success')
+    except Exception as e: flash(f'Error processing file: {str(e)}', 'danger')
+    return redirect(url_for('maan_tls'))
+
+@app.route('/export-maan-tls')
+@login_required
+def export_maan_tls():
+    query = request.args.get('query', '').strip()
+    search_by = request.args.get('search_by', 'all').strip()
+    selected_media = request.args.get('media', '').strip()
+    sort_by = request.args.get('sort_by', 'id').strip()
+    sort_order = request.args.get('sort_order', 'asc').strip()
+    export_format = request.args.get('format', 'csv').strip().lower()
+    res = search_maan_tls(query, search_by, selected_media, page=1, per_page=20000, sort_by=sort_by, sort_order=sort_order)
+    df = pd.DataFrame(res['rows'])
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output = BytesIO()
+    if export_format in ('excel', 'xlsx'):
+        filename = f"MAAN_TLS_{timestamp}.xlsx"
+        with pd.ExcelWriter(output, engine='openpyxl') as writer: df.to_excel(writer, index=False, sheet_name='MAAN TLS')
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    else:
+        filename = f"MAAN_TLS_{timestamp}.csv"
+        csv_bytes = df.to_csv(index=False, encoding='utf-8').encode('utf-8')
+        output.write(csv_bytes)
+        output.seek(0)
+        return send_file(output, as_attachment=True, download_name=filename, mimetype='text/csv')
+
+
+# ==============================================================================
+
 if __name__ == '__main__':
     init_db()
-    print("Starting CPAN NOC on http://127.0.0.1:5000 ...")
+    print("Starting CPAN Network on http://127.0.0.1:5000 ...")
     app.run(host='127.0.0.1', port=5000, debug=True)
 
 

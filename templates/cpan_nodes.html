@@ -1,8 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}CPAN Nodes Database &bull; CPAN NOC{% endblock %}
+{% block title %}CPAN Nodes Database &bull; CPAN Network{% endblock %}
 
 {% block content %}
+<!-- CPAN Network Top Sub-Tabs Navigation -->
+<ul class="nav nav-pills bg-white p-2 rounded-3 shadow-sm border mb-4">
+    <li class="nav-item me-2">
+        <a class="nav-link fw-bold px-4 py-2 text-dark" href="{{ url_for('cpan_dl_list') }}">
+            <i class="fa-solid fa-list-check me-2"></i>CPAN DL List
+        </a>
+    </li>
+    <li class="nav-item me-2">
+        <a class="nav-link fw-bold px-4 py-2 active shadow-sm" href="{{ url_for('cpan_nodes') }}">
+            <i class="fa-solid fa-network-wired me-2"></i>CPAN Nodes
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link fw-bold px-4 py-2 text-dark" href="{{ url_for('cpan_services') }}">
+            <i class="fa-solid fa-gears me-2"></i>CPAN Services
+        </a>
+    </li>
+</ul>
+
 <!-- Page Header & Actions -->
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <div>
@@ -191,13 +210,11 @@
         <!-- Per Page & Action buttons -->
         <div class="col-md-2 d-flex gap-2 justify-content-end">
             <select id="cpan-per-page-select" name="per_page" class="form-select bg-light" style="width: auto;" title="Records per page">
-                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                 <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
                 <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
                 <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                <option value="250" {% if per_page == 250 %}selected{% endif %}>250</option>
-                <option value="1000" {% if per_page == 1000 %}selected{% endif %}>1000</option>
-                <option value="20000" {% if per_page == 20000 %}selected{% endif %}>20000</option>
+                <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
+                <option value="2000" {% if per_page == 2000 %}selected{% endif %}>2000</option>
             </select>
             <button type="button" id="cpan-clear-filters-btn" class="btn btn-outline-secondary" title="Clear Filters" style="display: {% if query or selected_ssa or selected_type or search_by != 'all' or (sort_by and sort_by != 'id') %}inline-block{% else %}none{% endif %};">
                 <i class="fa-solid fa-xmark"></i>
