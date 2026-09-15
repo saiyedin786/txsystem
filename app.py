@@ -621,7 +621,7 @@ def api_search():
     return jsonify(data)
 
 
-@app.route('/api/site/<site_id>')
+@app.route('/api/site/<path:site_id>')
 @login_required
 def api_get_site(site_id):
     conn = get_db()
@@ -1364,7 +1364,7 @@ def create_site():
     return render_template('site_form.html', mode='create', form_data={})
 
 
-@app.route('/site/<site_id>')
+@app.route('/site/<path:site_id>')
 @login_required
 def view_site(site_id):
     conn = get_db()
@@ -1381,7 +1381,7 @@ def view_site(site_id):
     return render_template('view_site.html', site=site)
 
 
-@app.route('/site/<site_id>/edit', methods=['GET', 'POST'])
+@app.route('/site/<path:site_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_site(site_id):
     conn = get_db()
@@ -1503,6 +1503,7 @@ def edit_site(site_id):
         conn.commit()
         conn.close()
         
+        log_activity('EDIT_SITE', 'bts_sites', site_id, f'Updated site "{site_id}" ({site_name or ""})')
         flash(f'Site "{site_id}" updated successfully!', 'success')
         return redirect(url_for('view_site', site_id=site_id))
         
@@ -1510,7 +1511,7 @@ def edit_site(site_id):
     return render_template('site_form.html', mode='edit', site=site, form_data=site)
 
 
-@app.route('/site/<site_id>/delete', methods=['POST'])
+@app.route('/site/<path:site_id>/delete', methods=['POST'])
 @login_required
 def delete_site(site_id):
     conn = get_db()
